@@ -108,6 +108,8 @@ public class Soldier
             y += info.location.y;
             numEnemies++;
         }
+        if (numEnemies == 0) return;
+
         MapLocation enemyCenter = new MapLocation(x/numEnemies, y/numEnemies);
 
         Robot allies[] = rc.senseNearbyGameObjects(
@@ -164,8 +166,8 @@ public class Soldier
             mines(rc, coord, strength, Weights.NEUTRAL_MINE, Team.NEUTRAL);
             mines(rc, coord, strength, Weights.ENEMY_MINE, team.opponent());
 
-            // globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
-            // globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
+            globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
+            globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
 
             localRobots(rc, coord, strength, team);
 
