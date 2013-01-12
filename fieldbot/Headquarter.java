@@ -63,11 +63,11 @@ public class Headquarter
         if (!rc.hasUpgrade(Upgrade.DEFUSION))
             rc.researchUpgrade(Upgrade.DEFUSION);
 
-        else if (!rc.hasUpgrade(Upgrade.VISION))
-            rc.researchUpgrade(Upgrade.VISION);
-
         else if (!rc.hasUpgrade(Upgrade.FUSION))
             rc.researchUpgrade(Upgrade.FUSION);
+
+        else if (!rc.hasUpgrade(Upgrade.VISION))
+            rc.researchUpgrade(Upgrade.VISION);
 
         else rc.researchUpgrade(Upgrade.NUKE);
     }
