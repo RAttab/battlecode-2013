@@ -10,10 +10,12 @@ public class RobotPlayer
 
     private static void debug_dumpStrength(RobotController rc, double[] strength)
     {
-	String str = rc.getRobot().getID() + " { ";
-	for (int i = 0; i < 8; ++i)
-	    str += "(" + Direction.values()[i].name() + "=" + strength[i] + "), ";
-	str += " }";
+	String str = "{ ";
+	for (int i = 0; i < 8; ++i) {
+	    str += "(" + Direction.values()[i].name() +
+		"=" + ((int)(strength[i] * 10000)) + ") ";
+	}
+	str += "}";
 	System.out.println(str);
     }
 
@@ -36,10 +38,14 @@ public class RobotPlayer
 
     private static void soldier(RobotController rc) throws GameActionException
     {
-	final double HQ_WEIGHT = 1.0;
+	final double HQ_WEIGHT = 20.0;
+	final double ENEMIES_WEIGHT = 2.0;
+	final double ALLIES_WEIGHT = -0.1;
 	final double NEUTRAL_MINE_WEIGHT = -0.3;
 
 	final int MAX_MINES = 10;
+	final int MAX_ENEMIES = 10;
+	final int MAX_ALLIES = 10;
 
 	final Direction ordinals[] = Direction.values();
 	final Team team = rc.getTeam();
@@ -71,31 +77,50 @@ public class RobotPlayer
 	    // Mines
 	    {
 		MapLocation mines[] =
-		    rc.senseMineLocations(coord,
-					  10000,
-					  Team.NEUTRAL);
+		    rc.senseMineLocations(coord, 10000, Team.NEUTRAL);
 
-		int steps = mines.length / MAX_MINES;
+		int steps = Math.max(mines.length / MAX_MINES, 1);
 		for (int i = 0; i < mines.length; i += steps) {
-		    Direction dir = mines[i].directionTo(coord);
-		    strengthen(strength, dir,
-			       NEUTRAL_MINE_WEIGHT,
-			       mines[i].distanceSquaredTo(coord));
+		    Direction dir = coord.directionTo(mines[i]);
+
+		    strengthen(strength, dir, NEUTRAL_MINE_WEIGHT,
+			       coord.distanceSquaredTo(mines[i]));
 		}
 	    }
 
 
 	    // Enemies
 	    {
+		Robot enemies[] =
+		    rc.senseNearbyGameObjects(Robot.class, 10000, team.opponent());
 
+		int steps = Math.max(enemies.length / MAX_ENEMIES, 1);
+		for (int i = 0; i < enemies.length; i += steps) {
+		    MapLocation enemyCoord = rc.senseRobotInfo(enemies[i]).location;
+		    Direction dir = coord.directionTo(enemyCoord);
+
+		    strengthen(strength, dir, ENEMIES_WEIGHT,
+			       coord.distanceSquaredTo(enemyCoord));
+
+		}
 	    }
 
 
 	    // Allies
 	    {
+		Robot allies[] =
+		    rc.senseNearbyGameObjects(Robot.class, 10000, team);
 
+		int steps = Math.max(allies.length / MAX_ALLIES, 1);
+		for (int i = 0; i < allies.length; i += steps) {
+		    MapLocation alliesCoord = rc.senseRobotInfo(allies[i]).location;
+		    Direction dir = coord.directionTo(alliesCoord);
+
+		    strengthen(strength, dir, ALLIES_WEIGHT,
+			       coord.distanceSquaredTo(alliesCoord));
+
+		}
 	    }
-
 
 
 	    // Compute the final direction.
@@ -118,8 +143,10 @@ public class RobotPlayer
 		MapLocation target = coord.add(finalDir);
 		Team mine = rc.senseMine(target);
 
-		if (mine == null || mine == team)
-		    rc.move(finalDir);
+		if (mine == null || mine == team) {
+		    if (rc.canMove(finalDir))
+			rc.move(finalDir);
+		}
 		else rc.defuseMine(target);
 	    }
 
