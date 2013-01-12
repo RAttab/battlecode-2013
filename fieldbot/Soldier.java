@@ -35,8 +35,14 @@ public class Soldier
         final int mask = 8 - 1;
 
         strength[ord] += force;
-        strength[(ord - 1) & mask] += force / 2;
-        strength[(ord + 1) & mask] += force / 2;
+
+        double falloff = 1.0;
+
+        for (int i = 1; i < 4 && falloff > 0.0; ++i) {
+            falloff -= Weights.SIGNAL_DEGRADE;
+            strength[(ord - i) & mask] += force * falloff;
+            strength[(ord + i) & mask] += force * falloff;
+        }
     }
 
     private static void strengthen(
@@ -84,6 +90,13 @@ public class Soldier
         }
     }
 
+    private static int localRadius(RobotController rc)
+    {
+        int radius = rc.getType().sensorRadiusSquared;
+        if (rc.hasUpgrade(Upgrade.VISION))
+            radius += GameConstants.VISION_UPGRADE_BONUS;
+        return radius;
+    }
 
     /**
      */
@@ -166,8 +179,8 @@ public class Soldier
             mines(rc, coord, strength, Weights.NEUTRAL_MINE, Team.NEUTRAL);
             mines(rc, coord, strength, Weights.ENEMY_MINE, team.opponent());
 
-            globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
-            globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
+            // globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
+            // globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
 
             localRobots(rc, coord, strength, team);
 

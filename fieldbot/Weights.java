@@ -4,6 +4,8 @@ import battlecode.common.*;
 
 public class Weights
 {
+    public static final double SIGNAL_DEGRADE = 0.4;
+
     public static final double ENEMY_HQ     = 20.0;
     public static final double ALLY_HQ      = -1.0;
 
