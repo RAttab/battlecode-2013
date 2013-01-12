@@ -4,26 +4,12 @@ import battlecode.common.*;
 
 public class Soldier
 {
-    private static enum Weight {
-        ENEMY_HQ(20.0), ALLY_HQ(-1.0),
 
-            GL_ENEMY_SD(2.0), LC_ENEMY_SD(1.0),
-            GL_ALLY_SD(-.01), LC_ALLY_SD(0.7),
-            LC_MUL(100.0),
+    private static final int GL_RADIUS = 100 * 100;
+    private static final int LC_RADIUS = 20;
 
-            NEUTRAL_MINE(-.3), ENEMY_MINE(-.3);
-
-        public final double value;
-        Weight(double value) { this.value = value; }
-    }
-
-    private static enum Const {
-        GL_RADIUS(100 * 100), LC_RADIUS(20),
-            MAX_MINES(10), MAX_ROBOTS(10);
-
-        public final int value;
-        Const(int value) { this.value = value; }
-    }
+    private static final int MAX_MINES  = 10;
+    private static final int MAX_ROBOTS = 10;
 
 
     private static void debug_dumpStrength(
@@ -31,11 +17,12 @@ public class Soldier
     {
         String str = "{ ";
         for (int i = 0; i < 8; ++i) {
-            str += "(" + Direction.values()[i].name() +
+            str += "(" + Utils.dirByOrd[i].name() +
                 "=" + ((int)(strength[i] * 10000)) + ") ";
         }
         str += "}";
-        System.out.println(str);
+
+        rc.setIndicatorString(rc.getRobot().getID(), str);
     }
 
     private static void strengthen(
@@ -52,9 +39,9 @@ public class Soldier
     }
 
     private static void strengthen(
-            double[] strength, Direction dir, Weight weight, double dist)
+            double[] strength, Direction dir, double weight, double dist)
     {
-        strengthen(strength, dir, weight.value * (1 / dist));
+        strengthen(strength, dir, weight * (1 / dist));
     }
 
 
@@ -62,13 +49,12 @@ public class Soldier
      */
     private static void mines(
             RobotController rc, MapLocation coord,
-            double strength[], Weight w, Team team)
+            double strength[], double w, Team team)
         throws GameActionException
     {
-        MapLocation mines[] = rc.senseMineLocations(
-                coord, Const.GL_RADIUS.value, team);
+        MapLocation mines[] = rc.senseMineLocations(coord, GL_RADIUS, team);
 
-        int steps = Math.max(mines.length / Const.MAX_MINES.value, 1);
+        int steps = Math.max(mines.length / MAX_MINES, 1);
 
         for (int i = 0; i < mines.length; i += steps) {
             Direction dir = coord.directionTo(mines[i]);
@@ -81,13 +67,13 @@ public class Soldier
      */
     private static void globalRobots(
             RobotController rc, MapLocation coord,
-            double strength[], Weight w, Team team)
+            double strength[], double w, Team team)
         throws GameActionException
     {
         Robot robots[] = rc.senseNearbyGameObjects(
-                Robot.class, Const.GL_RADIUS.value, team);
+                Robot.class, GL_RADIUS, team);
 
-        int steps = Math.max(1, robots.length / Const.MAX_ROBOTS.value);
+        int steps = Math.max(1, robots.length / MAX_ROBOTS);
 
         for (int i = 0; i < robots.length; i += steps) {
             MapLocation robotCoord = rc.senseRobotInfo(robots[i]).location;
@@ -105,12 +91,12 @@ public class Soldier
         throws GameActionException
     {
         Robot enemies[] = rc.senseNearbyGameObjects(
-                Robot.class, Const.LC_RADIUS.value, team.opponent());
+                Robot.class, LC_RADIUS, team.opponent());
 
         if (enemies.length == 0) return;
 
-        int steps = Math.max(1, enemies.length / Const.MAX_ROBOTS.value);
-        int n = Math.min(enemies.length, Const.MAX_ROBOTS.value);
+        int steps = Math.max(1, enemies.length / MAX_ROBOTS);
+        int n = Math.min(enemies.length, MAX_ROBOTS);
 
 
         int x = 0, y = 0;
@@ -123,13 +109,13 @@ public class Soldier
 
 
         Robot allies[] = rc.senseNearbyGameObjects(
-                Robot.class, Const.LC_RADIUS.value, team);
+                Robot.class, LC_RADIUS, team);
 
 
         double force = (
-                allies.length * Weight.LC_ALLY_SD.value -
-                enemies.length * Weight.LC_ENEMY_SD.value) *
-            Weight.LC_MUL.value;
+                allies.length * Weights.LC_ALLY_SD -
+                enemies.length * Weights.LC_ENEMY_SD) *
+            Weights.LC_MUL;
 
         Direction chargeDir = coord.directionTo(enemyCenter);
         strengthen(strength, chargeDir, force);
@@ -143,7 +129,6 @@ public class Soldier
      */
     public static void run(RobotController rc) throws GameActionException
     {
-        final Direction ordinals[] = Direction.values();
         final Team team = rc.getTeam();
         final Robot robot = rc.getRobot();
 
@@ -165,16 +150,16 @@ public class Soldier
                 MapLocation hq = rc.senseEnemyHQLocation();
                 Direction dir = coord.directionTo(hq);
                 strengthen(
-                        strength, dir, Weight.ENEMY_HQ,
+                        strength, dir, Weights.ENEMY_HQ,
                         hq.distanceSquaredTo(coord));
             }
 
 
-            mines(rc, coord, strength, Weight.NEUTRAL_MINE, Team.NEUTRAL);
-            mines(rc, coord, strength, Weight.ENEMY_MINE, team.opponent());
+            mines(rc, coord, strength, Weights.NEUTRAL_MINE, Team.NEUTRAL);
+            mines(rc, coord, strength, Weights.ENEMY_MINE, team.opponent());
 
-            // globalRobots(rc, coord, strength, Weight.GL_ENEMY_SD, team.opponent());
-            // globalRobots(rc, coord, strength, Weight.GL_ALLY_SD, team);
+            // globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
+            // globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
 
             localRobots(rc, coord, strength, team);
 
@@ -182,17 +167,17 @@ public class Soldier
             // Compute the final direction.
 
             double maxStrength = strength[0];
-            Direction finalDir = ordinals[0];
+            Direction finalDir = Utils.dirByOrd[0];
 
             for (int i = 1; i < 8; ++i) {
                 if (maxStrength > strength[i]) continue;
-                if (!rc.canMove(ordinals[i])) continue;
+                if (!rc.canMove(Utils.dirByOrd[i])) continue;
 
                 maxStrength = strength[i];
-                finalDir = ordinals[i];
+                finalDir = Utils.dirByOrd[i];
             }
 
-            // debug_dumpStrength(rc, strength);
+            debug_dumpStrength(rc, strength);
 
 
             // Execute the move safely.
