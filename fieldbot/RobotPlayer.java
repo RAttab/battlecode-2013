@@ -5,8 +5,11 @@ import battlecode.common.GameConstants;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 
-public class RobotPlayer {
-
+/**
+ *
+ */
+public class RobotPlayer
+{
 
     private static void soldier(RobotController rc)
     {
@@ -36,27 +39,11 @@ public class RobotPlayer {
     {
 	while (true) {
 	    try {
-		switch(rc.getType()) {
+		RobotType type = rc.getType();
 
-		case RobotType.HQ:
-		    hq(rc);
-		    break;
-
-		case RobotType.SOLDIER:
-		    soldier(rc);
-		    break;
-
-		case RobotType.MEDBAY:
-		case RobotType.SHIELDS:
-		case RobotType.ARTILLERY:
-		case RobotType.GENERATOR:
-		case RobotType.SUPPLIER:
-		    encampment(rc);
-		    break;
-
-		default:
-		    System.out.println("Uh Oh!");
-		    break;
+		if (type == RobotType.SOLDIER) soldier(rc);
+		else if (type == RobotType.HQ) hq(rc);
+		else encampment(rc);
 	    }
 	    catch(Exception e) { e.printStackTrace(); }
 	}
