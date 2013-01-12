@@ -9,7 +9,8 @@ public class Soldier
     private static final int LC_RADIUS = 20;
 
     private static final int MAX_MINES  = 10;
-    private static final int MAX_ROBOTS = 10;
+    private static final int MAX_ROBOTS = 20;
+    private static final int MAX_BASES = 10;
 
 
     private static void debug_dumpStrength(
@@ -22,7 +23,7 @@ public class Soldier
         }
         str += "}";
 
-        rc.setIndicatorString(rc.getRobot().getID(), str);
+        rc.setIndicatorString(0, str);
     }
 
     private static void strengthen(
@@ -95,33 +96,38 @@ public class Soldier
 
         if (enemies.length == 0) return;
 
-        int steps = Math.max(1, enemies.length / MAX_ROBOTS);
-        int n = Math.min(enemies.length, MAX_ROBOTS);
-
-
         int x = 0, y = 0;
-        for (int i = 0; i < enemies.length; i += steps) {
-            MapLocation loc = rc.senseRobotInfo(enemies[i]).location;
-            x += loc.x;
-            y += loc.y;
-        }
-        MapLocation enemyCenter = new MapLocation(x / n, y / n);
+        int numEnemies = 0;
+        int steps = Math.max(1, enemies.length / MAX_ROBOTS);
 
+        for (int i = 0; i < enemies.length; i += steps) {
+            RobotInfo info = rc.senseRobotInfo(enemies[i]);
+            if (info.type != RobotType.SOLDIER) continue;
+
+            x += info.location.x;
+            y += info.location.y;
+            numEnemies++;
+        }
+        MapLocation enemyCenter = new MapLocation(x/numEnemies, y/numEnemies);
 
         Robot allies[] = rc.senseNearbyGameObjects(
                 Robot.class, LC_RADIUS, team);
 
-
         double force = (
                 allies.length * Weights.LC_ALLY_SD -
-                enemies.length * Weights.LC_ENEMY_SD) *
+                numEnemies * Weights.LC_ENEMY_SD) *
             Weights.LC_MUL;
+
+        String str = "enemies=" + numEnemies + "/" + enemies.length +
+            ", allies=" + allies.length +
+            ", enemyCenter=" + enemyCenter.toString();
+        rc.setIndicatorString(1, str);
 
         Direction chargeDir = coord.directionTo(enemyCenter);
         strengthen(strength, chargeDir, force);
 
-        Direction retreatDir = enemyCenter.directionTo(coord);
-        strengthen(strength, retreatDir, -force);
+        // Direction retreatDir = enemyCenter.directionTo(coord);
+        // strengthen(strength, retreatDir, -force);
     }
 
 
