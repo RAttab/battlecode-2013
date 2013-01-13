@@ -53,18 +53,24 @@ public class Headquarter
     /**
      *
      */
-    public static void research(RobotController rc) throws GameActionException
+    public static boolean research(RobotController rc) throws GameActionException
     {
-        if (!rc.hasUpgrade(Upgrade.DEFUSION))
+        if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
             rc.researchUpgrade(Upgrade.DEFUSION);
+            return true;
+        }
 
-        else if (!rc.hasUpgrade(Upgrade.FUSION))
+        if (!rc.hasUpgrade(Upgrade.FUSION)) {
             rc.researchUpgrade(Upgrade.FUSION);
+            return true;
+        }
 
-        else if (!rc.hasUpgrade(Upgrade.VISION))
+        if (!rc.hasUpgrade(Upgrade.VISION)) {
             rc.researchUpgrade(Upgrade.VISION);
+            return true;
+        }
 
-        else rc.researchUpgrade(Upgrade.NUKE);
+        return false;
     }
 
 
@@ -77,11 +83,10 @@ public class Headquarter
             if (!rc.isActive()) { rc.yield(); continue; }
 
             int round = Clock.getRoundNum();
-
             if (nextSpawn < 0) nextSpawn = round + RESEARCH_WINDOW;
 
-            if (nextSpawn <= round) spawn(rc, coord);
-            else research(rc);
+            if (nextSpawn <= round || !research(rc))
+                spawn(rc, coord);
 
             rc.yield();
         }
