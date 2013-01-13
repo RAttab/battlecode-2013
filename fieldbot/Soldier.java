@@ -12,22 +12,6 @@ public class Soldier
     private static final int MAX_ROBOTS = 20;
     private static final int MAX_BASES = 10;
 
-
-    private static java.util.Random rng;
-
-    private static void debug_dumpStrength(
-            RobotController rc, double[] strength)
-    {
-        String str = "{ ";
-        for (int i = 0; i < 8; ++i) {
-            str += "(" + Utils.dirByOrd[i].name() +
-                "=" + ((int)(strength[i] * 10000)) + ") ";
-        }
-        str += "}";
-
-        rc.setIndicatorString(0, str);
-    }
-
     private static void strengthen(
             double[] strength, Direction dir, double force)
     {
@@ -244,6 +228,8 @@ public class Soldier
                 continue;
             }
 
+            debug_resetBc();
+
             MapLocation coord = rc.getLocation();
             double strength[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
@@ -257,21 +243,30 @@ public class Soldier
                         hq.distanceSquaredTo(coord));
             }
 
+            debug_checkBc(rc, "HQ");
+
 
             // \todo could go for a smaller search radius and strong weights
             // when enemiesNearby is true.
             mines(rc, coord, strength);
 
+
             boolean enemiesNearby = localRobots(rc, coord, strength, team);
+            debug_checkBc(rc, "local-robot");
 
             if (!enemiesNearby) {
                 neutralBases(rc, coord, strength);
+                debug_checkBc(rc, "neutral-base");
 
                 globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
                 // globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
-            }
-            else allyBases(rc, coord, strength, team);
 
+                debug_checkBc(rc, "global-robot");
+            }
+            else {
+                allyBases(rc, coord, strength, team);
+                debug_checkBc(rc, "ally-base");
+            }
 
             // Compute the final direction.
 
@@ -287,12 +282,15 @@ public class Soldier
             }
 
             debug_dumpStrength(rc, strength);
+            debug_checkBc(rc, "select-strength");
 
             if (finalDir == null) { rc.yield(); continue; }
 
 
             // Execute the move safely.
             if (enemiesNearby || !capture(rc, coord)) {
+
+                debug_checkBc(rc, "capture");
 
                 MapLocation target = coord.add(finalDir);
                 Team mine = rc.senseMine(target);
@@ -305,7 +303,43 @@ public class Soldier
 
             }
 
+            debug_checkBc(rc, "end");
+
             rc.yield();
         }
     }
+
+
+    private static int bcCounter, lastBcCounter;
+
+    private static void debug_resetBc()
+    {
+        bcCounter = 0;
+        lastBcCounter = Clock.getBytecodeNum();
+    }
+
+    private static void debug_checkBc(RobotController rc, String where) 
+    {
+        bcCounter = Clock.getBytecodeNum();
+        if (bcCounter < lastBcCounter) {
+            System.err.println(
+                    "BC EXCEEDED: " + where + ", " + 
+                    lastBcCounter +  " -> " + bcCounter);
+            rc.breakpoint();
+        }
+        lastBcCounter = bcCounter;
+    }
+    private static void debug_dumpStrength(
+            RobotController rc, double[] strength)
+    {
+        String str = "{ ";
+        for (int i = 0; i < 8; ++i) {
+            str += "(" + Utils.dirByOrd[i].name() +
+                "=" + ((int)(strength[i] * 10000)) + ") ";
+        }
+        str += "}";
+
+        rc.setIndicatorString(0, str);
+    }
+
 }
