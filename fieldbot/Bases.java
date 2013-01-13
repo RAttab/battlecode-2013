@@ -27,7 +27,7 @@ public class Bases
 
             double score = 0;
             for (int j = 0; j < robots.length; ++j)
-                score += rc.senseRobotInfo(robots[i]).energon;
+                score += rc.senseRobotInfo(robots[j]).energon;
 
             if (score > targetScore) {
                 targetScore = score;
