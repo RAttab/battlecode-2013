@@ -46,9 +46,61 @@ public class Bases
     }
 
 
+    static final double POWER_THRESHOLD = 1000.0;
+    static final double BC_THRESHOLD = 5000.0;
+
+    static final int MAGIC_NUM = 0xA5A5A5A5;
+
+    static int lastSeen[] = new int[20];
+    static int lastSeenIndex = 0;
+
+    static int probes = 0, hits = 0, rounds = 0;
+
+
+    private static boolean tryBroadcast(RobotController rc, int channel)
+        throws GameActionException
+    {
+        int data = rc.readBroadcast(channel);
+        if (data == 0 || data == MAGIC_NUM) return false;
+
+        rc.broadcast(channel, MAGIC_NUM);
+        return true;
+    }
+
     private static void broadcast(RobotController rc) throws GameActionException
     {
+        int id = rc.getRobot().getID();
+        rounds++;
 
+        double power = rc.getTeamPower();
+        while (power >= POWER_THRESHOLD &&
+                Clock.getBytecodesLeft() >= BC_THRESHOLD)
+        {
+            lastSeenIndex = (lastSeenIndex + 1) % lastSeen.length;
+
+            int channel = lastSeen[lastSeenIndex];
+            if (channel < 0) {
+                channel = (int)(
+                        Math.random() *
+                        ((double) GameConstants.BROADCAST_MAX_CHANNELS));
+
+                // Avoids having every tower probe the same slots.
+                channel = (channel + id) % GameConstants.BROADCAST_MAX_CHANNELS;
+            }
+
+            if (tryBroadcast(rc, channel)) {
+                power -= GameConstants.BROADCAST_SEND_COST;
+                lastSeen[lastSeenIndex] = channel;
+                hits++;
+            }
+            else lastSeen[lastSeenIndex] = -1;
+
+            power -= GameConstants.BROADCAST_READ_COST;
+            probes++;
+        };
+        rc.setIndicatorString(2,
+                "probes=" + probes + ", hits=" + hits +
+                ", probes/rnd=" + (probes / rounds));
     }
 
 
@@ -57,7 +109,11 @@ public class Bases
         MapLocation coord = rc.getLocation();
         boolean isArty = rc.getType() == RobotType.ARTILLERY;
 
+        for (int i = 0; i < lastSeen.length; ++i) lastSeen[i] = -1;
+
         while (true) {
+
+            Math.random();
 
             if (!rc.isActive()) { rc.yield(); continue; }
 
