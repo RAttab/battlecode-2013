@@ -268,17 +268,17 @@ public class Soldier
                 neutralBases(rc, coord, strength);
 
                 globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
-                globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
+                // globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
             }
             else allyBases(rc, coord, strength, team);
 
 
             // Compute the final direction.
 
-            double maxStrength = strength[0];
-            Direction finalDir = Utils.dirByOrd[0];
+            double maxStrength = Double.NEGATIVE_INFINITY;
+            Direction finalDir = null;
 
-            for (int i = 1; i < 8; ++i) {
+            for (int i = 0; i < 8; ++i) {
                 if (maxStrength > strength[i]) continue;
                 if (!rc.canMove(Utils.dirByOrd[i])) continue;
 
@@ -287,6 +287,8 @@ public class Soldier
             }
 
             debug_dumpStrength(rc, strength);
+
+            if (finalDir == null) { rc.yield(); continue; }
 
 
             // Execute the move safely.
