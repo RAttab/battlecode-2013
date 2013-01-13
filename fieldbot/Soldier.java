@@ -6,11 +6,13 @@ public class Soldier
 {
 
     private static final int GL_RADIUS = 100 * 100;
-    private static final int LC_RADIUS = 20;
+    private static final int LC_RADIUS =
+        RobotType.ARTILLERY.attackRadiusMaxSquared;
 
     private static final int MAX_MINES  = 10;
     private static final int MAX_ROBOTS = 20;
     private static final int MAX_BASES = 10;
+    private static final double MAX_SHIELD = 40;
 
     private static void strengthen(
             double[] strength, Direction dir, double force)
@@ -41,19 +43,21 @@ public class Soldier
     /**
      */
     private static void mines(
-            RobotController rc, MapLocation coord, double strength[])
+            RobotController rc, MapLocation coord, double strength[],
+            double w, int radius)
         throws GameActionException
     {
-        MapLocation mines[] = rc.senseNonAlliedMineLocations(coord, GL_RADIUS);
-
-        int steps = Math.max(mines.length / MAX_MINES, 1);
+        MapLocation mines[] = rc.senseNonAlliedMineLocations(coord, radius);
+        int steps = Math.max(1, Utils.ceilDiv(mines.length, MAX_MINES));
+        int count = 0;
 
         for (int i = 0; i < mines.length; i += steps) {
             Direction dir = coord.directionTo(mines[i]);
-            strengthen(
-                    strength, dir, Weights.MINE,
-                    coord.distanceSquaredTo(mines[i]));
+            strengthen(strength, dir, w, coord.distanceSquaredTo(mines[i]));
+            count++;
         }
+
+        rc.setIndicatorString(1, "mines=" + count + "/" + mines.length);
     }
 
 
@@ -67,7 +71,7 @@ public class Soldier
         Robot robots[] = rc.senseNearbyGameObjects(
                 Robot.class, GL_RADIUS, team);
 
-        int steps = Math.max(1, robots.length / MAX_ROBOTS);
+        int steps = Math.max(1, Utils.ceilDiv(robots.length, MAX_ROBOTS));
 
         for (int i = 0; i < robots.length; i += steps) {
             MapLocation robotCoord = rc.senseRobotInfo(robots[i]).location;
@@ -75,6 +79,8 @@ public class Soldier
 
             strengthen(strength, dir, w, coord.distanceSquaredTo(robotCoord));
         }
+
+        rc.setIndicatorString(0, "global=" + robots.length);
     }
 
 
@@ -91,31 +97,48 @@ public class Soldier
 
         int x = 0, y = 0;
         int numEnemies = 0;
-        int steps = Math.max(1, enemies.length / MAX_ROBOTS);
+        int steps = Math.max(1, Utils.ceilDiv(enemies.length, MAX_ROBOTS));
 
         for (int i = 0; i < enemies.length; i += steps) {
             RobotInfo info = rc.senseRobotInfo(enemies[i]);
-            if (info.type != RobotType.SOLDIER) continue;
+            if (info.type != RobotType.SOLDIER &&
+                    info.type != RobotType.ARTILLERY)
+            {
+                continue;
+            }
 
             x += info.location.x;
             y += info.location.y;
             numEnemies++;
         }
+
         if (numEnemies == 0) return false;
 
         MapLocation enemyCenter = new MapLocation(x/numEnemies, y/numEnemies);
 
         Robot allies[] = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team);
+        steps = Math.max(1, Utils.ceilDiv(enemies.length, MAX_ROBOTS));
+        int numAllies = 0;
+
+        for (int i = 0; i < allies.length; i += steps) {
+            RobotInfo info = rc.senseRobotInfo(allies[i]);
+            if (info.type != RobotType.SOLDIER &&
+                    info.type != RobotType.ARTILLERY)
+            {
+                continue;
+            }
+            numAllies++;
+        }
 
         double force = (
-                allies.length * Weights.LC_ALLY_SD -
+                numAllies * Weights.LC_ALLY_SD -
                 numEnemies * Weights.LC_ENEMY_SD) *
             Weights.LC_MUL;
 
-        String str = "enemies=" + numEnemies + "/" + enemies.length +
-            ", allies=" + allies.length +
-            ", enemyCenter=" + enemyCenter.toString();
-        rc.setIndicatorString(1, str);
+        rc.setIndicatorString(0,
+                "enemies=" + numEnemies + "/" + enemies.length +
+                ", allies=" + numAllies + "/" + allies.length +
+                ", enemyCenter=" + enemyCenter.toString());
 
         Direction chargeDir = coord.directionTo(enemyCenter);
         strengthen(strength, chargeDir, force);
@@ -135,18 +158,26 @@ public class Soldier
         MapLocation bases[] =
             rc.senseEncampmentSquares(coord, LC_RADIUS, Team.NEUTRAL);
 
-        int steps = Math.max(1, bases.length / MAX_BASES);
+        int steps = Math.max(1, Utils.ceilDiv(bases.length, MAX_BASES));
+        int count = 0, taken = 0;
+
         for (int i = 0; i < bases.length; i += steps) {
             if (rc.canSenseSquare(bases[i])) {
-                if (rc.senseObjectAtLocation(bases[i]) != null)
+                if (rc.senseObjectAtLocation(bases[i]) != null) {
+                    taken++;
                     continue;
+                }
             }
 
             Direction dir = coord.directionTo(bases[i]);
             strengthen(
                     strength, dir, Weights.CAPTURE,
                     coord.distanceSquaredTo(bases[i]));
+
+            count++;
         }
+
+        rc.setIndicatorString(2, "neutral=" + taken + "/" + count);
     }
 
 
@@ -154,25 +185,41 @@ public class Soldier
             RobotController rc, MapLocation coord, double strength[], Team team)
         throws GameActionException
     {
+        double energon = rc.getEnergon();
+        double shield = rc.getShields();
 
         MapLocation bases[] = rc.senseEncampmentSquares(coord, LC_RADIUS, team);
+        int steps = Math.max(1, Utils.ceilDiv(bases.length, MAX_BASES));
 
-        int steps = Math.max(1, bases.length / MAX_BASES);
+        int count = 0;
+        double shields = 0;
+        double med = 0;
+
         for (int i = 0; i < bases.length; i += steps) {
             Robot base = (Robot) rc.senseObjectAtLocation(bases[i]);
             RobotInfo info = rc.senseRobotInfo(base);
 
             double force;
+            count++;
 
             if (info.type == RobotType.MEDBAY) {
-                force = (rc.getEnergon() / RobotType.SOLDIER.maxEnergon) *
-                    Weights.HEAL;
+                force = ((RobotType.SOLDIER.maxEnergon - energon) /
+                        RobotType.SOLDIER.maxEnergon) * Weights.HEAL;
+                med += force;
             }
+
+            else if (info.type == RobotType.SHIELDS) {
+                force = (MAX_SHIELD - shield) * Weights.SHIELD;
+                shields += force;
+            }
+
             else continue;
 
             strengthen(strength, coord.directionTo(info.location), force);
         }
 
+        rc.setIndicatorString(2,
+                "ally=" + count + ", meds=" + med + ", shields=" + shields);
     }
 
     public static boolean capture(RobotController rc, MapLocation coord)
@@ -246,15 +293,13 @@ public class Soldier
             debug_checkBc(rc, "HQ");
 
 
-            // \todo could go for a smaller search radius and strong weights
-            // when enemiesNearby is true.
-            mines(rc, coord, strength);
-
-
             boolean enemiesNearby = localRobots(rc, coord, strength, team);
             debug_checkBc(rc, "local-robot");
 
             if (!enemiesNearby) {
+                mines(rc, coord, strength, Weights.EXPLORE_MINE, GL_RADIUS);
+                debug_checkBc(rc, "explore-mine");
+
                 neutralBases(rc, coord, strength);
                 debug_checkBc(rc, "neutral-base");
 
@@ -264,6 +309,9 @@ public class Soldier
                 debug_checkBc(rc, "global-robot");
             }
             else {
+                mines(rc, coord, strength, Weights.BATTLE_MINE, LC_RADIUS);
+                debug_checkBc(rc, "battle-mine");
+
                 allyBases(rc, coord, strength, team);
                 debug_checkBc(rc, "ally-base");
             }
@@ -281,7 +329,7 @@ public class Soldier
                 finalDir = Utils.dirByOrd[i];
             }
 
-            debug_dumpStrength(rc, strength);
+            // debug_dumpStrength(rc, strength);
             debug_checkBc(rc, "select-strength");
 
             if (finalDir == null) { rc.yield(); continue; }
@@ -310,25 +358,33 @@ public class Soldier
     }
 
 
-    private static int bcCounter, lastBcCounter;
+    private static int lastBcCounter;
 
     private static void debug_resetBc()
     {
-        bcCounter = 0;
         lastBcCounter = Clock.getBytecodeNum();
     }
 
-    private static void debug_checkBc(RobotController rc, String where) 
+    private static void debug_checkBc(RobotController rc, String where)
     {
-        bcCounter = Clock.getBytecodeNum();
+        int bcCounter = Clock.getBytecodeNum();
         if (bcCounter < lastBcCounter) {
             System.err.println(
-                    "BC EXCEEDED: " + where + ", " + 
+                    "BC EXCEEDED: " + where + ", " +
                     lastBcCounter +  " -> " + bcCounter);
             rc.breakpoint();
         }
         lastBcCounter = bcCounter;
     }
+
+    private static int debug_countBc(boolean reset)
+    {
+        int bcCounter = Clock.getBytecodeNum();
+        int delta = bcCounter - lastBcCounter;
+        if (reset) lastBcCounter = bcCounter;
+        return delta;
+    }
+
     private static void debug_dumpStrength(
             RobotController rc, double[] strength)
     {

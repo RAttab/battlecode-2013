@@ -16,9 +16,11 @@ public class Weights
     public static final double LC_ALLY_SD   =   0.7;
     public static final double LC_MUL       = 100.0;
 
-    public static final double MINE         = -0.3;
+    public static final double EXPLORE_MINE = -0.3;
+    public static final double BATTLE_MINE  = -0.5;
     public static final double CAPTURE      =  1.0;
     public static final double HEAL         = 10.0;
+    public static final double SHIELD       = 10.0;
 
     public static final double MEDBAY       = 0.0;
     public static final double SHIELDS      = 0.0;
