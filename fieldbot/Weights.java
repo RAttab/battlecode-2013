@@ -4,18 +4,32 @@ import battlecode.common.*;
 
 public class Weights
 {
-    public static final double SIGNAL_DEGRADE = 0.4;
+    public static final double DROPOFF      = 0.4;
 
     public static final double ENEMY_HQ     = 20.0;
     public static final double ALLY_HQ      = -1.0;
 
-    public static final double GL_ENEMY_SD  = 2.0;
+    public static final double GL_ENEMY_SD  =  2.0;
     public static final double GL_ALLY_SD   = -0.01;
 
-    public static final double LC_ENEMY_SD  = 1.0;
-    public static final double LC_ALLY_SD   = 0.7;
+    public static final double LC_ENEMY_SD  =   1.0;
+    public static final double LC_ALLY_SD   =   0.7;
     public static final double LC_MUL       = 100.0;
 
-    public static final double NEUTRAL_MINE = -.3;
-    public static final double ENEMY_MINE   = -.3;
+    public static final double MINE         = -0.3;
+    public static final double CAPTURE      =  1.0;
+    public static final double HEAL         = 10.0;
+
+    public static final double MEDBAY       = 0.0;
+    public static final double SHIELDS      = 0.0;
+    public static final double ARTILLERY    = 0.5;
+    public static final double GENERATOR    = 0.2;
+    public static final double SUPPLIER     = 0.3;
+
+    public static final double MEDBAY_SUM    = MEDBAY;
+    public static final double SHIELDS_SUM   = SHIELDS   + MEDBAY_SUM;
+    public static final double ARTILLERY_SUM = ARTILLERY + SHIELDS_SUM;
+    public static final double GENERATOR_SUM = GENERATOR + ARTILLERY_SUM;
+    public static final double SUPPLIER_SUM  = SUPPLIER  + GENERATOR_SUM;
+
 }

@@ -8,16 +8,6 @@ import battlecode.common.*;
 public class RobotPlayer
 {
 
-
-    private static void encampment(RobotController rc) throws GameActionException
-    {
-        while (true) {
-
-            rc.yield();
-        }
-    }
-
-
     public static void run(RobotController rc)
     {
         while (true) {
@@ -26,7 +16,8 @@ public class RobotPlayer
 
                 if (type == RobotType.SOLDIER) Soldier.run(rc);
                 else if (type == RobotType.HQ) Headquarter.run(rc);
-                else encampment(rc);
+                else Bases.run(rc);
+
             }
             catch(Exception e) { e.printStackTrace(); }
             rc.yield();

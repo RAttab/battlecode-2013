@@ -46,12 +46,7 @@ public class Headquarter
             if (spawned) break;
         }
 
-        if (spawned) {
-            nextResearch =
-                Clock.getRoundNum() + GameConstants.HQ_SPAWN_DELAY;
-
-            nextSpawn = nextResearch + RESEARCH_WINDOW;
-        }
+        if (spawned) nextSpawn = -1;
     }
 
 
@@ -77,16 +72,16 @@ public class Headquarter
     {
         MapLocation coord = rc.getLocation();
 
-        final int ordMask = (8 - 1);
-
         while (true) {
 
             if (!rc.isActive()) { rc.yield(); continue; }
 
+            if (nextSpawn < 0) nextSpawn = RESEARCH_WINDOW;
+
             int round = Clock.getRoundNum();
 
             if (nextSpawn <= round) spawn(rc, coord);
-            if (nextResearch <= round) research(rc);
+            else research(rc);
 
             rc.yield();
         }
