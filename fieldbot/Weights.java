@@ -22,9 +22,9 @@ public class Weights
 
     public static final double MEDBAY       = 0.0;
     public static final double SHIELDS      = 0.0;
-    public static final double ARTILLERY    = 0.5;
-    public static final double GENERATOR    = 0.2;
-    public static final double SUPPLIER     = 0.3;
+    public static final double ARTILLERY    = 0.3;
+    public static final double GENERATOR    = 0.3;
+    public static final double SUPPLIER     = 0.4;
 
     public static final double MEDBAY_SUM    = MEDBAY;
     public static final double SHIELDS_SUM   = SHIELDS   + MEDBAY_SUM;
