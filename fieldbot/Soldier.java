@@ -60,6 +60,70 @@ public class Soldier
         rc.setIndicatorString(1, "mines=" + count + "/" + mines.length);
     }
 
+    /**
+     */
+    private static void battleFormation(
+            RobotController rc, MapLocation coord, double strength[],
+            double w, Team team)
+        throws GameActionException
+    {
+        // TODO: finish this method
+
+        // when enemies are nearby, group into a tight formation
+
+        Robot robots[] = rc.senseNearbyGameObjects(Robot.class, 3, team);
+        Robot enemyRobots[] = rc.senseNearbyGameObjects(
+                Robot.class, GL_RADIUS, team.opponent());
+
+        MapLocation closestEnemy = findClosest(rc, enemyRobots);
+        Direction toward = coord.directionTo(closestEnemy);
+
+        // check if we're already in formation
+        boolean grouped = false;
+        GameObject oneLeft = rc.senseObjectAtLocation(coord.add(leftOf(toward)));
+        if (oneLeft != null) {
+            if (oneLeft.getTeam().equals(team))
+                grouped = true;
+        }
+        GameObject oneRight = rc.senseObjectAtLocation(coord.add(rightOf(toward)));
+        if (oneRight != null) {
+            if (oneRight.getTeam().equals(team))
+                grouped = true;
+        }
+
+        // if we're already grouped, attack!
+        if (grouped)
+            strengthen(strength, toward, Weights.GROUP_ATTACK);
+        // otherwise, group up
+        else {
+            MapLocation closestAlly = findClosest(rc, robots);
+            strengthen(strength, toward, Weights.GROUP_UP);
+        }
+    }
+
+    public static Direction rightOf(Direction from){
+        return from.rotateRight().rotateRight();
+    }
+    public static Direction leftOf(Direction from){
+        return from.rotateLeft().rotateLeft();
+    }
+
+    private static MapLocation findClosest(
+            RobotController rc, Robot[] otherRobots) 
+        throws GameActionException {
+        int closestDist = 1000000;
+        MapLocation closestEnemy=null;
+        for (int i=0;i<otherRobots.length;i++){
+            Robot robot = otherRobots[i];
+            RobotInfo robotInfo = rc.senseRobotInfo(robot);
+            int dist = robotInfo.location.distanceSquaredTo(rc.getLocation());
+            if (dist<closestDist){
+                closestDist = dist;
+                closestEnemy = robotInfo.location;
+            }
+        }
+        return closestEnemy;
+    }
 
     /**
      */
@@ -82,7 +146,7 @@ public class Soldier
 
         rc.setIndicatorString(0, "global=" + robots.length);
     }
-
+    
 
     /**
      */
@@ -358,6 +422,8 @@ public class Soldier
 
                 allyBases(rc, coord, strength, team);
                 debug_checkBc(rc, "ally-base");
+
+                //battleFormation(rc, coord, strength, Weights.FORMATION, team);
             }
 
             // Compute the final direction.

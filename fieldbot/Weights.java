@@ -22,6 +22,9 @@ public class Weights
     public static final double HEAL         = 10.0;
     public static final double SHIELD       = 10.0;
 
+    public static final double GROUP_ATTACK = 2.0;
+    public static final double GROUP_UP     = 2.0;
+
     public static final double ARTILLERY    = 0.8;
     public static final double PATH         = 0.6;
     public static final double TO_HQ        = 1 - PATH;
