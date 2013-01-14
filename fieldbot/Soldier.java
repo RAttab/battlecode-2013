@@ -233,6 +233,16 @@ public class Soldier
 
         double rnd = Math.random();
 
+        // capture encampents based on what we need (or artillery, at random)
+        if (rnd < Weights.ARTILLERY)
+            rc.captureEncampment(RobotType.ARTILLERY);
+        else {
+            if (rc.getEnergon() > 20)
+                rc.captureEncampment(RobotType.SUPPLIER);
+            else
+                rc.captureEncampment(RobotType.GENERATOR);
+        }
+/*
         if (rnd < Weights.MEDBAY_SUM)
             rc.captureEncampment(RobotType.MEDBAY);
 
@@ -252,8 +262,9 @@ public class Soldier
             System.out.println("Bad capture sums");
             rc.breakpoint();
         }
-
+*/
         return true;
+
     }
 
 

@@ -6,7 +6,7 @@ public class Weights
 {
     public static final double DROPOFF      = 0.4;
 
-    public static final double ENEMY_HQ     = 20.0;
+    public static final double ENEMY_HQ     = 40.0;
     public static final double ALLY_HQ      = -1.0;
 
     public static final double GL_ENEMY_SD  =  2.0;
@@ -22,6 +22,10 @@ public class Weights
     public static final double HEAL         = 10.0;
     public static final double SHIELD       = 10.0;
 
+    public static final double ENERGYBASE   = 0.6;
+    public static final double ARTILLERY    = 0.4;
+
+/*
     public static final double MEDBAY       = 0.0;
     public static final double SHIELDS      = 0.0;
     public static final double ARTILLERY    = 0.3;
@@ -33,5 +37,6 @@ public class Weights
     public static final double ARTILLERY_SUM = ARTILLERY + SHIELDS_SUM;
     public static final double GENERATOR_SUM = GENERATOR + ARTILLERY_SUM;
     public static final double SUPPLIER_SUM  = SUPPLIER  + GENERATOR_SUM;
+*/
 
 }
