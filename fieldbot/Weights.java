@@ -29,7 +29,7 @@ public class Weights
     public static final double PATH         = 0.6;
     public static final double TO_HQ        = 1 - PATH;
 
-    public static final double MIN_ENERGON  = 30;
+    public static final double MIN_POWER    = 30;
 
 /*
     public static final double MEDBAY       = 0.0;

@@ -147,7 +147,6 @@ public class Soldier
         rc.setIndicatorString(0, "global=" + robots.length);
     }
     
-
     /**
      */
     private static boolean localRobots(
@@ -332,7 +331,7 @@ public class Soldier
             rc.captureEncampment(RobotType.ARTILLERY);
         else {
             // TODO: improve supplier/generator decision
-            if (rc.getEnergon() > Weights.MIN_ENERGON)
+            if (rc.getTeamPower() > Weights.MIN_POWER)
                 rc.captureEncampment(RobotType.SUPPLIER);
             else
                 rc.captureEncampment(RobotType.GENERATOR);
