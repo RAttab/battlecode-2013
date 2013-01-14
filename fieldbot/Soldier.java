@@ -222,6 +222,20 @@ public class Soldier
                 "ally=" + count + ", meds=" + med + ", shields=" + shields);
     }
 
+    private static int numAlliedBases(RobotController rc, RobotType type)
+        throws GameActionException {
+            //TODO: fix this method
+        MapLocation bases[] = rc.senseAlliedEncampmentSquares();
+        int n = 0;
+        for (MapLocation baseLoc : bases) {
+            Robot base = (Robot) rc.senseObjectAtLocation(baseLoc);
+            RobotInfo baseType = rc.senseRobotInfo(base);
+            if (baseType.equals(type))
+                n++;
+        }
+        return n;
+    }
+
     public static boolean capture(RobotController rc, MapLocation coord)
         throws GameActionException
     {
@@ -233,11 +247,28 @@ public class Soldier
 
         double rnd = Math.random();
 
-        // capture encampents based on what we need (or artillery, at random)
-        if (rnd < Weights.ARTILLERY)
+        double distEnemyHQ = Math.sqrt(coord.distanceSquaredTo(rc.senseEnemyHQLocation()));
+        double distHQ = Math.sqrt(coord.distanceSquaredTo(rc.senseHQLocation()));
+        double ratioToHQ = distHQ / (distEnemyHQ + distHQ);
+
+        double distBetween = Math.sqrt(rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
+        double onPathRatio = distBetween / (distHQ + distEnemyHQ);
+
+        // prioritize artillery on the path between the HQs, and closer to enemy HQ
+        double artilleryWeight = Weights.ARTILLERY * 
+        (Weights.PATH * onPathRatio + Weights.TO_HQ * ratioToHQ);
+
+        rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ + 
+            ", onPath="+onPathRatio + ", toHQ="+ratioToHQ + 
+            ", w="+artilleryWeight + ", rnd=" + rnd/* + 
+            ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
+
+
+        if (rnd < artilleryWeight)
             rc.captureEncampment(RobotType.ARTILLERY);
         else {
-            if (rc.getEnergon() > 20)
+            // TODO: improve supplier/generator decision
+            if (rc.getEnergon() > Weights.MIN_ENERGON)
                 rc.captureEncampment(RobotType.SUPPLIER);
             else
                 rc.captureEncampment(RobotType.GENERATOR);
@@ -316,6 +347,8 @@ public class Soldier
 
                 globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
                 // globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
+
+                //defensiveMines(rc, coord, strength);
 
                 debug_checkBc(rc, "global-robot");
             }

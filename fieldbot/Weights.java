@@ -6,7 +6,7 @@ public class Weights
 {
     public static final double DROPOFF      = 0.4;
 
-    public static final double ENEMY_HQ     = 40.0;
+    public static final double ENEMY_HQ     = 20.0;
     public static final double ALLY_HQ      = -1.0;
 
     public static final double GL_ENEMY_SD  =  2.0;
@@ -22,8 +22,11 @@ public class Weights
     public static final double HEAL         = 10.0;
     public static final double SHIELD       = 10.0;
 
-    public static final double ENERGYBASE   = 0.6;
-    public static final double ARTILLERY    = 0.4;
+    public static final double ARTILLERY    = 0.8;
+    public static final double PATH         = 0.6;
+    public static final double TO_HQ        = 1 - PATH;
+
+    public static final double MIN_ENERGON  = 30;
 
 /*
     public static final double MEDBAY       = 0.0;
