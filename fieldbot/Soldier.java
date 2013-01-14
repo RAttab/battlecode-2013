@@ -111,7 +111,7 @@ public class Soldier
     private static MapLocation findClosest(
             RobotController rc, Robot[] otherRobots) 
         throws GameActionException {
-        int closestDist = 1000000;
+        int closestDist = Integer.MAX_VALUE;
         MapLocation closestEnemy=null;
         for (int i=0;i<otherRobots.length;i++){
             Robot robot = otherRobots[i];
