@@ -229,7 +229,7 @@ public class Soldier
             rc.senseEncampmentSquares(coord, LC_RADIUS, Team.NEUTRAL);
 
         int radius = LC_RADIUS;
-        while (bases.length < 1) {
+        while (bases.length < 1 && radius < 10000) {
             radius *= 3;
             bases = rc.senseEncampmentSquares(coord, radius, Team.NEUTRAL);
         }
