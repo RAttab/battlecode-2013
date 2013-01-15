@@ -4,6 +4,13 @@ import battlecode.common.*;
 
 public class Weights
 {
+    public static final int SHORT_WINDOW    = 1;
+    public static final int MEDIUM_WINDOW   = 2;
+    public static final int LONG_WINDOW     = 3;
+    public static final double MAPSIZE_S    = 30;
+    public static final double MAPSIZE_M    = 80;
+    public static final double MAPSIZE_L    = 999;
+
     public static final double DROPOFF      = 0.4;
 
     public static final double BATTLE_MED   = 100;
@@ -22,7 +29,7 @@ public class Weights
 
     public static final double EXPLORE_MINE = -0.3;
     public static final double BATTLE_MINE  = -0.5;
-    public static final double CAPTURE      =  1.0;
+    public static final double CAPTURE      = 10.0;
     public static final double HEAL         = 10.0;
     public static final double SHIELD       = 10.0;
 

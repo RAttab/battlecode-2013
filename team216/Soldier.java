@@ -10,8 +10,8 @@ public class Soldier
         RobotType.ARTILLERY.attackRadiusMaxSquared;
 
     private static final int MAX_MINES  = 10;
-    private static final int MAX_ROBOTS = 20;
-    private static final int MAX_BASES = 10;
+    private static final int MAX_ROBOTS = 15;
+    private static final int MAX_BASES = 8;
     private static final double MAX_SHIELD = 40;
 
     private static void strengthen(

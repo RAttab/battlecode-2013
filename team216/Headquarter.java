@@ -8,7 +8,7 @@ import battlecode.common.*;
 public class Headquarter
 {
 
-    private static final int RESEARCH_WINDOW = 2;
+    private static int RESEARCH_WINDOW = 2;
 
 
     private static int nextSpawn = 0;
@@ -53,23 +53,48 @@ public class Headquarter
     /**
      *
      */
-    public static boolean research(RobotController rc) throws GameActionException
+    public static boolean research(RobotController rc, double mapSize) throws GameActionException
     {
-        if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
-            rc.researchUpgrade(Upgrade.DEFUSION);
-            return true;
+        if (mapSize < Weights.MAPSIZE_S) {
+            if (!rc.hasUpgrade(Upgrade.VISION)) {
+                rc.researchUpgrade(Upgrade.VISION);
+                return true;
+            }
+            if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
+                rc.researchUpgrade(Upgrade.DEFUSION);
+                return true;
+            }
+            if (!rc.hasUpgrade(Upgrade.FUSION)) {
+                rc.researchUpgrade(Upgrade.FUSION);
+                return true;
+            }
+        } else if (mapSize < Weights.MAPSIZE_M) {
+            if (!rc.hasUpgrade(Upgrade.VISION)) {
+                rc.researchUpgrade(Upgrade.VISION);
+                return true;
+            }
+            if (!rc.hasUpgrade(Upgrade.FUSION)) {
+                rc.researchUpgrade(Upgrade.FUSION);
+                return true;
+            }
+            if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
+                rc.researchUpgrade(Upgrade.DEFUSION);
+                return true;
+            }
+        } else {
+            if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
+                rc.researchUpgrade(Upgrade.DEFUSION);
+                return true;
+            }
+            if (!rc.hasUpgrade(Upgrade.VISION)) {
+                rc.researchUpgrade(Upgrade.VISION);
+                return true;
+            }
+            if (!rc.hasUpgrade(Upgrade.FUSION)) {
+                rc.researchUpgrade(Upgrade.FUSION);
+                return true;
+            }
         }
-
-        if (!rc.hasUpgrade(Upgrade.FUSION)) {
-            rc.researchUpgrade(Upgrade.FUSION);
-            return true;
-        }
-
-        if (!rc.hasUpgrade(Upgrade.VISION)) {
-            rc.researchUpgrade(Upgrade.VISION);
-            return true;
-        }
-
         return false;
     }
 
@@ -77,6 +102,16 @@ public class Headquarter
     public static void run(RobotController rc) throws GameActionException
     {
         MapLocation coord = rc.getLocation();
+        double mapSize = Math.sqrt(rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
+        rc.setIndicatorString(0, "mapsize=" + mapSize);
+
+        if (mapSize < Weights.MAPSIZE_S) {
+            RESEARCH_WINDOW = Weights.SHORT_WINDOW;
+        } else if (mapSize < Weights.MAPSIZE_M) {
+            RESEARCH_WINDOW = Weights.MEDIUM_WINDOW;
+        } else {
+            RESEARCH_WINDOW = Weights.LONG_WINDOW;
+        }
 
         while (true) {
 
@@ -86,7 +121,7 @@ public class Headquarter
 
             if (nextSpawn < 0) nextSpawn = round + RESEARCH_WINDOW;
 
-            if (nextSpawn <= round || !research(rc))
+            if (nextSpawn <= round || !research(rc, mapSize))
                 spawn(rc, coord);
             
 
