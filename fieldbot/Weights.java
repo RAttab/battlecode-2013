@@ -22,6 +22,8 @@ public class Weights
     public static final double HEAL         = 10.0;
     public static final double SHIELD       = 10.0;
 
+    public static final double MIN_CAPT_POW = 15.0;
+
     public static final double GROUP_ATTACK = 2.0;
     public static final double GROUP_UP     = 2.0;
 
@@ -36,7 +38,7 @@ public class Weights
     public static final double ARTILLERY    = 0.7;
 
     public static final double MIN_POWER    = 16;
-    public static final double MAX_POWER    = 80;
+    public static final double MAX_POWER    = 250;
     public static final double MIN_ROUND    = 20;
 
     public static final double MEDBAY_SUM    = MEDBAY;

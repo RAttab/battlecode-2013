@@ -110,6 +110,7 @@ public class Soldier
     private static MapLocation findClosest(
             RobotController rc, Robot[] otherRobots) 
         throws GameActionException {
+            // Be careful of bytecode problems, as this method is unbounded
         int closestDist = Integer.MAX_VALUE;
         MapLocation closestEnemy=null;
         for (int i=0;i<otherRobots.length;i++){
@@ -152,6 +153,10 @@ public class Soldier
             RobotController rc, MapLocation coord, double strength[], Team team)
         throws GameActionException
     {
+        // if there is an adjacent enemy, don't run away
+        if (rc.senseNearbyGameObjects(Robot.class, 1, team.opponent()).length > 0)
+            return true;
+
         Robot enemies[] = rc.senseNearbyGameObjects(
                 Robot.class, LC_RADIUS, team.opponent());
 
@@ -215,7 +220,7 @@ public class Soldier
             RobotController rc, MapLocation coord, double strength[])
         throws GameActionException
     {
-        if (GameConstants.CAPTURE_POWER_COST >= rc.getTeamPower()) return;
+        if (Weights.MIN_CAPT_POW >= rc.getTeamPower()) return;
 
         MapLocation bases[] =
             rc.senseEncampmentSquares(coord, LC_RADIUS, Team.NEUTRAL);
@@ -345,6 +350,11 @@ public class Soldier
             else {
                 rnd = Math.random();
                 double ratio = (rc.getTeamPower() - Weights.MIN_POWER) / (Weights.MAX_POWER - Weights.MIN_POWER);
+        rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ + 
+            ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ + 
+            ", w=" + militaryWeight + ", rnd=" + rnd + ", pratio=" + ratio/* + 
+            ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
+        //System.out.println("!!!!!!!!");
                 if (rnd < ratio)
                     rc.captureEncampment(RobotType.GENERATOR);
                 else

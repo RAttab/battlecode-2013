@@ -5,7 +5,7 @@ import battlecode.common.*;
 public class Bases
 {
 
-    static final int MAX_ROBOTS = 10;
+    static final int MAX_ROBOTS = 30;
     static final double ARTY_THRESHOLD = 10.0;
 
     private static void artillery(RobotController rc) throws GameActionException
