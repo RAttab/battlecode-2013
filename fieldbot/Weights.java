@@ -25,24 +25,26 @@ public class Weights
     public static final double GROUP_ATTACK = 2.0;
     public static final double GROUP_UP     = 2.0;
 
-    public static final double ARTILLERY    = 0.8;
     public static final double PATH         = 0.6;
     public static final double TO_HQ        = 1 - PATH;
 
-    public static final double MIN_POWER    = 30;
+    public static final double MILITARY     = 0.8;
+    public static final double STRUCTURAL   = 1 - MILITARY;
 
-/*
-    public static final double MEDBAY       = 0.0;
-    public static final double SHIELDS      = 0.0;
-    public static final double ARTILLERY    = 0.3;
-    public static final double GENERATOR    = 0.3;
-    public static final double SUPPLIER     = 0.4;
+    public static final double MEDBAY       = 0.2;
+    public static final double SHIELDS      = 0.1;
+    public static final double ARTILLERY    = 0.7;
+
+    public static final double MIN_POWER    = 16;
+    public static final double MAX_POWER    = 80;
+    public static final double MIN_ROUND    = 20;
 
     public static final double MEDBAY_SUM    = MEDBAY;
     public static final double SHIELDS_SUM   = SHIELDS   + MEDBAY_SUM;
     public static final double ARTILLERY_SUM = ARTILLERY + SHIELDS_SUM;
-    public static final double GENERATOR_SUM = GENERATOR + ARTILLERY_SUM;
-    public static final double SUPPLIER_SUM  = SUPPLIER  + GENERATOR_SUM;
-*/
+
+    // public static final double SUPPLIER_SUM  = SUPPLIER;
+    // public static final double GENERATOR_SUM = GENERATOR + SUPPLIER_SUM;
+
 
 }

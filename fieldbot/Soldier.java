@@ -63,8 +63,7 @@ public class Soldier
     /**
      */
     private static void battleFormation(
-            RobotController rc, MapLocation coord, double strength[],
-            double w, Team team)
+            RobotController rc, MapLocation coord, double strength[], Team team)
         throws GameActionException
     {
         // TODO: finish this method
@@ -318,47 +317,42 @@ public class Soldier
         double onPathRatio = distBetween / (distHQ + distEnemyHQ);
 
         // prioritize artillery on the path between the HQs, and closer to enemy HQ
-        double artilleryWeight = Weights.ARTILLERY * 
+        double militaryWeight = Weights.MILITARY * 
         (Weights.PATH * onPathRatio + Weights.TO_HQ * ratioToHQ);
 
         rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ + 
-            ", onPath="+onPathRatio + ", toHQ="+ratioToHQ + 
-            ", w="+artilleryWeight + ", rnd=" + rnd/* + 
+            ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ + 
+            ", w=" + militaryWeight + ", rnd=" + rnd/* + 
             ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
 
 
-        if (rnd < artilleryWeight)
-            rc.captureEncampment(RobotType.ARTILLERY);
-        else {
-            // TODO: improve supplier/generator decision
-            if (rc.getTeamPower() > Weights.MIN_POWER)
-                rc.captureEncampment(RobotType.SUPPLIER);
+        if (rnd < militaryWeight) {
+            rnd = Math.random();
+            if (rnd < Weights.MEDBAY_SUM)
+                rc.captureEncampment(RobotType.MEDBAY);
+            if (rnd < Weights.SHIELDS_SUM)
+                rc.captureEncampment(RobotType.SHIELDS);
             else
+                rc.captureEncampment(RobotType.ARTILLERY);
+        } else {
+            // TODO: improve supplier/generator decision
+            if (Clock.getRoundNum() < Weights.MIN_ROUND)
+                rc.captureEncampment(RobotType.SUPPLIER); 
+            else if (rc.getTeamPower() < Weights.MIN_POWER) 
                 rc.captureEncampment(RobotType.GENERATOR);
+            else if (rc.getTeamPower() > Weights.MAX_POWER)
+                rc.captureEncampment(RobotType.SUPPLIER);
+            else {
+                rnd = Math.random();
+                double ratio = (rc.getTeamPower() - Weights.MIN_POWER) / (Weights.MAX_POWER - Weights.MIN_POWER);
+                if (rnd < ratio)
+                    rc.captureEncampment(RobotType.GENERATOR);
+                else
+                    rc.captureEncampment(RobotType.SUPPLIER);
+            }
         }
-/*
-        if (rnd < Weights.MEDBAY_SUM)
-            rc.captureEncampment(RobotType.MEDBAY);
 
-        else if (rnd < Weights.SHIELDS_SUM)
-            rc.captureEncampment(RobotType.SHIELDS);
-
-        else if (rnd < Weights.ARTILLERY_SUM)
-            rc.captureEncampment(RobotType.ARTILLERY);
-
-        else if (rnd < Weights.GENERATOR_SUM)
-            rc.captureEncampment(RobotType.GENERATOR);
-
-        else if (rnd < Weights.SUPPLIER_SUM)
-            rc.captureEncampment(RobotType.SUPPLIER);
-
-        else {
-            System.out.println("Bad capture sums");
-            rc.breakpoint();
-        }
-*/
         return true;
-
     }
 
 
@@ -422,7 +416,7 @@ public class Soldier
                 allyBases(rc, coord, strength, team);
                 debug_checkBc(rc, "ally-base");
 
-                //battleFormation(rc, coord, strength, Weights.FORMATION, team);
+                battleFormation(rc, coord, strength, team);
             }
 
             // Compute the final direction.

@@ -83,10 +83,12 @@ public class Headquarter
             if (!rc.isActive()) { rc.yield(); continue; }
 
             int round = Clock.getRoundNum();
-            //if (nextSpawn < 0) nextSpawn = round + RESEARCH_WINDOW;
+
+            if (nextSpawn < 0) nextSpawn = round + RESEARCH_WINDOW;
 
             if (nextSpawn <= round || !research(rc))
                 spawn(rc, coord);
+            
 
             rc.yield();
         }
