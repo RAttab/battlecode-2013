@@ -1,4 +1,4 @@
-package fieldbot;
+package team216;
 
 import battlecode.common.*;
 
@@ -39,9 +39,6 @@ public class Soldier
         strengthen(strength, dir, weight * (1 / dist));
     }
 
-
-    /**
-     */
     private static void mines(
             RobotController rc, MapLocation coord, double strength[],
             double w, int radius)
@@ -164,6 +161,7 @@ public class Soldier
 
         int x = 0, y = 0;
         int numEnemies = 0;
+        double enemyForce = 0.0;
         int steps = Math.max(1, Utils.ceilDiv(enemies.length, MAX_ROBOTS));
 
         for (int i = 0; i < enemies.length; i += steps) {
@@ -177,6 +175,7 @@ public class Soldier
             x += info.location.x;
             y += info.location.y;
             numEnemies++;
+            enemyForce += info.energon/40;
         }
 
         if (numEnemies == 0) return false;
@@ -186,6 +185,7 @@ public class Soldier
         Robot allies[] = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team);
         steps = Math.max(1, Utils.ceilDiv(enemies.length, MAX_ROBOTS));
         int numAllies = 0;
+        double allyForce = 0.0;
 
         for (int i = 0; i < allies.length; i += steps) {
             RobotInfo info = rc.senseRobotInfo(allies[i]);
@@ -195,11 +195,12 @@ public class Soldier
                 continue;
             }
             numAllies++;
+            allyForce += info.energon/40;
         }
 
         double force = (
-                numAllies * Weights.LC_ALLY_SD -
-                numEnemies * Weights.LC_ENEMY_SD) *
+                allyForce * Weights.LC_ALLY_SD -
+                enemyForce * Weights.LC_ENEMY_SD) *
             Weights.LC_MUL;
 
         rc.setIndicatorString(0,
@@ -221,9 +222,17 @@ public class Soldier
         throws GameActionException
     {
         if (Weights.MIN_CAPT_POW >= rc.getTeamPower()) return;
+        double cost = rc.senseCaptureCost();
+        if (cost >= rc.getTeamPower()) return;
 
         MapLocation bases[] =
             rc.senseEncampmentSquares(coord, LC_RADIUS, Team.NEUTRAL);
+
+        int radius = LC_RADIUS;
+        while (bases.length < 1) {
+            radius *= 3;
+            bases = rc.senseEncampmentSquares(coord, radius, Team.NEUTRAL);
+        }
 
         int steps = Math.max(1, Utils.ceilDiv(bases.length, MAX_BASES));
         int count = 0, taken = 0;
@@ -244,7 +253,7 @@ public class Soldier
             count++;
         }
 
-        rc.setIndicatorString(2, "neutral=" + taken + "/" + count);
+        rc.setIndicatorString(2, "neutral=" + taken + "/" + count + ", cost=" + cost);
     }
 
 
@@ -308,6 +317,11 @@ public class Soldier
     {
         if (!rc.senseEncampmentSquare(coord)) return false;
 
+        MapLocation ourBases[] = rc.senseAlliedEncampmentSquares();
+        MapLocation neutBases[] = rc.senseEncampmentSquares(coord, 999999, Team.NEUTRAL);
+        double maxPower = Weights.MAX_POWER + ourBases.length * Weights.OURBASE_MULT;
+        maxPower += (neutBases.length - ourBases.length) * Weights.NEUTBASE_MULT;
+
         double cost = rc.senseCaptureCost();
         if (cost <= 0.0) return false;
         if (cost >= rc.getTeamPower()) return false;
@@ -345,11 +359,11 @@ public class Soldier
                 rc.captureEncampment(RobotType.SUPPLIER); 
             else if (rc.getTeamPower() < Weights.MIN_POWER) 
                 rc.captureEncampment(RobotType.GENERATOR);
-            else if (rc.getTeamPower() > Weights.MAX_POWER)
+            else if (rc.getTeamPower() > maxPower)
                 rc.captureEncampment(RobotType.SUPPLIER);
             else {
                 rnd = Math.random();
-                double ratio = (rc.getTeamPower() - Weights.MIN_POWER) / (Weights.MAX_POWER - Weights.MIN_POWER);
+                double ratio = (rc.getTeamPower() - Weights.MIN_POWER) / (maxPower - Weights.MIN_POWER);
         rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ + 
             ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ + 
             ", w=" + militaryWeight + ", rnd=" + rnd + ", pratio=" + ratio/* + 

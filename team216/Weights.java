@@ -1,4 +1,4 @@
-package fieldbot;
+package team216;
 
 import battlecode.common.*;
 
@@ -33,12 +33,14 @@ public class Weights
     public static final double MILITARY     = 0.8;
     public static final double STRUCTURAL   = 1 - MILITARY;
 
-    public static final double MEDBAY       = 0.2;
+    public static final double MEDBAY       = 0.1;
     public static final double SHIELDS      = 0.1;
-    public static final double ARTILLERY    = 0.7;
+    public static final double ARTILLERY    = 0.8;
 
     public static final double MIN_POWER    = 16;
-    public static final double MAX_POWER    = 250;
+    public static final double MAX_POWER    = 60;
+    public static final double OURBASE_MULT = 10;
+    public static final double NEUTBASE_MULT= 2;
     public static final double MIN_ROUND    = 20;
 
     public static final double MEDBAY_SUM    = MEDBAY;
