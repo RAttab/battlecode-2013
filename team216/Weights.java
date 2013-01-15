@@ -6,6 +6,10 @@ public class Weights
 {
     public static final double DROPOFF      = 0.4;
 
+    public static final double BATTLE_MED   = 100;
+    public static final double BATTLE_ARTIL = 120;
+    public static final double BATTLE_SOLDI = 40;
+
     public static final double ENEMY_HQ     = 20.0;
     public static final double ALLY_HQ      = -1.0;
 
@@ -27,7 +31,7 @@ public class Weights
     public static final double GROUP_ATTACK = 2.0;
     public static final double GROUP_UP     = 2.0;
 
-    public static final double PATH         = 0.6;
+    public static final double PATH         = 0.7;
     public static final double TO_HQ        = 1 - PATH;
 
     public static final double MILITARY     = 0.8;

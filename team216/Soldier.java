@@ -167,7 +167,7 @@ public class Soldier
         for (int i = 0; i < enemies.length; i += steps) {
             RobotInfo info = rc.senseRobotInfo(enemies[i]);
             if (info.type != RobotType.SOLDIER &&
-                    info.type != RobotType.ARTILLERY)
+                    info.type != RobotType.ARTILLERY && info.type != RobotType.MEDBAY)
             {
                 continue;
             }
@@ -190,7 +190,7 @@ public class Soldier
         for (int i = 0; i < allies.length; i += steps) {
             RobotInfo info = rc.senseRobotInfo(allies[i]);
             if (info.type != RobotType.SOLDIER &&
-                    info.type != RobotType.ARTILLERY)
+                    info.type != RobotType.ARTILLERY && info.type != RobotType.MEDBAY)
             {
                 continue;
             }
@@ -333,7 +333,7 @@ public class Soldier
         double ratioToHQ = distHQ / (distEnemyHQ + distHQ);
 
         double distBetween = Math.sqrt(rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
-        double onPathRatio = distBetween / (distHQ + distEnemyHQ);
+        double onPathRatio = ((1 / ((distHQ + distEnemyHQ) / distBetween)) - 0.8) / 0.2;
 
         // prioritize artillery on the path between the HQs, and closer to enemy HQ
         double militaryWeight = Weights.MILITARY * 
