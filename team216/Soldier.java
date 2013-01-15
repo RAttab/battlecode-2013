@@ -338,7 +338,7 @@ public class Soldier
         double ratioToHQ = distHQ / (distEnemyHQ + distHQ);
 
         double distBetween = Math.sqrt(rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
-        double onPathRatio = ((1 / ((distHQ + distEnemyHQ) / distBetween)) - 0.8) / 0.2;
+        double onPathRatio = ((1 / ((distHQ + distEnemyHQ) / distBetween)) - 0.7) / 0.3;
 
         // prioritize artillery on the path between the HQs, and closer to enemy HQ
         double militaryWeight = Weights.MILITARY *
