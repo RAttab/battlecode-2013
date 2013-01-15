@@ -330,7 +330,7 @@ public class Soldier
             rnd = Math.random();
             if (rnd < Weights.MEDBAY_SUM)
                 rc.captureEncampment(RobotType.MEDBAY);
-            if (rnd < Weights.SHIELDS_SUM)
+            else if (rnd < Weights.SHIELDS_SUM)
                 rc.captureEncampment(RobotType.SHIELDS);
             else
                 rc.captureEncampment(RobotType.ARTILLERY);
