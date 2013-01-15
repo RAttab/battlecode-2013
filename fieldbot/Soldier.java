@@ -373,6 +373,7 @@ public class Soldier
         final Team team = rc.getTeam();
         final Robot robot = rc.getRobot();
 
+        // first things first.
         rc.wearHat();
 
         while (true) {
@@ -387,6 +388,7 @@ public class Soldier
             debug_resetBc();
 
             MapLocation coord = rc.getLocation();
+            // These represent the pull strengths in each direction by the affecting fields
             double strength[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
 
@@ -401,11 +403,13 @@ public class Soldier
 
             debug_checkBc(rc, "HQ");
 
-
+            // Check if there are enemies nearby
             boolean enemiesNearby = localRobots(rc, coord, strength, team);
             debug_checkBc(rc, "local-robot");
 
+            // There are two different modes of action
             if (!enemiesNearby) {
+
                 mines(rc, coord, strength, Weights.EXPLORE_MINE, GL_RADIUS);
                 debug_checkBc(rc, "explore-mine");
 
@@ -415,8 +419,7 @@ public class Soldier
                 globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
                 // globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
 
-                //defensiveMines(rc, coord, strength);
-
+                //TODO: defensiveMines(rc, coord, strength);
                 debug_checkBc(rc, "global-robot");
             }
             else {
