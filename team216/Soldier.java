@@ -69,7 +69,7 @@ public class Soldier
 
         Robot robots[] = rc.senseNearbyGameObjects(Robot.class, 3, team);
         Robot enemyRobots[] = rc.senseNearbyGameObjects(
-                Robot.class, GL_RADIUS, team.opponent());
+                Robot.class, LC_RADIUS, team.opponent());
 
         MapLocation closestEnemy = findClosest(rc, enemyRobots);
         Direction toward = coord.directionTo(closestEnemy);
@@ -105,20 +105,25 @@ public class Soldier
     }
 
     private static MapLocation findClosest(
-            RobotController rc, Robot[] otherRobots) 
+            RobotController rc, Robot[] otherRobots)
         throws GameActionException {
             // Be careful of bytecode problems, as this method is unbounded
         int closestDist = Integer.MAX_VALUE;
-        MapLocation closestEnemy=null;
-        for (int i=0;i<otherRobots.length;i++){
+        MapLocation closestEnemy = null;
+
+        int steps = Math.max(1, Utils.ceilDiv(otherRobots.length, MAX_ROBOTS));
+
+        for (int i = 0; i < otherRobots.length; i += steps) {
             Robot robot = otherRobots[i];
             RobotInfo robotInfo = rc.senseRobotInfo(robot);
             int dist = robotInfo.location.distanceSquaredTo(rc.getLocation());
-            if (dist<closestDist){
+
+            if (dist < closestDist) {
                 closestDist = dist;
                 closestEnemy = robotInfo.location;
             }
         }
+
         return closestEnemy;
     }
 
@@ -143,7 +148,7 @@ public class Soldier
 
         rc.setIndicatorString(0, "global=" + robots.length);
     }
-    
+
     /**
      */
     private static boolean localRobots(
@@ -336,12 +341,12 @@ public class Soldier
         double onPathRatio = ((1 / ((distHQ + distEnemyHQ) / distBetween)) - 0.8) / 0.2;
 
         // prioritize artillery on the path between the HQs, and closer to enemy HQ
-        double militaryWeight = Weights.MILITARY * 
+        double militaryWeight = Weights.MILITARY *
         (Weights.PATH * onPathRatio + Weights.TO_HQ * ratioToHQ);
 
-        rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ + 
-            ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ + 
-            ", w=" + militaryWeight + ", rnd=" + rnd/* + 
+        rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ +
+            ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ +
+            ", w=" + militaryWeight + ", rnd=" + rnd/* +
             ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
 
 
@@ -356,17 +361,17 @@ public class Soldier
         } else {
             // TODO: improve supplier/generator decision
             if (Clock.getRoundNum() < Weights.MIN_ROUND)
-                rc.captureEncampment(RobotType.SUPPLIER); 
-            else if (rc.getTeamPower() < Weights.MIN_POWER) 
+                rc.captureEncampment(RobotType.SUPPLIER);
+            else if (rc.getTeamPower() < Weights.MIN_POWER)
                 rc.captureEncampment(RobotType.GENERATOR);
             else if (rc.getTeamPower() > maxPower)
                 rc.captureEncampment(RobotType.SUPPLIER);
             else {
                 rnd = Math.random();
                 double ratio = (rc.getTeamPower() - Weights.MIN_POWER) / (maxPower - Weights.MIN_POWER);
-        rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ + 
-            ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ + 
-            ", w=" + militaryWeight + ", rnd=" + rnd + ", pratio=" + ratio/* + 
+        rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ +
+            ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ +
+            ", w=" + militaryWeight + ", rnd=" + rnd + ", pratio=" + ratio/* +
             ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
         //System.out.println("!!!!!!!!");
                 if (rnd < ratio)
