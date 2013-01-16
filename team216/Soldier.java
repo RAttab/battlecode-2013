@@ -111,7 +111,7 @@ public class Soldier
         int closestDist = Integer.MAX_VALUE;
         MapLocation closestEnemy = null;
 
-        int steps = Math.max(1, Utils.ceilDiv(otherRobots.length, MAX_ROBOTS));
+        int steps = Utils.ceilDiv(otherRobots.length, MAX_ROBOTS);
 
         for (int i = 0; i < otherRobots.length; i += steps) {
             Robot robot = otherRobots[i];
@@ -137,7 +137,7 @@ public class Soldier
         Robot robots[] = rc.senseNearbyGameObjects(
                 Robot.class, GL_RADIUS, team);
 
-        int steps = Math.max(1, Utils.ceilDiv(robots.length, MAX_ROBOTS));
+        int steps = Utils.ceilDiv(robots.length, MAX_ROBOTS);
 
         for (int i = 0; i < robots.length; i += steps) {
             MapLocation robotCoord = rc.senseRobotInfo(robots[i]).location;
@@ -167,12 +167,13 @@ public class Soldier
         int x = 0, y = 0;
         int numEnemies = 0;
         double enemyForce = 0.0;
-        int steps = Math.max(1, Utils.ceilDiv(enemies.length, MAX_ROBOTS));
+        int steps = Utils.ceilDiv(enemies.length, MAX_ROBOTS);
 
         for (int i = 0; i < enemies.length; i += steps) {
             RobotInfo info = rc.senseRobotInfo(enemies[i]);
             if (info.type != RobotType.SOLDIER &&
-                    info.type != RobotType.ARTILLERY && info.type != RobotType.MEDBAY)
+                    info.type != RobotType.ARTILLERY &&
+                    info.type != RobotType.MEDBAY)
             {
                 continue;
             }
@@ -188,14 +189,15 @@ public class Soldier
         MapLocation enemyCenter = new MapLocation(x/numEnemies, y/numEnemies);
 
         Robot allies[] = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team);
-        steps = Math.max(1, Utils.ceilDiv(enemies.length, MAX_ROBOTS));
+        steps = Utils.ceilDiv(enemies.length, MAX_ROBOTS);
         int numAllies = 0;
         double allyForce = 0.0;
 
         for (int i = 0; i < allies.length; i += steps) {
             RobotInfo info = rc.senseRobotInfo(allies[i]);
             if (info.type != RobotType.SOLDIER &&
-                    info.type != RobotType.ARTILLERY && info.type != RobotType.MEDBAY)
+                    info.type != RobotType.ARTILLERY &&
+                    info.type != RobotType.MEDBAY)
             {
                 continue;
             }
@@ -226,7 +228,6 @@ public class Soldier
             RobotController rc, MapLocation coord, double strength[])
         throws GameActionException
     {
-        if (Weights.MIN_CAPT_POW >= rc.getTeamPower()) return;
         double cost = rc.senseCaptureCost();
         if (cost >= rc.getTeamPower()) return;
 
@@ -239,15 +240,15 @@ public class Soldier
             bases = rc.senseEncampmentSquares(coord, radius, Team.NEUTRAL);
         }
 
-        int steps = Math.max(1, Utils.ceilDiv(bases.length, MAX_BASES));
+        int steps = Utils.ceilDiv(bases.length, MAX_BASES);
         int count = 0, taken = 0;
 
         for (int i = 0; i < bases.length; i += steps) {
-            if (rc.canSenseSquare(bases[i])) {
-                if (rc.senseObjectAtLocation(bases[i]) != null) {
-                    taken++;
-                    continue;
-                }
+            if (rc.canSenseSquare(bases[i]) &&
+                    rc.senseObjectAtLocation(bases[i]) != null)
+            {
+                taken++;
+                continue;
             }
 
             Direction dir = coord.directionTo(bases[i]);
@@ -303,16 +304,18 @@ public class Soldier
                 "ally=" + count + ", meds=" + med + ", shields=" + shields);
     }
 
+    // \todo this is never used...
     private static int numAlliedBases(RobotController rc, RobotType type)
-        throws GameActionException {
-            //TODO: fix this method
+        throws GameActionException
+    {
         MapLocation bases[] = rc.senseAlliedEncampmentSquares();
+        int steps = Utils.ceilDiv(bases.length, MAX_BASES);
         int n = 0;
-        for (MapLocation baseLoc : bases) {
-            Robot base = (Robot) rc.senseObjectAtLocation(baseLoc);
+
+        for (int i = 0; i < bases.length; i += steps) {
+            Robot base = (Robot) rc.senseObjectAtLocation(bases[i]);
             RobotInfo baseType = rc.senseRobotInfo(base);
-            if (baseType.equals(type))
-                n++;
+            if (baseType.equals(type)) n++;
         }
         return n;
     }
@@ -323,7 +326,7 @@ public class Soldier
         if (!rc.senseEncampmentSquare(coord)) return false;
 
         MapLocation ourBases[] = rc.senseAlliedEncampmentSquares();
-        MapLocation neutBases[] = rc.senseEncampmentSquares(coord, 999999, Team.NEUTRAL);
+        MapLocation neutBases[] = rc.senseEncampmentSquares(coord, GL_RADIUS, Team.NEUTRAL);
         double maxPower = Weights.MAX_POWER + ourBases.length * Weights.OURBASE_MULT;
         maxPower += (neutBases.length - ourBases.length) * Weights.NEUTBASE_MULT;
 
@@ -337,7 +340,8 @@ public class Soldier
         double distHQ = Math.sqrt(coord.distanceSquaredTo(rc.senseHQLocation()));
         double ratioToHQ = distHQ / (distEnemyHQ + distHQ);
 
-        double distBetween = Math.sqrt(rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
+        double distBetween = Math.sqrt(
+                rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
         double onPathRatio = ((1 / ((distHQ + distEnemyHQ) / distBetween)) - 0.7) / 0.3;
 
         // prioritize artillery on the path between the HQs, and closer to enemy HQ
@@ -368,12 +372,17 @@ public class Soldier
                 rc.captureEncampment(RobotType.SUPPLIER);
             else {
                 rnd = Math.random();
-                double ratio = (rc.getTeamPower() - Weights.MIN_POWER) / (maxPower - Weights.MIN_POWER);
-        rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ +
-            ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ +
-            ", w=" + militaryWeight + ", rnd=" + rnd + ", pratio=" + ratio/* +
-            ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
-        //System.out.println("!!!!!!!!");
+                double ratio =
+                    (rc.getTeamPower() - Weights.MIN_POWER) /
+                    (maxPower - Weights.MIN_POWER);
+
+                rc.setIndicatorString(1,
+                        "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ +
+                        ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ +
+                        ", w=" + militaryWeight + ", rnd=" + rnd
+                        + ", pratio=" + ratio
+                        /* + ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
+
                 if (rnd < ratio)
                     rc.captureEncampment(RobotType.GENERATOR);
                 else
@@ -397,6 +406,8 @@ public class Soldier
 
         while (true) {
 
+            // This is an extremely ugly hack to get around the fact that every
+            // agents start with the same seed.
             Math.random();
 
             if (!rc.isActive()) {
@@ -436,10 +447,9 @@ public class Soldier
                 debug_checkBc(rc, "neutral-base");
 
                 globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
-                // globalRobots(rc, coord, strength, Weights.GL_ALLY_SD, team);
+                debug_checkBc(rc, "global-robot");
 
                 //TODO: defensiveMines(rc, coord, strength);
-                debug_checkBc(rc, "global-robot");
             }
             else {
                 mines(rc, coord, strength, Weights.BATTLE_MINE, LC_RADIUS);
@@ -449,6 +459,7 @@ public class Soldier
                 debug_checkBc(rc, "ally-base");
 
                 battleFormation(rc, coord, strength, team);
+                debug_checkBc(rc, "battle-formation");
             }
 
             // Compute the final direction.
