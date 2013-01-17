@@ -46,7 +46,7 @@ public class Bases
     }
 
 
-    static final double POWER_THRESHOLD = 1000.0;
+    static final double POWER_THRESHOLD = 100.0;
     static final double BC_THRESHOLD = 5000.0;
 
     static final int MAGIC_NUM = 0xA5A5A5A5;
@@ -98,6 +98,7 @@ public class Bases
             power -= GameConstants.BROADCAST_READ_COST;
             probes++;
         };
+
         rc.setIndicatorString(2,
                 "probes=" + probes + ", hits=" + hits +
                 ", probes/rnd=" + (probes / rounds));

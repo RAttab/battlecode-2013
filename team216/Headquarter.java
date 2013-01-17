@@ -10,10 +10,8 @@ public class Headquarter
 
     private static int RESEARCH_WINDOW = 2;
 
-
     private static int nextSpawn = 0;
     private static int nextResearch = 0;
-
 
     /**
      *
@@ -53,8 +51,10 @@ public class Headquarter
     /**
      *
      */
-    public static boolean research(RobotController rc, double mapSize) throws GameActionException
+    public static boolean research(RobotController rc, double mapSize)
+        throws GameActionException
     {
+
         if (mapSize < Weights.MAPSIZE_S) {
             if (!rc.hasUpgrade(Upgrade.VISION)) {
                 rc.researchUpgrade(Upgrade.VISION);
@@ -68,7 +68,9 @@ public class Headquarter
                 rc.researchUpgrade(Upgrade.FUSION);
                 return true;
             }
-        } else if (mapSize < Weights.MAPSIZE_M) {
+        }
+
+        else if (mapSize < Weights.MAPSIZE_M) {
             if (!rc.hasUpgrade(Upgrade.VISION)) {
                 rc.researchUpgrade(Upgrade.VISION);
                 return true;
@@ -81,7 +83,9 @@ public class Headquarter
                 rc.researchUpgrade(Upgrade.DEFUSION);
                 return true;
             }
-        } else {
+        }
+
+        else {
             if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
                 rc.researchUpgrade(Upgrade.DEFUSION);
                 return true;
@@ -95,6 +99,7 @@ public class Headquarter
                 return true;
             }
         }
+
         return false;
     }
 
@@ -102,16 +107,20 @@ public class Headquarter
     public static void run(RobotController rc) throws GameActionException
     {
         MapLocation coord = rc.getLocation();
-        double mapSize = Math.sqrt(rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
+        double mapSize = Math.sqrt(
+                rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
+
         rc.setIndicatorString(0, "mapsize=" + mapSize);
 
-        if (mapSize < Weights.MAPSIZE_S) {
+        if (mapSize < Weights.MAPSIZE_S)
             RESEARCH_WINDOW = Weights.SHORT_WINDOW;
-        } else if (mapSize < Weights.MAPSIZE_M) {
+
+        else if (mapSize < Weights.MAPSIZE_M)
             RESEARCH_WINDOW = Weights.MEDIUM_WINDOW;
-        } else {
+
+        else
             RESEARCH_WINDOW = Weights.LONG_WINDOW;
-        }
+
 
         while (true) {
 
@@ -123,7 +132,7 @@ public class Headquarter
 
             if (nextSpawn <= round || !research(rc, mapSize))
                 spawn(rc, coord);
-            
+
 
             rc.yield();
         }
