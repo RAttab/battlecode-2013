@@ -22,9 +22,9 @@ public class Storage {
     public static Robot ME;
 
     // Variables
-    
 
-	public Storage(RobotController rc, boolean turnOne){
+
+	public Storage(RobotController rc){
         try {
         	MY_HQ = rc.senseHQLocation();
             ENEMY_HQ = rc.senseEnemyHQLocation();

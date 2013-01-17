@@ -14,8 +14,6 @@ public class RobotPlayer
         preprocessing(rc);
         while (true) {
             try {
-	            if (!rc.isActive())
-	            	{ rc.yield(); continue; }
 
                 if (know.MY_TYPE == RobotType.SOLDIER) {
                 }
@@ -25,7 +23,6 @@ public class RobotPlayer
                 else{}
             }
             catch(Exception e) { e.printStackTrace(); }
-            rc.yield();
         }
     }
     public static void soldier(RobotController rc){
@@ -33,13 +30,22 @@ public class RobotPlayer
     }
     public static void hq(RobotController rc){
         while (true) {
-            rc.setIndicatorString(0, ""+Clock.getBytecodeNum());
-            rc.setIndicatorString(1, know.DISTANCE_BETWEEN + ", " + know.EST_RUSH_TIME);
-            rc.yield();
+            try {
+                if (!rc.isActive())
+                    { rc.yield(); continue; }
+                Direction dir = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
+                if (rc.canMove(dir))
+                    rc.spawn(dir);
+                rc.setIndicatorString(0, ""+Clock.getBytecodeNum());
+                rc.setIndicatorString(1, know.DISTANCE_BETWEEN + ", " + know.EST_RUSH_TIME);
+
+                rc.yield();
+            } catch(Exception e) { e.printStackTrace(); }
         }
     }
     public static void preprocessing(RobotController rc){
         know = new Storage(rc);
     }
+
 
 }
