@@ -3,8 +3,7 @@ package team216;
 import battlecode.common.*;
 
 public class Soldier
-{
-
+{`
     private static final int GL_RADIUS = 100 * 100;
     private static final int LC_RADIUS =
         RobotType.ARTILLERY.attackRadiusMaxSquared;
@@ -398,8 +397,7 @@ public class Soldier
      */
     public static void run(RobotController rc) throws GameActionException
     {
-        final Team team = rc.getTeam();
-        final Robot robot = rc.getRobot();
+        
 
         // first things first.
         rc.wearHat();

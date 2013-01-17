@@ -4,6 +4,8 @@ import battlecode.common.*;
 
 public class Storage {
 
+	// Constants
+
     public static double DISTANCE_BETWEEN;
     public static double EST_RUSH_TIME;
     public static MapLocation MY_HQ;
@@ -14,11 +16,15 @@ public class Storage {
     public static int MAP_WIDTH;
     public static int MAP_SIZE;
     public static Team MY_TEAM;
+    public static RobotType MY_TYPE;
     public static Team ENEMY_TEAM;
     public static RobotInfo MY_INFO;
     public static Robot ME;
 
-	public Storage(RobotController rc){
+    // Variables
+    
+
+	public Storage(RobotController rc, boolean turnOne){
         try {
         	MY_HQ = rc.senseHQLocation();
             ENEMY_HQ = rc.senseEnemyHQLocation();
@@ -27,6 +33,7 @@ public class Storage {
             SLOPE = (double)(MY_HQ.y - ENEMY_HQ.y) / (MY_HQ.x - ENEMY_HQ.x);
             ME = rc.getRobot();
             MY_INFO = rc.senseRobotInfo(ME);
+            MY_TYPE = rc.getType();
             MAP_HEIGHT = rc.getMapHeight();
             MAP_WIDTH = rc.getMapWidth();
             MAP_SIZE = MAP_HEIGHT * MAP_WIDTH;
@@ -45,7 +52,7 @@ public class Storage {
         double offset;
         double time = 0.0;
         String s = "";
-        rc.setIndicatorString(0, "c=" + CENTER + ", m=" + MY_HQ + ", e=" + ENEMY_HQ + ", xdif=" + x_dif + ", ydif" + y_dif + ", slope=" + SLOPE);
+        //rc.setIndicatorString(0, "c=" + CENTER + ", m=" + MY_HQ + ", e=" + ENEMY_HQ + ", xdif=" + x_dif + ", ydif" + y_dif + ", slope=" + SLOPE);
         for (int i=0; i<20; i++) {
             offset = 6 * Math.random() - 3;
             x = Math.random() * x_dif;
@@ -60,5 +67,11 @@ public class Storage {
         time *= (DISTANCE_BETWEEN/20.0);
         return time;
     }
+
+
+    // Combat methods
+    // getEnemyCenter
+    // getFriendlyCenter
+
 
 }

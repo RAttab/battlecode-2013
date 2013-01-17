@@ -7,15 +7,7 @@ import battlecode.common.*;
  */
 public class RobotPlayer
 {
-	// Things that stay the same for the whole game
-
-	// Things that should be a on a decay timer or something
-	public static MapLocation[] NEUTRAL_MINES;
-
-	// Things that should be sensed locally each turn
-
-	// Things that will probably have to be broadcasted
-
+	public static Storage know;
 
     public static void run(RobotController rc)
     {
@@ -24,12 +16,10 @@ public class RobotPlayer
             try {
 	            if (!rc.isActive())
 	            	{ rc.yield(); continue; }
-                RobotType type = rc.getType();
 
-                if (type == RobotType.SOLDIER) {
-                	soldier(rc);
+                if (know.MY_TYPE == RobotType.SOLDIER) {
                 }
-                else if (type == RobotType.HQ) {
+                else if (know.MY_TYPE == RobotType.HQ) {
                 	hq(rc);
                 }
                 else{}
@@ -43,13 +33,13 @@ public class RobotPlayer
     }
     public static void hq(RobotController rc){
         while (true) {
-            //rc.setIndicatorString(0, ""+Clock.getBytecodeNum());
-            rc.setIndicatorString(1, DISTANCE_BETWEEN + ", " + EST_RUSH_TIME);
+            rc.setIndicatorString(0, ""+Clock.getBytecodeNum());
+            rc.setIndicatorString(1, know.DISTANCE_BETWEEN + ", " + know.EST_RUSH_TIME);
             rc.yield();
         }
     }
     public static void preprocessing(RobotController rc){
-
+        know = new Storage(rc);
     }
 
 }
