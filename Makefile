@@ -9,7 +9,7 @@
 INSTALL_DIR ?= ~/Battlecode2013
 
 BOTS := team216 \
-	fieldbot
+	testplayer
 
 install: $(foreach bot,$(BOTS),$(INSTALL_DIR)/teams/$(bot))
 
