@@ -21,6 +21,7 @@ public class RobotPlayer
                 	hq(rc);
                 }
                 else{}
+                rc.yield();
             }
             catch(Exception e) { e.printStackTrace(); }
         }
