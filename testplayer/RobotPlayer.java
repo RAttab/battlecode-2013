@@ -7,7 +7,7 @@ import battlecode.common.*;
  */
 public class RobotPlayer
 {
-	public static Storage know;
+    public static Storage know;
 
     public static void run(RobotController rc)
     {
@@ -18,7 +18,7 @@ public class RobotPlayer
                 if (know.MY_TYPE == RobotType.SOLDIER) {
                 }
                 else if (know.MY_TYPE == RobotType.HQ) {
-                	hq(rc);
+                    hq(rc);
                 }
                 else{}
                 rc.yield();
@@ -33,7 +33,7 @@ public class RobotPlayer
         while (true) {
             try {
                 if (!rc.isActive())
-                    { rc.yield(); continue; }
+                { rc.yield(); continue; }
                 Direction dir = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
                 if (rc.canMove(dir))
                     rc.spawn(dir);

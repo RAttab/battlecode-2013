@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class Storage {
 
-	// Constants
+    // Constants
 
     public static double DISTANCE_BETWEEN;
     public static double EST_RUSH_TIME;
@@ -24,9 +24,9 @@ public class Storage {
     // Variables
 
 
-	public Storage(RobotController rc){
+    public Storage(RobotController rc){
         try {
-        	MY_HQ = rc.senseHQLocation();
+            MY_HQ = rc.senseHQLocation();
             ENEMY_HQ = rc.senseEnemyHQLocation();
             CENTER = new MapLocation((MY_HQ.x + ENEMY_HQ.x)/2,(MY_HQ.y + ENEMY_HQ.y)/2);
             DISTANCE_BETWEEN = Math.sqrt(MY_HQ.distanceSquaredTo(ENEMY_HQ));
@@ -42,7 +42,8 @@ public class Storage {
             EST_RUSH_TIME = getRushTime(rc);
         }
         catch(Exception e) { e.printStackTrace(); }
-	}
+    }
+
     public static double getRushTime(RobotController rc){
         //calculate estimated turns for rush
         double x_dif = MY_HQ.x - ENEMY_HQ.x;
@@ -72,6 +73,5 @@ public class Storage {
     // Combat methods
     // getEnemyCenter
     // getFriendlyCenter
-
 
 }
