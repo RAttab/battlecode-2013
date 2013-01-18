@@ -21,10 +21,7 @@ public class Storage {
     public static RobotInfo MY_INFO;
     public static Robot ME;
 
-    // Variables
-
-
-    public Storage(RobotController rc){
+    public static void calculateValues(RobotController rc) {
         try {
             MY_HQ = rc.senseHQLocation();
             ENEMY_HQ = rc.senseEnemyHQLocation();
@@ -44,7 +41,9 @@ public class Storage {
         catch(Exception e) { e.printStackTrace(); }
     }
 
-    public static double getRushTime(RobotController rc){
+    // Variables
+
+    public static double getRushTime(RobotController rc) {
         //calculate estimated turns for rush
         double x_dif = MY_HQ.x - ENEMY_HQ.x;
         double y_dif = MY_HQ.y - ENEMY_HQ.y;
@@ -68,6 +67,10 @@ public class Storage {
         time *= (DISTANCE_BETWEEN/20.0);
         return time;
     }
+
+    //public static double getRobotType(RobotController rc) {
+
+    //}
 
 
     // Combat methods
