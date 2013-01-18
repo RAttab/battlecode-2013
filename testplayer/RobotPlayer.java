@@ -16,24 +16,30 @@ public class RobotPlayer
             try {
 
                 if (know.MY_TYPE == RobotType.SOLDIER) {
+                    soldier(rc);
                 }
                 else if (know.MY_TYPE == RobotType.HQ) {
                     hq(rc);
                 }
-                else{}
+                else {
+                    base(rc);
+                }
                 rc.yield();
             }
             catch(Exception e) { e.printStackTrace(); }
         }
     }
-    public static void soldier(RobotController rc){
+
+    public static void soldier(RobotController rc) {
 
     }
-    public static void hq(RobotController rc){
+    public static void hq(RobotController rc) {
         while (true) {
             try {
-                if (!rc.isActive())
-                { rc.yield(); continue; }
+                if (!rc.isActive()) {
+                    rc.yield();
+                    continue;
+                }
                 Direction dir = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
                 if (rc.canMove(dir))
                     rc.spawn(dir);
@@ -44,7 +50,11 @@ public class RobotPlayer
             } catch(Exception e) { e.printStackTrace(); }
         }
     }
-    public static void preprocessing(RobotController rc){
+    public static void base(RobotController rc) {
+
+    }
+
+    public static void preprocessing(RobotController rc) {
         know = new Storage(rc);
     }
 

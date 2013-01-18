@@ -14,8 +14,10 @@ public class RobotPlayer
             try {
                 RobotType type = rc.getType();
 
-                if (type == RobotType.SOLDIER) Soldier.run(rc);
-                else if (type == RobotType.HQ) Headquarter.run(rc);
+                if (type == RobotType.SOLDIER)
+                    Soldier.run(rc);
+                else if (type == RobotType.HQ)
+                    Headquarter.run(rc);
                 else Bases.run(rc);
 
             }
