@@ -16,3 +16,10 @@ install: $(foreach bot,$(BOTS),$(INSTALL_DIR)/teams/$(bot))
 
 $(INSTALL_DIR)/teams/%:
 	 ln -s $(CURDIR)/$* $@
+
+template:
+	cat team216/Weights.java | \
+	sed -r 's/([_A-Z]+)\s*=\s*(-?[0-9]*\.?[0-9]*);/\1 = %{\1};/' > Weights.tpl
+	cat team216/Weights.java | \
+	egrep '=\s*(-?[0-9]*\.?[0-9]*);' | \
+	sed -r 's/.*\s([_A-Z]+)\s*=\s*(-?[0-9]*\.?[0-9]*);.*/\1=\2;/' > genome.txt
