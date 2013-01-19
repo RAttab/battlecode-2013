@@ -55,5 +55,5 @@ install-train: install-bots template clean-train
 	bash -c 'echo $(TEAM_DIR)/$(GA_DIR)' | xargs -n1 ./rename-packages
 # bash -c 'rm $(TEAM_DIR)/$(GA_DIR)/Weights.java'
 
-clean: clean-template clean-trean
+clean: clean-template clean-train
 
