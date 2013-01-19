@@ -392,6 +392,15 @@ public class Soldier
         return true;
     }
 
+    public static double getMineStr
+        (RobotController rc, double defense, MapLocation coord, int minesNearby) {
+        double mineStr = defense * Weights.LAY_MINE;
+        if (rc.hasUpgrade(Upgrade.PICKAXE))
+            mineStr *= 4;
+        double minesNearbyFactor = Weights.NEARBY_MINE * ((LC_RADIUS/2)-(minesNearby));
+        return mineStr + minesNearbyFactor;
+    }
+
 
     /**
      */
@@ -479,10 +488,23 @@ public class Soldier
             debug_checkBc(rc, "select-strength");
 
             if (finalDir == null) { rc.yield(); continue; }
-
+            rc.setIndicatorString(0, "max_str=" + maxStrength + ", dir=" + finalDir);
 
             // Execute the move safely.
             if (enemiesNearby || !capture(rc, coord)) {
+                if (rc.senseMine(coord) == null) {
+                    // see if we should lay a mine here
+                    MapLocation hq = rc.senseHQLocation();
+                    MapLocation evil_hq = rc.senseEnemyHQLocation();
+                    double dist = Utils.distTwoPoints(hq, evil_hq);
+                    double defense = Utils.defensiveRelevance(coord, hq, evil_hq, dist);
+                    int minesNearby = rc.senseMineLocations(coord, LC_RADIUS, team).length;
+                    double mineStr = getMineStr(rc, defense, coord, minesNearby);
+                    rc.setIndicatorString(1, "defense=" + defense + ", mine_str=" + mineStr);
+                    rc.setIndicatorString(2, ""+Clock.getBytecodeNum());
+                    if (mineStr > maxStrength)
+                        rc.layMine();
+                }
 
                 debug_checkBc(rc, "capture");
 
@@ -502,7 +524,6 @@ public class Soldier
             rc.yield();
         }
     }
-
 
     private static int lastBcCounter;
 
