@@ -101,7 +101,7 @@ class MapCanvas():
         if self.mouseIn:
             self.canvas.create_text((self.mouseX+1) * self.cWidth / self.gridWidth,
                         (self.mouseY-1) * self.cHeight / self.gridHeight,
-                        text = "(%s,%s)" % (self.mouseX, self.mouseY))
+                        text = "(%s,%s)" % (self.mouseX+1, self.mouseY+1)) # +1 for 1 instead of 0 based
 
         # Calculate object offset
         offX = self.cWidth / self.gridWidth / 2
@@ -141,6 +141,24 @@ class MapCanvas():
         self.cells[random.randint(0,self.gridWidth-1)][random.randint(0,self.gridHeight-1)] = 3 # Team A
         self.cells[random.randint(0,self.gridWidth-1)][random.randint(0,self.gridHeight-1)] = 4 # Team B
 
+        self.Draw()
+
+    def SwapME(self):
+        for col in range(0, self.gridWidth):
+            for row in range(0, self.gridHeight):
+                if self.cells[col][row] == 1:
+                    self.cells[col][row] = 2 # Swap to encamp
+                elif self.cells[col][row] == 2:
+                    self.cells[col][row] = 1 # Swap to mine
+        self.Draw()
+
+    def SwapTM(self):
+        for col in range(0, self.gridWidth):
+            for row in range(0, self.gridHeight):
+                if self.cells[col][row] == 0:
+                    self.cells[col][row] = 1 # Swap to mine
+                elif self.cells[col][row] == 1:
+                    self.cells[col][row] = 0 # Swap to terrain
         self.Draw()
 
     def GetDefaultMapDefinition(self):
@@ -334,6 +352,16 @@ class MapEdit(Tkinter.Tk):
                                    command = self.OnRandomClick)
         btnRandom.grid(column = 4, row = 0)
 
+        btnSwapME = Tkinter.Button(self.frameButtons,
+                                   text = "Mine<->Encamp",
+                                   command = self.OnSwapMEClick)
+        btnSwapME.grid(column = 5, row = 0)
+        
+        btnSwapTM = Tkinter.Button(self.frameButtons,
+                                   text = "Land<->Mine",
+                                   command = self.OnSwapTMClick)
+        btnSwapTM.grid(column = 6, row = 0)
+
         self.frameMap = Tkinter.Frame(self)
         self.frameMap.grid(column = 0, row = 1, sticky = "nswe")
 
@@ -386,6 +414,13 @@ class MapEdit(Tkinter.Tk):
 
     def OnRandomClick(self):
         self.canvas.Random()
+
+    def OnSwapMEClick(self):
+        self.canvas.SwapME()
+
+    def OnSwapTMClick(self):
+        self.canvas.SwapTM()
+
 
 if __name__ == "__main__":
         app = MapEdit(None)
