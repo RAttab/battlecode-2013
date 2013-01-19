@@ -6,7 +6,13 @@
 # Makefile to setup and run our project.
 #------------------------------------------------------------------------------#
 
-INSTALL_DIR ?= ~/Battlecode2013
+OS := $(shell uname)
+
+ifeq ($(OS), Darwin) # Mac OS X
+	INSTALL_DIR ?= /Applications/Battlecode2013
+else
+	INSTALL_DIR ?= ~/Battlecode2013
+endif
 
 BOTS := team216 \
 	testplayer \
