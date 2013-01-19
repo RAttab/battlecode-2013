@@ -52,8 +52,8 @@ clean-train:
 install-train: install-bots template clean-train
 	bash -c 'mkdir $(TEAM_DIR)/$(GA_DIR)'
 	bash -c 'echo $(TEAM_DIR)/$(GA_DIR) | xargs -n1 cp team216/*'
-	bash -c 'rm $(TEAM_DIR)/$(GA_DIR)/Weights.java'
 	bash -c 'echo $(TEAM_DIR)/$(GA_DIR)' | xargs -n1 ./rename-packages
+# bash -c 'rm $(TEAM_DIR)/$(GA_DIR)/Weights.java'
 
 clean: clean-template clean-trean
 
