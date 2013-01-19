@@ -1,4 +1,4 @@
-package testplayer;
+package team216;
 
 import battlecode.common.*;
 
@@ -15,9 +15,6 @@ public class Storage {
     public static int MAP_HEIGHT;
     public static int MAP_WIDTH;
     public static int MAP_SIZE;
-    public static Team MY_TEAM;
-    public static RobotType MY_TYPE;
-    public static Team ENEMY_TEAM;
     public static RobotInfo MY_INFO;
     public static Robot ME;
 
@@ -30,12 +27,9 @@ public class Storage {
             SLOPE = (double)(MY_HQ.y - ENEMY_HQ.y) / (MY_HQ.x - ENEMY_HQ.x);
             ME = rc.getRobot();
             MY_INFO = rc.senseRobotInfo(ME);
-            MY_TYPE = rc.getType();
             MAP_HEIGHT = rc.getMapHeight();
             MAP_WIDTH = rc.getMapWidth();
             MAP_SIZE = MAP_HEIGHT * MAP_WIDTH;
-            MY_TEAM = rc.getTeam();
-            ENEMY_TEAM = MY_TEAM.opponent();
             EST_RUSH_TIME = getRushTime(rc);
         }
         catch(Exception e) { e.printStackTrace(); }
@@ -67,10 +61,6 @@ public class Storage {
         time *= (DISTANCE_BETWEEN/20.0);
         return time;
     }
-
-    //public static double getRobotType(RobotController rc) {
-
-    //}
 
 
     // Combat methods

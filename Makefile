@@ -6,14 +6,20 @@
 # Makefile to setup and run our project.
 #------------------------------------------------------------------------------#
 
-INSTALL_DIR ?= ~/Battlecode2013
+OS := $(shell uname)
+
+ifeq ($(OS), Darwin) # Mac OS X
+	INSTALL_DIR ?= /Applications/Battlecode2013
+else
+	INSTALL_DIR ?= ~/Battlecode2013
+endif
+
 #INSTALL_DIR := ./tmp
 
 TEAM_DIR := $(INSTALL_DIR)/teams
 BIN_DIR := $(INSTALL_DIR)/bin
 
 BOTS := team216 \
-	testplayer \
 	rusher \
 	godotbot
 

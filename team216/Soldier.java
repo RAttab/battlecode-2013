@@ -452,13 +452,9 @@ public class Soldier
 
 
             // Enemy HQ
-            {
-                MapLocation hq = rc.senseEnemyHQLocation();
-                Direction dir = coord.directionTo(hq);
-                strengthen(
-                        strength, dir, Weights.ENEMY_HQ,
-                        hq.distanceSquaredTo(coord));
-            }
+            strengthen(
+                    strength, coord.directionTo(Storage.ENEMY_HQ), Weights.ENEMY_HQ,
+                    Storage.ENEMY_HQ.distanceSquaredTo(coord));
 
             debug_checkBc(rc, "HQ");
 
@@ -511,13 +507,11 @@ public class Soldier
             rc.setIndicatorString(0, "max_str=" + maxStrength + ", dir=" + finalDir);
 
             // TODO: all of these are things are Storage
-            MapLocation hq = rc.senseHQLocation();
-            MapLocation evil_hq = rc.senseEnemyHQLocation();
-            double dist = Utils.distTwoPoints(hq, evil_hq);
+            double dist = Utils.distTwoPoints(Storage.MY_HQ, Storage.ENEMY_HQ);
             double defense = Utils.defensiveRelevance(
-                    coord, hq, evil_hq, dist, Weights.DEF_RATIO);
+                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, dist, Weights.DEF_RATIO);
             double strat = Utils.strategicRelevance(
-                    coord, hq, evil_hq, dist, Weights.STRAT_RATIO);
+                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, dist, Weights.STRAT_RATIO);
             double mineStr = 0;
 
             // TODO: incorporate threat level instead of boolean enemiesNearby

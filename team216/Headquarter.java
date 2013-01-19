@@ -33,7 +33,7 @@ public class Headquarter
     private static void spawn(RobotController rc, MapLocation coord)
         throws GameActionException
     {
-        Direction dir = coord.directionTo(rc.senseEnemyHQLocation());
+        Direction dir = coord.directionTo(Storage.ENEMY_HQ);
         int dirOrd = dir.ordinal();
         boolean spawned = false;
 
@@ -112,7 +112,7 @@ public class Headquarter
     {
         MapLocation coord = rc.getLocation();
         double mapSize = Math.sqrt(
-                rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
+                Storage.ENEMY_HQ.distanceSquaredTo(Storage.ENEMY_HQ));
 
         rc.setIndicatorString(0, "mapsize=" + mapSize);
 
