@@ -12,5 +12,5 @@
 *.pyc
 
 # Genetic algorithm
-Weights.tpl
+weights.tpl
 genome.txt
