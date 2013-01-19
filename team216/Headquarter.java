@@ -60,12 +60,8 @@ public class Headquarter
                 rc.researchUpgrade(Upgrade.VISION);
                 return true;
             }
-            if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
-                rc.researchUpgrade(Upgrade.DEFUSION);
-                return true;
-            }
-            if (!rc.hasUpgrade(Upgrade.FUSION)) {
-                rc.researchUpgrade(Upgrade.FUSION);
+            if (!rc.hasUpgrade(Upgrade.PICKAXE)) {
+                rc.researchUpgrade(Upgrade.PICKAXE);
                 return true;
             }
         }
@@ -83,6 +79,10 @@ public class Headquarter
                 rc.researchUpgrade(Upgrade.DEFUSION);
                 return true;
             }
+            if (!rc.hasUpgrade(Upgrade.PICKAXE)) {
+                rc.researchUpgrade(Upgrade.PICKAXE);
+                return true;
+            }
         }
 
         else {
@@ -90,12 +90,16 @@ public class Headquarter
                 rc.researchUpgrade(Upgrade.DEFUSION);
                 return true;
             }
+            if (!rc.hasUpgrade(Upgrade.FUSION)) {
+                rc.researchUpgrade(Upgrade.FUSION);
+                return true;
+            }
             if (!rc.hasUpgrade(Upgrade.VISION)) {
                 rc.researchUpgrade(Upgrade.VISION);
                 return true;
             }
-            if (!rc.hasUpgrade(Upgrade.FUSION)) {
-                rc.researchUpgrade(Upgrade.FUSION);
+            if (!rc.hasUpgrade(Upgrade.PICKAXE)) {
+                rc.researchUpgrade(Upgrade.PICKAXE);
                 return true;
             }
         }

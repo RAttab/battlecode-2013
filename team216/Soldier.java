@@ -387,8 +387,18 @@ public class Soldier
         (RobotController rc, double defense, MapLocation coord, int minesNearby) {
 
         double mineStr = defense * Weights.LAY_MINE;
-        if (rc.hasUpgrade(Upgrade.PICKAXE))
-            mineStr *= 4;
+        if (rc.hasUpgrade(Upgrade.PICKAXE)) {
+            int orthogonalMines = 0;
+            if (rc.senseMine(coord.add(Direction.NORTH)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.SOUTH)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.EAST)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.WEST)) != null)
+                orthogonalMines++;
+            mineStr *= 5-orthogonalMines;
+        }
         double minesNearbyFactor = Weights.NEARBY_MINE * ((LC_RADIUS/2)-(minesNearby));
         return mineStr + minesNearbyFactor;
     }
