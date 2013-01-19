@@ -30,37 +30,38 @@ public class Storage {
             MAP_HEIGHT = rc.getMapHeight();
             MAP_WIDTH = rc.getMapWidth();
             MAP_SIZE = MAP_HEIGHT * MAP_WIDTH;
-            EST_RUSH_TIME = getRushTime(rc);
+            //EST_RUSH_TIME = getRushTime(rc);
         }
         catch(Exception e) { e.printStackTrace(); }
     }
 
     // Variables
 
-    public static double getRushTime(RobotController rc) {
-        //calculate estimated turns for rush
-        double x_dif = MY_HQ.x - ENEMY_HQ.x;
-        double y_dif = MY_HQ.y - ENEMY_HQ.y;
-        double x;
-        double y;
-        double offset;
-        double time = 0.0;
-        String s = "";
-        //rc.setIndicatorString(0, "c=" + CENTER + ", m=" + MY_HQ + ", e=" + ENEMY_HQ + ", xdif=" + x_dif + ", ydif" + y_dif + ", slope=" + SLOPE);
-        for (int i=0; i<20; i++) {
-            offset = 6 * Math.random() - 3;
-            x = Math.random() * x_dif;
-            y = SLOPE * x + ENEMY_HQ.y;
-            s += " (" + (int)x + ", " + (int)y + ")";
-            if (Team.NEUTRAL.equals(rc.senseMine(new MapLocation((int)x, (int)y)))){
-                time += 12;
-                s += "!";
-            }
-        }
-        rc.setIndicatorString(2, s);
-        time *= (DISTANCE_BETWEEN/20.0);
-        return time;
-    }
+    // TODO: Commented out for now, caushes to go over bytecode limit
+    //public static double getRushTime(RobotController rc) {
+        ////calculate estimated turns for rush
+        //double x_dif = MY_HQ.x - ENEMY_HQ.x;
+        //double y_dif = MY_HQ.y - ENEMY_HQ.y;
+        //double x;
+        //double y;
+        //double offset;
+        //double time = 0.0;
+        //String s = "";
+        ////rc.setIndicatorString(0, "c=" + CENTER + ", m=" + MY_HQ + ", e=" + ENEMY_HQ + ", xdif=" + x_dif + ", ydif" + y_dif + ", slope=" + SLOPE);
+        //for (int i=0; i<20; i++) {
+            //offset = 6 * Math.random() - 3;
+            //x = Math.random() * x_dif;
+            //y = SLOPE * x + ENEMY_HQ.y;
+            //s += " (" + (int)x + ", " + (int)y + ")";
+            //if (Team.NEUTRAL.equals(rc.senseMine(new MapLocation((int)x, (int)y)))){
+                //time += 12;
+                //s += "!";
+            //}
+        //}
+        //rc.setIndicatorString(2, s);
+        //time *= (DISTANCE_BETWEEN/20.0);
+        //return time;
+    //}
 
 
     // Combat methods

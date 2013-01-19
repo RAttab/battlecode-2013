@@ -17,7 +17,7 @@ import simulator
 # SETUP                                                                        #
 #------------------------------------------------------------------------------#
 
-dir_fmt = "/home/remi/Battlecode2013/teams/ga_%d/Weights.java"
+dir_fmt = os.path.expanduser("~/Battlecode2013/teams/ga_%d/Weights.java")
 
 pop_size = 20
 optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'ALLY_HQ', 'DROPOFF']

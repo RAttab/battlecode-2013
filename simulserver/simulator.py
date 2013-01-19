@@ -50,6 +50,7 @@ class BattleWorker(multiprocessing.Process):
                     else:
                         result['success'] = False
             except:
+                raise
                 result['success'] = False
 
             # Send the result back

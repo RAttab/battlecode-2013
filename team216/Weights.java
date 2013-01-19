@@ -12,17 +12,12 @@ import battlecode.common.*;
     regex. Trust me, you don't want that so just stick to the pattern and we'll
     all be happier.
 
-    DON'T REMOVE THE INT CASTS! I know they look weird and pointless but they
-    essentially take that line out of the possible training weights which
-    generates doubles which java doesn't like downcasting to ints. Longs story
-    short, this is a hack that avoids compile errors.
-
  */
 public class Weights
 {
-    public static final int SHORT_WINDOW    = (int)1;
-    public static final int MEDIUM_WINDOW   = (int)2;
-    public static final int LONG_WINDOW     = (int)3;
+    public static final int SHORT_WINDOW    = 1;
+    public static final int MEDIUM_WINDOW   = 2;
+    public static final int LONG_WINDOW     = 3;
     public static final double MAPSIZE_S    = 30;
     public static final double MAPSIZE_M    = 80;
     public static final double MAPSIZE_L    = 999;
