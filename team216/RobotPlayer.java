@@ -7,22 +7,21 @@ import battlecode.common.*;
  */
 public class RobotPlayer
 {
+    public static void run(RobotController rc) {
+        Storage.calculateValues(rc);
 
-    public static void run(RobotController rc)
-    {
         while (true) {
             try {
-                RobotType type = rc.getType();
 
-                if (type == RobotType.SOLDIER)
+                if (rc.getType() == RobotType.SOLDIER)
                     Soldier.run(rc);
-                else if (type == RobotType.HQ)
+                else if (rc.getType() == RobotType.HQ)
                     Headquarter.run(rc);
-                else Bases.run(rc);
-
+                else
+                    Bases.run(rc);
+                rc.yield();
             }
             catch(Exception e) { e.printStackTrace(); }
-            rc.yield();
         }
     }
 

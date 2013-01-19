@@ -18,10 +18,8 @@ endif
 
 TEAM_DIR := $(INSTALL_DIR)/teams
 BIN_DIR := $(INSTALL_DIR)/bin
->>>>>>> 6fc01640f964851805ae9c955a87f48524f5305c
 
 BOTS := team216 \
-	testplayer \
 	rusher \
 	godotbot
 
