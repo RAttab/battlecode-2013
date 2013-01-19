@@ -93,6 +93,9 @@ if __name__ == "__main__":
         exit(1)
 
     battles = []
+
+    # Additional parameters can be added here.. those will be forwarded to the CombatRunner and
+    # can be used to tell the system who goes against who and on what map and stuff...
     battles.append({'id': 1, 'type': "local"})
     battles.append({'id': 2, 'type': "local"})
     battles.append({'id': 3, 'type': "local"})

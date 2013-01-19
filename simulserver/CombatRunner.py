@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- 
 
+import os
 import json
-import shutil
 import tempfile
 import subprocess
-
+import tempfile
 
 # can be tested using:
 # import CombatRunner
@@ -21,6 +21,35 @@ class CombatRunner:
     
     def Run(self, config):
         print "[CombatRunner][Run] With config [%s]" % config
+
+        # Load the bc template config file
+        # That template file should have placeholders
+        # like: %(mapName)s  (note that the "s" after the parenthesis is required)
+        # that mapName value would be replaced by the value of config['mapName']
+        fh = open("my config template file", "r")
+        templateStr = fh.read()
+        fh.close()
+
+        # Generate a temp config file
+        filename = tempfile.mkstemp()
+
+        # Populate the config file based on template and the config param
+        fh = open(filename, "w")
+        fh.write(templateStr % config)
+        fh.close()
+
+        # **
+        # Generate weights here? or those get generated in the simulator.py file
+        # before calling QueueBattles ?
+        # **
+
+        # Run the combat and parse the results
+        result = self.ParseAntRunResult(self.AntRunHeadless("my battlecode2013 path", filename))
+
+        # Delete the temp config file
+        os.remove(filename)
+
+        return result
 
     def ParseAntRunResult(self, antResult):
         result = { "maxRound": 0,
