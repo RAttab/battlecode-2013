@@ -11,6 +11,7 @@
 
 # General imports
 import time
+import random
 from xml.dom.minidom import parseString
 
 # UI import
@@ -25,7 +26,7 @@ except ImportError:
 class MapCanvas():
     # Land, Mine, Encampment, Team A, Team B
     states = ['.', 'o', '+', 'A', 'B']
-    statesCol = [ '#000000', '#dd0000', '#0000dd', '#aa00aa', '#aa00aa' ]
+    statesCol = [ '#999999', '#dd0000', '#0000dd', '#000000', '#000000' ]
 
     def __init__(self, canvas, width = 20, height = 20):
         self.canvas = canvas
@@ -125,6 +126,23 @@ class MapCanvas():
         self.filename = ""
         self.LoadFromMapDef()
 
+    def Random(self):
+        for col in range(0, self.gridWidth):
+            for row in range(0, self.gridHeight):
+                rnd = random.randint(0, 3)
+                if rnd in [0, 1]:
+                    self.cells[col][row] = 0 # Terrain
+                elif rnd == 2:
+                    self.cells[col][row] = 1 # Mine
+                elif rnd == 3:
+                    self.cells[col][row] = 2 # Encampment
+
+        # I know, here technically the team B pos might override team A...
+        self.cells[random.randint(0,self.gridWidth-1)][random.randint(0,self.gridHeight-1)] = 3 # Team A
+        self.cells[random.randint(0,self.gridWidth-1)][random.randint(0,self.gridHeight-1)] = 4 # Team B
+
+        self.Draw()
+
     def GetDefaultMapDefinition(self):
         return { 'width': 1,
                  'height': 1,
@@ -218,7 +236,7 @@ class MapCanvas():
         self.mapDef['symbols'] = self.states
 
         self.mapDef['data'] = ""
-        for row in range(0, slf.gridHeight):
+        for row in range(0, self.gridHeight):
             for col in range(0, self.gridWidth):
                 self.mapDef['data'] += self.states[self.cells[col][row]]
             self.mapDef['data'] += "\n"
@@ -311,6 +329,11 @@ class MapEdit(Tkinter.Tk):
                                  command = self.OnSizeClick)
         btnSize.grid(column = 3, row = 0)
 
+        btnRandom = Tkinter.Button(self.frameButtons,
+                                   text = "Random",
+                                   command = self.OnRandomClick)
+        btnRandom.grid(column = 4, row = 0)
+
         self.frameMap = Tkinter.Frame(self)
         self.frameMap.grid(column = 0, row = 1, sticky = "nswe")
 
@@ -360,6 +383,9 @@ class MapEdit(Tkinter.Tk):
             height = self.canvas.gridHeight
 
         self.canvas.ResizeGrid(width, height)
+
+    def OnRandomClick(self):
+        self.canvas.Random()
 
 if __name__ == "__main__":
         app = MapEdit(None)
