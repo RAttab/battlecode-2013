@@ -38,8 +38,8 @@ public class Weights
     public static final double GROUP_ATTACK = 2.0;
     public static final double GROUP_UP     = 2.0;
 
-    public static final double PATH         = 0.7;
-    public static final double TO_HQ        = 1 - PATH;
+    public static final double STRAT_CAMP   = 0.7;
+    public static final double DEF_CAMP     = 1 - STRAT_CAMP;
 
     public static final double MILITARY     = 0.8;
     public static final double STRUCTURAL   = 1 - MILITARY;
