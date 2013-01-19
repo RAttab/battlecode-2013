@@ -19,7 +19,7 @@ import tempfile
 
 class CombatRunner:
     bcTemplateFile = "bc.conf.tmpl"
-    bcPath = "/home/marc/Desktop/Battlecode2013/"
+    bcPath = os.path.expanduser("~/Battlecode2013/")
     
     def Run(self, config):
         print "[CombatRunner][Run] With config [%s]" % config
@@ -44,7 +44,7 @@ class CombatRunner:
         # **
 
         # Run the combat and parse the results
-        result = self.ParseAntRunResult(self.AntRunHeadless(bcPath, filename))
+        result = self.ParseAntRunResult(self.AntRunHeadless(self.bcPath, filename))
 
         # Delete the temp config file
         fh.close()
