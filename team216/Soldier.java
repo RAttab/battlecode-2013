@@ -319,7 +319,8 @@ public class Soldier
         return n;
     }
 
-    public static boolean capture(RobotController rc, MapLocation coord)
+    public static boolean capture(
+            RobotController rc, MapLocation coord, double stratLoc, double defLoc)
         throws GameActionException
     {
         if (!rc.senseEncampmentSquare(coord)) return false;
@@ -335,20 +336,11 @@ public class Soldier
 
         double rnd = Math.random();
 
-        double distEnemyHQ = Math.sqrt(coord.distanceSquaredTo(rc.senseEnemyHQLocation()));
-        double distHQ = Math.sqrt(coord.distanceSquaredTo(rc.senseHQLocation()));
-        double ratioToHQ = distHQ / (distEnemyHQ + distHQ);
-
-        double distBetween = Math.sqrt(
-                rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
-        double onPathRatio = ((1 / ((distHQ + distEnemyHQ) / distBetween)) - 0.7) / 0.3;
-
         // prioritize artillery on the path between the HQs, and closer to enemy HQ
         double militaryWeight = Weights.MILITARY *
-        (Weights.PATH * onPathRatio + Weights.TO_HQ * ratioToHQ);
+        (Weights.STRAT_CAMP * stratLoc + Weights.DEF_CAMP * defLoc);
 
-        rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ +
-            ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ +
+        rc.setIndicatorString(1, "def=" + defLoc + ", strat=" + stratLoc +
             ", w=" + militaryWeight + ", rnd=" + rnd/* +
             ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
 
@@ -376,8 +368,7 @@ public class Soldier
                     (maxPower - Weights.MIN_POWER);
 
                 rc.setIndicatorString(1,
-                        "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ +
-                        ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ +
+                        "def=" + defLoc + ", strat=" + stratLoc + 
                         ", w=" + militaryWeight + ", rnd=" + rnd
                         + ", pratio=" + ratio
                         /* + ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
@@ -390,6 +381,15 @@ public class Soldier
         }
 
         return true;
+    }
+
+    public static double getMineStr
+        (RobotController rc, double defense, MapLocation coord, int minesNearby) {
+        double mineStr = defense * Weights.LAY_MINE;
+        if (rc.hasUpgrade(Upgrade.PICKAXE))
+            mineStr *= 4;
+        double minesNearbyFactor = Weights.NEARBY_MINE * ((LC_RADIUS/2)-(minesNearby));
+        return mineStr + minesNearbyFactor;
     }
 
 
@@ -479,10 +479,26 @@ public class Soldier
             debug_checkBc(rc, "select-strength");
 
             if (finalDir == null) { rc.yield(); continue; }
+            rc.setIndicatorString(0, "max_str=" + maxStrength + ", dir=" + finalDir);
 
+            // TODO: all of these are things are Storage
+            MapLocation hq = rc.senseHQLocation();
+            MapLocation evil_hq = rc.senseEnemyHQLocation();
+            double dist = Utils.distTwoPoints(hq, evil_hq);
+            double defense = Utils.defensiveRelevance(coord, hq, evil_hq, dist);
+            double strat = Utils.strategicRelevance(coord, hq, evil_hq, dist);
 
             // Execute the move safely.
-            if (enemiesNearby || !capture(rc, coord)) {
+            if (enemiesNearby || !capture(rc, coord, strat, defense)) {
+                if (rc.senseMine(coord) == null) {
+                    // see if we should lay a mine here
+                    int minesNearby = rc.senseMineLocations(coord, LC_RADIUS, team).length;
+                    double mineStr = getMineStr(rc, defense, coord, minesNearby);
+                    rc.setIndicatorString(1, "defense=" + defense + ", mine_str=" + mineStr);
+                    rc.setIndicatorString(2, ""+Clock.getBytecodeNum());
+                    if (mineStr > maxStrength)
+                        rc.layMine();
+                }
 
                 debug_checkBc(rc, "capture");
 
@@ -502,7 +518,6 @@ public class Soldier
             rc.yield();
         }
     }
-
 
     private static int lastBcCounter;
 

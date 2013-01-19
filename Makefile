@@ -9,7 +9,8 @@
 INSTALL_DIR ?= ~/Battlecode2013
 
 BOTS := team216 \
-	testplayer
+	testplayer \
+	rusher
 
 install: $(foreach bot,$(BOTS),$(INSTALL_DIR)/teams/$(bot))
 
