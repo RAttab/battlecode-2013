@@ -350,7 +350,7 @@ class MapEdit(Tkinter.Tk):
                                           maxvalue = 100)
         height = tkSimpleDialog.askinteger("Size",
                                            "Height:",
-                                           initialvalue = self.canvas.gridWidth,
+                                           initialvalue = self.canvas.gridHeight,
                                            parent = self,
                                            minvalue = 2,
                                            maxvalue = 100)
