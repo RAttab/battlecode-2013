@@ -1,0 +1,8 @@
+#! /bin/bash
+
+# This is an ungodly ugly script to change all the package statement
+# to the current folder name. Kids don't do this at home.
+
+cd $1
+package=`pwd | sed -r 's_.*/(.*)$_\1_'`
+ls *.java | xargs sed -ri'' "s/package team216;/package $package;/"
