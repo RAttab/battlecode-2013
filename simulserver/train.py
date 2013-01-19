@@ -10,7 +10,6 @@ import os
 import re
 import sys
 import random
-import CombatRunner
 
 
 #------------------------------------------------------------------------------#
@@ -22,6 +21,8 @@ dir_fmt = "/home/remi/Battlecode2013/teams/ga_%d/Weights.java"
 pop_size = 20
 optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'ALLY_HQ', 'DROPOFF']
 maps = []
+oponent = 'godotbot'
+workers = 2
 
 template = ""
 with open("../weights.tpl", 'r') as f:
@@ -51,7 +52,7 @@ def print_pop(pop, generation = 0):
 #------------------------------------------------------------------------------#
 
 def random_genome():
-    return [100 * random.random() for i in range(len(optimize))]
+    return [200.0 * random.random() - 100.0 for i in range(len(optimize))]
 
 
 def init_pop(seed):
@@ -74,7 +75,7 @@ def crossover(x, y):
 def mutate(g):
     if random.random() > 0.5:
         gene = random.randrange(len(g))
-        g[gene] *= random.random() + random.randrange(1)
+        g[gene] *= random.random() + (random.randrange(1) - 0.5)
 
     else:
         x = random.randrange(len(g))
@@ -102,8 +103,9 @@ def evolve(pop):
 
     return newPop
 
-def write_weights(partial, path):
+def write_weights(name, partial, path):
     full = weights
+    full['team'] = 'ga_%d' % name
     for i in range(len(partial)):
         full[optimize[i]] = partial[i]
 
@@ -113,12 +115,38 @@ def write_weights(partial, path):
 
 def write_pop(pop):
     for i in range(len(pop)):
-        write_weights(pop[i], dir_fmt % i)
+        write_weights(i, pop[i], dir_fmt % i)
 
 
 #------------------------------------------------------------------------------#
 # TRAIN                                                                        #
 #------------------------------------------------------------------------------#
+
+def gen_battles():
+    battles = []
+
+    for i in range(pop_size):
+        for j in range(len(maps)):
+            battles.apend({'id': i * len(maps) + j,
+                           'type': 'local',
+                           'bc.game.maps': maps[j],
+                           'bc.game.team-a': 'gen_%d' % i,
+                           'bc.game.team-b': oponent,
+                           'bc.server.save-file': "ga_%d.rms" % i})
+    return battles
+
+def rank_pop(pop, results):
+    cumul = {}
+
+    for result in results:
+        g = result['id'] / len(maps)
+        #if result['combatResult']
+
+
+#------------------------------------------------------------------------------#
+# RUN                                                                          #
+#------------------------------------------------------------------------------#
+
 
 pop = init_pop(seed)
 print_pop(pop)
