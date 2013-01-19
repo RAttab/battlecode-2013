@@ -385,6 +385,7 @@ public class Soldier
 
     public static double getMineStr
         (RobotController rc, double defense, MapLocation coord, int minesNearby) {
+
         double mineStr = defense * Weights.LAY_MINE;
         if (rc.hasUpgrade(Upgrade.PICKAXE))
             mineStr *= 4;
@@ -485,32 +486,35 @@ public class Soldier
             MapLocation hq = rc.senseHQLocation();
             MapLocation evil_hq = rc.senseEnemyHQLocation();
             double dist = Utils.distTwoPoints(hq, evil_hq);
-            double defense = Utils.defensiveRelevance(coord, hq, evil_hq, dist);
-            double strat = Utils.strategicRelevance(coord, hq, evil_hq, dist);
+            double defense = Utils.defensiveRelevance(
+                    coord, hq, evil_hq, dist, Weights.DEF_RATIO);
+            double strat = Utils.strategicRelevance(
+                    coord, hq, evil_hq, dist, Weights.STRAT_RATIO);
+            double mineStr = 0;
 
-            // Execute the move safely.
+            // TODO: incorporate threat level instead of boolean enemiesNearby
+            // PS remi I hate you for your confusing tricks
             if (enemiesNearby || !capture(rc, coord, strat, defense)) {
-                if (rc.senseMine(coord) == null) {
+                debug_checkBc(rc, "capture");
+                if (!enemiesNearby && rc.senseMine(coord) == null) {
                     // see if we should lay a mine here
                     int minesNearby = rc.senseMineLocations(coord, LC_RADIUS, team).length;
-                    double mineStr = getMineStr(rc, defense, coord, minesNearby);
+                    mineStr = getMineStr(rc, defense, coord, minesNearby);
                     rc.setIndicatorString(1, "defense=" + defense + ", mine_str=" + mineStr);
-                    rc.setIndicatorString(2, ""+Clock.getBytecodeNum());
-                    if (mineStr > maxStrength)
+                    debug_checkBc(rc, "getMineStr");
+                }
+                if (mineStr > maxStrength){
                         rc.layMine();
+                } else {
+                    MapLocation target = coord.add(finalDir);
+                    Team mine = rc.senseMine(target);
+                    // Execute the move safely.
+                    if (mine == null || mine == team) {
+                        if (rc.canMove(finalDir))
+                            rc.move(finalDir);
+                    }
+                    else rc.defuseMine(target);
                 }
-
-                debug_checkBc(rc, "capture");
-
-                MapLocation target = coord.add(finalDir);
-                Team mine = rc.senseMine(target);
-
-                if (mine == null || mine == team) {
-                    if (rc.canMove(finalDir))
-                        rc.move(finalDir);
-                }
-                else rc.defuseMine(target);
-
             }
 
             debug_checkBc(rc, "end");

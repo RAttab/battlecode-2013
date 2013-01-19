@@ -59,7 +59,10 @@ public class Weights
     public static final double ARTILLERY_SUM = ARTILLERY + SHIELDS_SUM;
 
     public static final double LAY_MINE     = 0.005;
-    public static final double NEARBY_MINE  = 0.0002;
+    public static final double NEARBY_MINE  = 0.0007;
+
+    public static final double DEF_RATIO    = 3;
+    public static final double STRAT_RATIO  = 2;
 
     // public static final double SUPPLIER_SUM  = SUPPLIER;
     // public static final double GENERATOR_SUM = GENERATOR + SUPPLIER_SUM;
