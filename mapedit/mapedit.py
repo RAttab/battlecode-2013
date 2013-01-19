@@ -6,7 +6,7 @@
 # Description: 		A battlecode map editor
 # Author:			Marc Vieira Cardinal
 # Creation Date: 	January 16, 2013
-# Revision Date: 	January 18, 2013
+# Revision Date: 	January 19, 2013
 # **********
 
 # General imports
@@ -25,6 +25,7 @@ except ImportError:
 class MapCanvas():
     # Land, Mine, Encampment, Team A, Team B
     states = ['.', 'o', '+', 'A', 'B']
+    statesCol = [ '#000000', '#dd0000', '#0000dd', '#aa00aa', '#aa00aa' ]
 
     def __init__(self, canvas, width = 20, height = 20):
         self.canvas = canvas
@@ -40,7 +41,7 @@ class MapCanvas():
         self.cWidth = None
         self.cHeight = None
 
-        self.canvas.config(bg = '#aaaaaa')
+        self.canvas.config(bg = '#999999')
 
         self.cells = self.GenEmptyGrid(width, height)
 
@@ -111,9 +112,18 @@ class MapCanvas():
                 x = col * self.cWidth / self.gridWidth
                 y = row * self.cHeight / self.gridHeight
 
-                self.canvas.create_text(x + offX, y + offY, text = self.states[self.cells[col][row]])
+                self.canvas.create_text(x + offX, y + offY,
+                                        text = self.states[self.cells[col][row]],
+                                        fill = self.statesCol[self.cells[col][row]])
 
         self.canvas.update()
+
+    def New(self):
+        self.mapDef = self.GetDefaultMapDefinition()
+        self.mapDef['width'] = self.gridWidth
+        self.mapDef['height'] = self.gridHeight
+        self.filename = ""
+        self.LoadFromMapDef()
 
     def GetDefaultMapDefinition(self):
         return { 'width': 1,
@@ -162,7 +172,6 @@ class MapCanvas():
 
         self.mapDef = mapDef
         self.LoadFromMapDef()
-        print self.mapDef
 
     def SaveToFile(self, filename):
         self.SaveToMapDef()
@@ -209,7 +218,7 @@ class MapCanvas():
         self.mapDef['symbols'] = self.states
 
         self.mapDef['data'] = ""
-        for row in range(0, self.gridHeight):
+        for row in range(0, slf.gridHeight):
             for col in range(0, self.gridWidth):
                 self.mapDef['data'] += self.states[self.cells[col][row]]
             self.mapDef['data'] += "\n"
