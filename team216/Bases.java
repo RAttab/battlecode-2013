@@ -2,6 +2,7 @@ package team216;
 
 import battlecode.common.*;
 
+// TODO: add an ability to self-destruct if another base type is needed badly
 public class Bases
 {
 

@@ -4,13 +4,13 @@ import battlecode.common.*;
 
 public class Soldier
 {
-    private static final int GL_RADIUS = 100 * 100;
+    private static final int GL_RADIUS = 70 * 70;
     private static final int LC_RADIUS =
         RobotType.ARTILLERY.attackRadiusMaxSquared;
 
     private static final int MAX_MINES  = 10;
     private static final int MAX_ROBOTS = 15;
-    private static final int MAX_BASES = 8;
+    private static final int MAX_BASES = 5;
     private static final double MAX_SHIELD = 40;
 
     private static void strengthen(
@@ -227,6 +227,10 @@ public class Soldier
             RobotController rc, MapLocation coord, double strength[])
         throws GameActionException
     {
+        // TODO : if there are no free encampments on the map, return
+        // TODO : this is all bytecode-heavy and can be greatly alleviated
+            // by Storage.
+
         double cost = rc.senseCaptureCost();
         if (cost >= rc.getTeamPower()) return;
 
@@ -234,7 +238,7 @@ public class Soldier
             rc.senseEncampmentSquares(coord, LC_RADIUS, Team.NEUTRAL);
 
         int radius = LC_RADIUS;
-        while (bases.length < 1 && radius < 10000) {
+        while (bases.length < 1 && radius < GL_RADIUS) {
             radius *= 3;
             bases = rc.senseEncampmentSquares(coord, radius, Team.NEUTRAL);
         }
@@ -249,6 +253,15 @@ public class Soldier
                 taken++;
                 continue;
             }
+            // TODO
+            // if (rc.canSenseSquare(bases[i].add(Direction.NORTH)) != null)
+            //     ???
+            // if (rc.canSenseSquare(bases[i].add(Direction.SOUTH)) != null)
+            //     ???
+            // if (rc.canSenseSquare(bases[i].add(Direction.EAST)) != null)
+            //     ???
+            // if (rc.canSenseSquare(bases[i].add(Direction.WEST)) != null)
+            //     ???
 
             Direction dir = coord.directionTo(bases[i]);
             strengthen(
@@ -319,7 +332,9 @@ public class Soldier
         return n;
     }
 
-    public static boolean capture(RobotController rc, MapLocation coord)
+    // TODO: vastly improve the capture logic
+    public static boolean capture(
+            RobotController rc, MapLocation coord, double stratLoc, double defLoc)
         throws GameActionException
     {
         if (!rc.senseEncampmentSquare(coord)) return false;
@@ -335,20 +350,11 @@ public class Soldier
 
         double rnd = Math.random();
 
-        double distEnemyHQ = Math.sqrt(coord.distanceSquaredTo(rc.senseEnemyHQLocation()));
-        double distHQ = Math.sqrt(coord.distanceSquaredTo(rc.senseHQLocation()));
-        double ratioToHQ = distHQ / (distEnemyHQ + distHQ);
-
-        double distBetween = Math.sqrt(
-                rc.senseHQLocation().distanceSquaredTo(rc.senseEnemyHQLocation()));
-        double onPathRatio = ((1 / ((distHQ + distEnemyHQ) / distBetween)) - 0.7) / 0.3;
-
         // prioritize artillery on the path between the HQs, and closer to enemy HQ
         double militaryWeight = Weights.MILITARY *
-        (Weights.PATH * onPathRatio + Weights.TO_HQ * ratioToHQ);
+        (Weights.STRAT_CAMP * stratLoc + Weights.DEF_CAMP * defLoc);
 
-        rc.setIndicatorString(1, "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ +
-            ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ +
+        rc.setIndicatorString(1, "def=" + defLoc + ", strat=" + stratLoc +
             ", w=" + militaryWeight + ", rnd=" + rnd/* +
             ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
 
@@ -376,8 +382,7 @@ public class Soldier
                     (maxPower - Weights.MIN_POWER);
 
                 rc.setIndicatorString(1,
-                        "distHQ=" + distHQ + ", distEnemy=" + distEnemyHQ +
-                        ", onPath="+onPathRatio + ", toHQ=" + ratioToHQ +
+                        "def=" + defLoc + ", strat=" + stratLoc + 
                         ", w=" + militaryWeight + ", rnd=" + rnd
                         + ", pratio=" + ratio
                         /* + ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
@@ -390,6 +395,30 @@ public class Soldier
         }
 
         return true;
+    }
+
+    public static double getMineStr(
+        RobotController rc, double defense, MapLocation coord, int minesNearby) {
+
+        double mineStr = defense * Weights.LAY_MINE;
+        if (rc.hasUpgrade(Upgrade.PICKAXE)) {
+            int orthogonalMines = 0;
+            if (rc.senseMine(coord.add(Direction.NORTH)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.SOUTH)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.EAST)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.WEST)) != null)
+                orthogonalMines++;
+            mineStr *= 5-orthogonalMines;
+        }
+        // TODO : make areas with encampments more enticing
+        // if (rc.senseEncampmentSquare(coord)){
+        //     mineStr += Weights.LAY_MINE;
+        // }
+        double minesNearbyFactor = Weights.NEARBY_MINE * ((LC_RADIUS/2)-(minesNearby));
+        return mineStr + minesNearbyFactor;
     }
 
 
@@ -479,22 +508,41 @@ public class Soldier
             debug_checkBc(rc, "select-strength");
 
             if (finalDir == null) { rc.yield(); continue; }
+            rc.setIndicatorString(0, "max_str=" + maxStrength + ", dir=" + finalDir);
 
+            // TODO: all of these are things are Storage
+            MapLocation hq = rc.senseHQLocation();
+            MapLocation evil_hq = rc.senseEnemyHQLocation();
+            double dist = Utils.distTwoPoints(hq, evil_hq);
+            double defense = Utils.defensiveRelevance(
+                    coord, hq, evil_hq, dist, Weights.DEF_RATIO);
+            double strat = Utils.strategicRelevance(
+                    coord, hq, evil_hq, dist, Weights.STRAT_RATIO);
+            double mineStr = 0;
 
-            // Execute the move safely.
-            if (enemiesNearby || !capture(rc, coord)) {
-
+            // TODO: incorporate threat level instead of boolean enemiesNearby
+            // PS remi I hate you for your confusing tricks
+            if (enemiesNearby || !capture(rc, coord, strat, defense)) {
                 debug_checkBc(rc, "capture");
-
-                MapLocation target = coord.add(finalDir);
-                Team mine = rc.senseMine(target);
-
-                if (mine == null || mine == team) {
-                    if (rc.canMove(finalDir))
-                        rc.move(finalDir);
+                if (!enemiesNearby && rc.senseMine(coord) == null) {
+                    // see if we should lay a mine here
+                    int minesNearby = rc.senseMineLocations(coord, LC_RADIUS, team).length;
+                    mineStr = getMineStr(rc, defense, coord, minesNearby);
+                    rc.setIndicatorString(1, "defense=" + defense + ", mine_str=" + mineStr);
+                    debug_checkBc(rc, "getMineStr");
                 }
-                else rc.defuseMine(target);
-
+                if (mineStr > maxStrength){
+                        rc.layMine();
+                } else {
+                    MapLocation target = coord.add(finalDir);
+                    Team mine = rc.senseMine(target);
+                    // Execute the move safely.
+                    if (mine == null || mine == team) {
+                        if (rc.canMove(finalDir))
+                            rc.move(finalDir);
+                    }
+                    else rc.defuseMine(target);
+                }
             }
 
             debug_checkBc(rc, "end");
@@ -502,7 +550,6 @@ public class Soldier
             rc.yield();
         }
     }
-
 
     private static int lastBcCounter;
 

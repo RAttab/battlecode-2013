@@ -7,3 +7,10 @@
 *.jar
 *.war
 *.ear
+
+# Python
+*.pyc
+
+# Genetic algorithm
+Weights.tpl
+genome.txt

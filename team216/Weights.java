@@ -38,8 +38,8 @@ public class Weights
     public static final double GROUP_ATTACK = 2.0;
     public static final double GROUP_UP     = 2.0;
 
-    public static final double PATH         = 0.7;
-    public static final double TO_HQ        = 1 - PATH;
+    public static final double STRAT_CAMP   = 0.7;
+    public static final double DEF_CAMP     = 1 - STRAT_CAMP;
 
     public static final double MILITARY     = 0.8;
     public static final double STRUCTURAL   = 1 - MILITARY;
@@ -57,6 +57,12 @@ public class Weights
     public static final double MEDBAY_SUM    = MEDBAY;
     public static final double SHIELDS_SUM   = SHIELDS   + MEDBAY_SUM;
     public static final double ARTILLERY_SUM = ARTILLERY + SHIELDS_SUM;
+
+    public static final double LAY_MINE     = 0.005;
+    public static final double NEARBY_MINE  = 0.0007;
+
+    public static final double DEF_RATIO    = 3;
+    public static final double STRAT_RATIO  = 2;
 
     // public static final double SUPPLIER_SUM  = SUPPLIER;
     // public static final double GENERATOR_SUM = GENERATOR + SUPPLIER_SUM;
