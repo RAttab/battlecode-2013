@@ -20,7 +20,7 @@ BOTS := team216 \
 install-bots: $(foreach bot,$(BOTS),$(INSTALL_DIR)/teams/$(bot))
 
 $(INSTALL_DIR)/teams/%:
-	 -ln -s $(CURDIR)/$* $@
+	 ln -s $(CURDIR)/$* $@
 
 #------------------------------------------------------------------------------#
 # TRAINING SETUP
