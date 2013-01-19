@@ -19,7 +19,7 @@ import tempfile
 
 class CombatRunner:
     bcTemplateFile = "bc.conf.tmpl"
-    bcPath = "/home/marc/Desktop/Battlecode2013/"
+    bcPath = os.path.expanduser("~/Battlecode2013/")
     
     def Run(self, config):
         print "[CombatRunner][Run] With config [%s]" % config
@@ -28,17 +28,15 @@ class CombatRunner:
         # That template file should have placeholders
         # like: %(mapName)s  (note that the "s" after the parenthesis is required)
         # that mapName value would be replaced by the value of config['mapName']
-        fh = open(self.bcTemplateFile, "r")
-        templateStr = fh.read()
-        fh.close()
+        with open(self.bcTemplateFile, "r") as fh:
+            templateStr = fh.read()
 
         # Generate a temp config file
-        filename = tempfile.mkstemp()
+        fh, filename = tempfile.mkstemp()
 
         # Populate the config file based on template and the config param
-        fh = open(filename, "w")
-        fh.write(templateStr % config)
-        fh.close()
+        with open(filename, "w") as fh:
+            fh.write(templateStr % config)
 
         # **
         # Generate weights here? or those get generated in the simulator.py file
@@ -46,9 +44,10 @@ class CombatRunner:
         # **
 
         # Run the combat and parse the results
-        result = self.ParseAntRunResult(self.AntRunHeadless(bcPath, filename))
+        result = self.ParseAntRunResult(self.AntRunHeadless(self.bcPath, filename))
 
         # Delete the temp config file
+        fh.close()
         os.remove(filename)
 
         return result
@@ -61,6 +60,7 @@ class CombatRunner:
 
         for line in antResult:
             line = line.strip()
+            print line
 
             if line.startswith("[java] [server]") and line.endswith("wins"):
                 winnerItems = line.split(" ")

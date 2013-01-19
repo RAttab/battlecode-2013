@@ -10,17 +10,19 @@ import os
 import re
 import sys
 import random
+import simulator
 
 
 #------------------------------------------------------------------------------#
 # SETUP                                                                        #
 #------------------------------------------------------------------------------#
 
-dir_fmt = "/home/remi/Battlecode2013/teams/ga_%d/Weights.java"
+dir_fmt = os.path.expanduser("~/Battlecode2013/teams/ga_%d/Weights.java")
 
 pop_size = 20
 optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'ALLY_HQ', 'DROPOFF']
-maps = []
+#maps = ['spiral', 'maze1', 'choices', 'bloodbath', 'fused']
+maps = ['spiral']
 oponent = 'godotbot'
 workers = 2
 
@@ -127,7 +129,7 @@ def gen_battles():
 
     for i in range(pop_size):
         for j in range(len(maps)):
-            battles.apend({'id': i * len(maps) + j,
+            battles.append({'id': i * len(maps) + j,
                            'type': 'local',
                            'bc.game.maps': maps[j],
                            'bc.game.team-a': 'gen_%d' % i,
@@ -135,12 +137,28 @@ def gen_battles():
                            'bc.server.save-file': "ga_%d.rms" % i})
     return battles
 
-def rank_pop(pop, results):
+def bot_index(name):
+    return int(name[3:]) if name.startswith('ga_') else -1
+
+def rank_pop(pop, results, generation = 0):
+    print results
+
     cumul = {}
 
     for result in results:
         g = result['id'] / len(maps)
-        #if result['combatResult']
+        team = bot_index(result['combatResult']['winnerTeam'])
+        if team >= 0:
+            cumul[team] += result['combatResult']['maxRound']
+
+    ranks = [(index, count) for (index, count) in cumul]
+    ranks.sort(key = lambda (index, count): count)
+
+    mean = ranks[len(ranks) / 2][1]
+    print "generation %d: [%d, %d, %d]" % \
+        (generation, ranks[0][1], mean, ranks[len(ranks)-1][1])
+
+    return [pop[index] for (index, count) in ranks]
 
 
 #------------------------------------------------------------------------------#
@@ -149,9 +167,16 @@ def rank_pop(pop, results):
 
 
 pop = init_pop(seed)
-print_pop(pop)
 
-pop = evolve(pop)
-print_pop(pop, 1)
+gen = 0
+while True:
+    write_pop(pop)
+    config = gen_battles()
+    print config
+    print
 
-write_pop(pop)
+    pop = rank_pop(pop, simulator.QueueBattles(workers, config), gen)
+    print
+
+    gen += 1
+    pop = evolve(pop)
