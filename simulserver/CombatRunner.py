@@ -18,6 +18,8 @@ import tempfile
 # 'winnerTeam': 'A'}
 
 class CombatRunner:
+    bcTemplateFile = "bc.conf.tmpl"
+    bcPath = "/home/marc/Desktop/Battlecode2013/"
     
     def Run(self, config):
         print "[CombatRunner][Run] With config [%s]" % config
@@ -26,7 +28,7 @@ class CombatRunner:
         # That template file should have placeholders
         # like: %(mapName)s  (note that the "s" after the parenthesis is required)
         # that mapName value would be replaced by the value of config['mapName']
-        fh = open("my config template file", "r")
+        fh = open(self.bcTemplateFile, "r")
         templateStr = fh.read()
         fh.close()
 
@@ -44,7 +46,7 @@ class CombatRunner:
         # **
 
         # Run the combat and parse the results
-        result = self.ParseAntRunResult(self.AntRunHeadless("my battlecode2013 path", filename))
+        result = self.ParseAntRunResult(self.AntRunHeadless(bcPath, filename))
 
         # Delete the temp config file
         os.remove(filename)

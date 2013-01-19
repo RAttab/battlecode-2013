@@ -99,7 +99,11 @@ if __name__ == "__main__":
     battles.append({'id': 1, 'type': "local"})
     battles.append({'id': 2, 'type': "local"})
     battles.append({'id': 3, 'type': "local"})
-    battles.append({'id': 4, 'type': "local"})
+    battles.append({'id': 4, 'type': "local",
+                    'bc.game.maps': "simple",
+                    'bc.game.team-a': "fieldbot",
+                    'bc.game.team-b': "basicplayer",
+                    'bc.server.save-file': "match.rms" })
     battles.append({'id': 5, 'type': "remote", 'remoteUrl': "http://127.0.0.1:2222/run_battle"})
     battles.append({'id': 6, 'type': "remote", 'remoteUrl': "http://127.0.0.1:2222/run_battle"})
     battles.append({'id': 7, 'type': "remote", 'remoteUrl': "http://127.0.0.1:2222/run_battle"})
