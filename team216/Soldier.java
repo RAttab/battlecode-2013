@@ -67,6 +67,12 @@ public class Soldier
         // when enemies are nearby, group into a tight formation
 
         Robot robots[] = rc.senseNearbyGameObjects(Robot.class, 4, team);
+        if (robots.length < 1) {
+            robots = rc.senseNearbyGameObjects(Robot.class, 9, team);
+        }
+        if (robots.length < 1) {
+            robots = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team);
+        }
         Robot enemyRobots[] = rc.senseNearbyGameObjects(
                 Robot.class, LC_RADIUS, team.opponent());
 
@@ -91,8 +97,10 @@ public class Soldier
             strengthen(strength, toward, Weights.GROUP_ATTACK);
         // otherwise, group up
         else {
-            MapLocation closestAlly = findClosest(rc, robots);
-            strengthen(strength, coord.directionTo(closestAlly), Weights.GROUP_UP);
+            if (robots.length != 0) {
+                MapLocation closestAlly = findClosest(rc, robots);
+                strengthen(strength, coord.directionTo(closestAlly), Weights.GROUP_UP);
+            }
         }
     }
 
