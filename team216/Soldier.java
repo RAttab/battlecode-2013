@@ -66,33 +66,43 @@ public class Soldier
 
         // when enemies are nearby, group into a tight formation
 
+        //System.out.println(rc.senseNearbyGameObjects(Robot.class, 3, team));
+        //System.out.println(Storage.nearbyFriendlies(3));
+        //System.out.println("======");
+
         Robot robots[] = rc.senseNearbyGameObjects(Robot.class, 3, team);
-        Robot enemyRobots[] = rc.senseNearbyGameObjects(
-                Robot.class, LC_RADIUS, team.opponent());
+        //Robot enemyRobots[] = Storage.nearbyEnemies(LC_RADIUS);
+        Robot enemyRobots[] = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team.opponent());
 
-        MapLocation closestEnemy = findClosest(rc, enemyRobots);
-        Direction toward = coord.directionTo(closestEnemy);
+        // TODO: I (David) temporarly fixed a bug here that caused exceptions, 
+        // make sure to add logic to deal with when no enemies are nearby
+        if (enemyRobots.length != 0) {
 
-        // check if we're already in formation
-        boolean grouped = false;
-        GameObject oneLeft = rc.senseObjectAtLocation(coord.add(leftOf(toward)));
-        if (oneLeft != null) {
-            if (oneLeft.getTeam().equals(team))
-                grouped = true;
-        }
-        GameObject oneRight = rc.senseObjectAtLocation(coord.add(rightOf(toward)));
-        if (oneRight != null) {
-            if (oneRight.getTeam().equals(team))
-                grouped = true;
-        }
+            MapLocation closestEnemy = findClosest(rc, enemyRobots);
 
-        // if we're already grouped, attack!
-        if (grouped)
-            strengthen(strength, toward, Weights.GROUP_ATTACK);
-        // otherwise, group up
-        else {
-            MapLocation closestAlly = findClosest(rc, robots);
-            strengthen(strength, toward, Weights.GROUP_UP);
+            Direction toward = coord.directionTo(closestEnemy);
+
+            // check if we're already in formation
+            boolean grouped = false;
+            GameObject oneLeft = rc.senseObjectAtLocation(coord.add(leftOf(toward)));
+            if (oneLeft != null) {
+                if (oneLeft.getTeam().equals(team))
+                    grouped = true;
+            }
+            GameObject oneRight = rc.senseObjectAtLocation(coord.add(rightOf(toward)));
+            if (oneRight != null) {
+                if (oneRight.getTeam().equals(team))
+                    grouped = true;
+            }
+
+            // if we're already grouped, attack!
+            if (grouped)
+                strengthen(strength, toward, Weights.GROUP_ATTACK);
+            // otherwise, group up
+            else {
+                MapLocation closestAlly = findClosest(rc, robots);
+                strengthen(strength, toward, Weights.GROUP_UP);
+            }
         }
     }
 
@@ -159,8 +169,8 @@ public class Soldier
         if (Storage.nearbyEnemies(1).length > 0)
             return true;
 
-
-        Robot enemies[] = Storage.nearbyEnemies(LC_RADIUS);
+        //Robot enemies[] = Storage.nearbyEnemies(LC_RADIUS);
+        Robot enemies[] = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team.opponent());
 
         if (enemies.length == 0) return false;
 
@@ -194,7 +204,7 @@ public class Soldier
         double allyForce = 0.0;
 
         for (int i = 0; i < allies.length; i += steps) {
-            RobotInfo info = Storage.robotInfo(allies[i]);
+            RobotInfo info = rc.senseRobotInfo(allies[i]);
             if (info.type != RobotType.SOLDIER &&
                     info.type != RobotType.ARTILLERY &&
                     info.type != RobotType.MEDBAY)
