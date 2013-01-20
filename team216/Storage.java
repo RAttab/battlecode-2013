@@ -33,7 +33,9 @@ public class Storage {
 
     private static int number_of_nearby_enemies;
 
-    private static Robot[][] nearby_friendlies = new Robot[3][];
+    private static Robot[][] nearby_allies = new Robot[3][];
+    private static Integer[] nearby_allies_last_updated = new Integer[2];
+
     private static MapLocation[] nearby_friendly_mines;
     private static MapLocation[][] nearby_nonallied_mines = new MapLocation[2][];
 
@@ -130,8 +132,9 @@ public class Storage {
         return RC.senseRobotInfo(r);
     }
 
+    // This method doesn't cache, it simply returns the store result if we call it more than once in a turn
     public static Robot[] nearbyEnemies(int radiusSquared) {
-        // Since we only have shitty fixed-sized arrays, we implement caching for common inputs:
+        // Since we only have shitty fixed-sized arrays, we implement this only for common inputs:
         int i;
         switch (radiusSquared) {
             case LC_RADIUS:
@@ -159,7 +162,7 @@ public class Storage {
         return number_of_nearby_enemies;
     }
 
-    public static Robot[] nearbyFriendlies(int radiusSquared) {
+    public static Robot[] nearbyAllies(int radiusSquared) {
         // Since we only have shitty fixed-sized arrays, we implement caching for common inputs:
         int i;
         switch (radiusSquared) {
@@ -176,10 +179,12 @@ public class Storage {
             default: return RC.senseNearbyGameObjects(Robot.class, radiusSquared, MY_TEAM);
         }
 
-        if (nearby_friendlies[i] == null || Clock.getRoundNum() % 3 == 2)
-            nearby_friendlies[i] = RC.senseNearbyGameObjects(Robot.class, radiusSquared, MY_TEAM);
+        if (nearby_allies[i] == null || nearby_allies_last_updated[i] < Clock.getRoundNum()) {
+            nearby_allies[i] = RC.senseNearbyGameObjects(Robot.class, radiusSquared, MY_TEAM);
+            nearby_allies_last_updated[i] = Clock.getRoundNum();
+        }
 
-        return nearby_friendlies[i];
+        return nearby_allies[i];
     }
 
     public static MapLocation[] nearbyNonAlliedMines(int radiusSquared) {

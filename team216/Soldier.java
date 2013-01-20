@@ -66,7 +66,7 @@ public class Soldier
 
         // when enemies are nearby, group into a tight formation
 
-        Robot robots[] = rc.senseNearbyGameObjects(Robot.class, 3, team);
+        Robot robots[] = Storage.nearbyAllies(3);
         Robot enemyRobots[] = Storage.nearbyEnemies(LC_RADIUS);
 
         // TODO: I (David) temporarly fixed a bug here that caused exceptions, 
@@ -138,8 +138,7 @@ public class Soldier
             double strength[], double w, Team team)
         throws GameActionException
     {
-        Robot robots[] = rc.senseNearbyGameObjects(
-                Robot.class, GL_RADIUS, team);
+        Robot robots[] = Storage.nearbyAllies(GL_RADIUS);
 
         int steps = Utils.ceilDiv(robots.length, MAX_ROBOTS);
 
@@ -192,7 +191,7 @@ public class Soldier
 
         MapLocation enemyCenter = new MapLocation(x/numEnemies, y/numEnemies);
 
-        Robot allies[] = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team);
+        Robot allies[] = Storage.nearbyAllies(LC_RADIUS);
         steps = Utils.ceilDiv(enemies.length, MAX_ROBOTS);
         int numAllies = 0;
         double allyForce = 0.0;
