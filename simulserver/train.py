@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import random
+import shutil
 import simulator
 
 
@@ -24,7 +25,7 @@ optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'ALLY_HQ', 'DROPOFF']
 #maps = ['spiral', 'maze1', 'choices', 'bloodbath', 'fused']
 maps = ['spiral']
 oponent = 'godotbot'
-workers = 2
+workers = 4
 
 template = ""
 with open("../weights.tpl", 'r') as f:
@@ -186,3 +187,5 @@ while True:
 
     gen += 1
     pop = evolve(pop)
+
+    shutil.rmtree(os.path.expanduser("~/Battlecode2013/bin"))
