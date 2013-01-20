@@ -39,12 +39,13 @@ clean-template:
 	-rm weights.tpl genome.txt
 
 template: clean-template
+	-mkdir weights # trained weights are stored here.
 	cat team216/Weights.java | \
-	sed -r 's/([_A-Z]+)\s*=\s*(-?[0-9]*\.?[0-9]*);/\1 = %(\1)f;/' | \
+	sed -r 's/double\s+([_A-Z]+)\s*=\s*(-?[0-9]*\.?[0-9]*);/double \1 = %(\1)f;/' | \
 	sed -r 's/package (team216);/package %(team)s;/' > weights.tpl
 	cat team216/Weights.java | \
-	egrep '=\s*(-?[0-9]*\.?[0-9]*);' | \
-	sed -r 's/.*\s([_A-Z]+)\s*=\s*(-?[0-9]*\.?[0-9]*);.*/\1=\2/' > genome.txt
+	egrep 'double.*=\s*(-?[0-9]*\.?[0-9]*);' | \
+	sed -r 's/.*double\s+([_A-Z]+)\s*=\s*(-?[0-9]*\.?[0-9]*);.*/\1=\2/' > genome.txt
 
 
 # Setup an agent folder for each member of the population.
