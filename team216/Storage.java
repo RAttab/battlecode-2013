@@ -18,10 +18,14 @@ public class Storage {
     public static int MAP_SIZE;
     public static RobotInfo MY_INFO;
     public static Robot ME;
+    public static RobotController RC;
     public static double EST_RUSH_TIME;
+
+    public static Direction direction_to_enemy_hq;
 
     public static void calculateValues(RobotController rc) {
         try {
+            RC = rc;
             MY_TEAM = rc.getTeam();
             ENEMY_TEAM = MY_TEAM.opponent();
             MY_HQ = rc.senseHQLocation();
@@ -67,16 +71,32 @@ public class Storage {
     }
 
     public static double distanceBetweenHQs() {
-        return DISTANCE_BETWEEN_HQ == 0.0 ? Utils.distTwoPoints(Storage.MY_HQ, Storage.ENEMY_HQ) : DISTANCE_BETWEEN_HQ;
+        if (DISTANCE_BETWEEN_HQ == 0.0) {
+            //System.out.println("cache miss");
+            //DISTANCE_BETWEEN_HQ = 5.0;
+            DISTANCE_BETWEEN_HQ = Utils.distTwoPoints(MY_HQ, ENEMY_HQ);
+        }
+        return DISTANCE_BETWEEN_HQ;
     }
 
     public static double slopeBetweenHQs() {
-        return SLOPE == 0.0 ? (double)(MY_HQ.y - ENEMY_HQ.y) / (MY_HQ.x - ENEMY_HQ.x) : SLOPE;
+        return SLOPE == 0.0 ? SLOPE = (double)(MY_HQ.y - ENEMY_HQ.y) / (MY_HQ.x - ENEMY_HQ.x) : SLOPE;
     }
 
     public static MapLocation centerBetweenHQs() {
-        return CENTER == null ? new MapLocation((MY_HQ.x + ENEMY_HQ.x)/2,(MY_HQ.y + ENEMY_HQ.y)/2) : CENTER;
+        return CENTER == null ? CENTER = new MapLocation((MY_HQ.x + ENEMY_HQ.x)/2,(MY_HQ.y + ENEMY_HQ.y)/2) : CENTER;
     }
+
+    public static MapLocation myLocation() {
+        // No need to cache this one, it's free
+        return RC.getLocation();
+    }
+
+    //public static Direction directionToEnemyHQ() {
+        //direction_to_enemy_hq == null || Clock.getRoundNum()
+        //return CENTER == null ? new MapLocation((MY_HQ.x + ENEMY_HQ.x)/2,(MY_HQ.y + ENEMY_HQ.y)/2) : CENTER;
+        //myLocation().directionTo(ENEMY_HQ);
+    //}
 
 
     // Combat methods
