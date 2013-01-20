@@ -1,4 +1,4 @@
-package team216;
+package nuclear;
 
 import battlecode.common.*;
 
@@ -435,8 +435,11 @@ public class Soldier
     public static void run(RobotController rc) throws GameActionException
     {
 
+
         // first things first.
         rc.wearHat();
+
+        Team team = rc.getTeam();
 
         while (true) {
 
@@ -458,7 +461,6 @@ public class Soldier
 
             // Enemy HQ
             // TODO : once storage is going, senseEnemyNuke and adjust accordingly
-
             strengthen(
                     strength, coord.directionTo(Storage.ENEMY_HQ), Weights.ENEMY_HQ,
                     Storage.ENEMY_HQ.distanceSquaredTo(coord));
@@ -466,7 +468,7 @@ public class Soldier
             debug_checkBc(rc, "HQ");
 
             // Check if there are enemies nearby
-            boolean enemiesNearby = localRobots(rc, coord, strength, Storage.MY_TEAM);
+            boolean enemiesNearby = localRobots(rc, coord, strength, team);
             debug_checkBc(rc, "local-robot");
 
             // There are two different modes of action
@@ -478,7 +480,7 @@ public class Soldier
                 neutralBases(rc, coord, strength);
                 debug_checkBc(rc, "neutral-base");
 
-                globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, Storage.ENEMY_TEAM);
+                globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
                 debug_checkBc(rc, "global-robot");
 
                 //TODO: defensiveMines(rc, coord, strength);
@@ -487,10 +489,10 @@ public class Soldier
                 mines(rc, coord, strength, Weights.BATTLE_MINE, LC_RADIUS);
                 debug_checkBc(rc, "battle-mine");
 
-                allyBases(rc, coord, strength, Storage.MY_TEAM);
+                allyBases(rc, coord, strength, team);
                 debug_checkBc(rc, "ally-base");
 
-                battleFormation(rc, coord, strength, Storage.MY_TEAM);
+                battleFormation(rc, coord, strength, team);
                 debug_checkBc(rc, "battle-formation");
             }
 
@@ -514,10 +516,11 @@ public class Soldier
             rc.setIndicatorString(0, "max_str=" + maxStrength + ", dir=" + finalDir);
 
             // TODO: all of these are things are Storage
+            double dist = Utils.distTwoPoints(Storage.MY_HQ, Storage.ENEMY_HQ);
             double defense = Utils.defensiveRelevance(
-                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, Storage.distanceBetweenHQs(), Weights.DEF_RATIO);
+                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, dist, Weights.DEF_RATIO);
             double strat = Utils.strategicRelevance(
-                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, Storage.distanceBetweenHQs(), Weights.STRAT_RATIO);
+                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, dist, Weights.STRAT_RATIO);
             double mineStr = 0;
 
             // TODO: incorporate threat level instead of boolean enemiesNearby
@@ -526,7 +529,7 @@ public class Soldier
                 debug_checkBc(rc, "capture");
                 if (!enemiesNearby && rc.senseMine(coord) == null) {
                     // see if we should lay a mine here
-                    int minesNearby = rc.senseMineLocations(coord, LC_RADIUS, Storage.MY_TEAM).length;
+                    int minesNearby = rc.senseMineLocations(coord, LC_RADIUS, team).length;
                     mineStr = getMineStr(rc, defense, coord, minesNearby);
                     rc.setIndicatorString(1, "defense=" + defense + ", mine_str=" + mineStr);
                     debug_checkBc(rc, "getMineStr");
@@ -537,7 +540,7 @@ public class Soldier
                     MapLocation target = coord.add(finalDir);
                     Team mine = rc.senseMine(target);
                     // Execute the move safely.
-                    if (mine == null || mine == Storage.MY_TEAM) {
+                    if (mine == null || mine == team) {
                         if (rc.canMove(finalDir))
                             rc.move(finalDir);
                     }
