@@ -5,4 +5,4 @@
 
 cd $1
 package=`pwd | sed -r 's_.*/(.*)$_\1_'`
-ls *.java | xargs sed -ri'' "s/package team216;/package $package;/"
+sed -ri'' "s/package team216;/package $package;/" *.java

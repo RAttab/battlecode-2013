@@ -21,7 +21,8 @@ BIN_DIR := $(INSTALL_DIR)/bin
 
 BOTS := team216 \
 	rusher \
-	godotbot
+	godotbot \
+	nuclear
 
 install-bots: $(foreach bot,$(BOTS),$(INSTALL_DIR)/teams/$(bot))
 

@@ -1,10 +1,10 @@
-package team216;
+package nuclear;
 
 import battlecode.common.*;
 
 public class Soldier
 {
-    public static final int GL_RADIUS = 70 * 70;
+    private static final int GL_RADIUS = 70 * 70;
     private static final int LC_RADIUS =
         RobotType.ARTILLERY.attackRadiusMaxSquared;
 
@@ -66,7 +66,13 @@ public class Soldier
 
         // when enemies are nearby, group into a tight formation
 
-        Robot robots[] = rc.senseNearbyGameObjects(Robot.class, 3, team);
+        Robot robots[] = rc.senseNearbyGameObjects(Robot.class, 4, team);
+        if (robots.length < 1) {
+            robots = rc.senseNearbyGameObjects(Robot.class, 9, team);
+        }
+        if (robots.length < 1) {
+            robots = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team);
+        }
         Robot enemyRobots[] = rc.senseNearbyGameObjects(
                 Robot.class, LC_RADIUS, team.opponent());
 
@@ -91,8 +97,10 @@ public class Soldier
             strengthen(strength, toward, Weights.GROUP_ATTACK);
         // otherwise, group up
         else {
-            MapLocation closestAlly = findClosest(rc, robots);
-            strengthen(strength, toward, Weights.GROUP_UP);
+            if (robots.length != 0) {
+                MapLocation closestAlly = findClosest(rc, robots);
+                strengthen(strength, coord.directionTo(closestAlly), Weights.GROUP_UP);
+            }
         }
     }
 
@@ -154,13 +162,12 @@ public class Soldier
             RobotController rc, MapLocation coord, double strength[], Team team)
         throws GameActionException
     {
-
         // if there is an adjacent enemy, don't run away
-        if (Storage.nearbyEnemies(1).length > 0)
+        if (rc.senseNearbyGameObjects(Robot.class, 1, team.opponent()).length > 0)
             return true;
 
-
-        Robot enemies[] = Storage.nearbyEnemies(LC_RADIUS);
+        Robot enemies[] = rc.senseNearbyGameObjects(
+                Robot.class, LC_RADIUS, team.opponent());
 
         if (enemies.length == 0) return false;
 
@@ -194,7 +201,7 @@ public class Soldier
         double allyForce = 0.0;
 
         for (int i = 0; i < allies.length; i += steps) {
-            RobotInfo info = Storage.robotInfo(allies[i]);
+            RobotInfo info = rc.senseRobotInfo(allies[i]);
             if (info.type != RobotType.SOLDIER &&
                     info.type != RobotType.ARTILLERY &&
                     info.type != RobotType.MEDBAY)
@@ -428,10 +435,11 @@ public class Soldier
     public static void run(RobotController rc) throws GameActionException
     {
 
+
         // first things first.
         rc.wearHat();
 
-        Team team = Storage.MY_TEAM;
+        Team team = rc.getTeam();
 
         while (true) {
 
@@ -446,16 +454,16 @@ public class Soldier
 
             debug_resetBc();
 
-            MapLocation coord = Storage.myLocation();
-
+            MapLocation coord = rc.getLocation();
             // These represent the pull strengths in each direction by the affecting fields
             double strength[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+
 
             // Enemy HQ
             // TODO : once storage is going, senseEnemyNuke and adjust accordingly
             strengthen(
-                    strength, Storage.directionToEnemyHQ(), Weights.ENEMY_HQ,
-                    Storage.distanceToEnemyHQ());
+                    strength, coord.directionTo(Storage.ENEMY_HQ), Weights.ENEMY_HQ,
+                    Storage.ENEMY_HQ.distanceSquaredTo(coord));
 
             debug_checkBc(rc, "HQ");
 
@@ -472,7 +480,7 @@ public class Soldier
                 neutralBases(rc, coord, strength);
                 debug_checkBc(rc, "neutral-base");
 
-                globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, Storage.ENEMY_TEAM);
+                globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
                 debug_checkBc(rc, "global-robot");
 
                 //TODO: defensiveMines(rc, coord, strength);
@@ -507,8 +515,12 @@ public class Soldier
             if (finalDir == null) { rc.yield(); continue; }
             rc.setIndicatorString(0, "max_str=" + maxStrength + ", dir=" + finalDir);
 
-            double defense = Storage.defensiveRelevance();
-            double strat = Storage.strategicRelevance();
+            // TODO: all of these are things are Storage
+            double dist = Utils.distTwoPoints(Storage.MY_HQ, Storage.ENEMY_HQ);
+            double defense = Utils.defensiveRelevance(
+                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, dist, Weights.DEF_RATIO);
+            double strat = Utils.strategicRelevance(
+                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, dist, Weights.STRAT_RATIO);
             double mineStr = 0;
 
             // TODO: incorporate threat level instead of boolean enemiesNearby

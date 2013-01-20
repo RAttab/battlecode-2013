@@ -27,7 +27,7 @@ class BattleWorker(multiprocessing.Process):
                 break
 
             # Perform the task
-            print "[BattleWorker] Running job [%s]" % job
+            # print "[BattleWorker] Running job [%s]" % job
             result = { 'id': job['id'] if 'id' in job else 0,
                        'job': job,
                        'success': None,
