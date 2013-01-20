@@ -18,14 +18,17 @@ import simulator
 # SETUP                                                                        #
 #------------------------------------------------------------------------------#
 
-dir_fmt = os.path.expanduser("~/Battlecode2013/teams/ga_%d/Weights.java")
+install_dir = os.path.expanduser("~/Battlecode2013")
+bin_dir = install_dir + "/bin"
+team_dir = install_dir + "/teams"
+ga_path = team_dir + "/ga_%d/Weights.java"
 
-pop_size = 20
+pop_size = 10
 optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'ALLY_HQ', 'DROPOFF']
 #maps = ['spiral', 'maze1', 'choices', 'bloodbath', 'fused']
 maps = ['spiral']
 oponent = 'godotbot'
-workers = 14
+workers = 2
 
 template = ""
 with open("../weights.tpl", 'r') as f:
@@ -55,7 +58,7 @@ def print_pop(pop, generation = 0):
 #------------------------------------------------------------------------------#
 
 def random_genome():
-    return [200.0 * random.random() - 100.0 for i in range(len(optimize))]
+    return [random.randrange(-100, 100) for i in range(len(optimize))]
 
 
 def init_pop(seed):
@@ -78,7 +81,7 @@ def crossover(x, y):
 def mutate(g):
     if random.random() > 0.5:
         gene = random.randrange(len(g))
-        g[gene] *= random.random() + (random.randrange(1) - 0.5)
+        g[gene] *= random.random() + (random.randrange(4) - 2)
 
     else:
         x = random.randrange(len(g))
@@ -108,7 +111,7 @@ def evolve(pop):
 
 def write_weights(name, partial, path):
     full = weights
-    full['team'] = 'ga_%d' % name
+    full['team'] = name
     for i in range(len(partial)):
         full[optimize[i]] = partial[i]
 
@@ -118,7 +121,7 @@ def write_weights(name, partial, path):
 
 def write_pop(pop):
     for i in range(len(pop)):
-        write_weights(i, pop[i], dir_fmt % i)
+        write_weights('ga_%d' % i, pop[i], ga_path % i)
 
 
 #------------------------------------------------------------------------------#
@@ -162,6 +165,8 @@ def rank_pop(pop, results, generation = 0):
     ranks = [(index, cumul[index]) for index in cumul.keys()]
     ranks.sort(key = lambda (index, count): count)
 
+    print "RANK: %s" % ranks
+
     mean = ranks[len(ranks) / 2][1]
     print "generation %d: [%d, %d, %d]" % \
         (generation, ranks[0][1], mean, ranks[len(ranks)-1][1])
@@ -173,6 +178,8 @@ def rank_pop(pop, results, generation = 0):
 # RUN                                                                          #
 #------------------------------------------------------------------------------#
 
+print "Optimizing: %s" % optimize
+print "Maps: %s" % maps
 
 pop = init_pop(seed)
 
@@ -182,10 +189,10 @@ while True:
 
     write_pop(pop)
     config = gen_battles()
+    shutil.rmtree(bin_dir)
 
     pop = rank_pop(pop, simulator.QueueBattles(workers, config), gen)
+    write_weights("team216", pop[0], "../weights/Weights_%d.java" % gen)
 
     gen += 1
     pop = evolve(pop)
-
-    shutil.rmtree(os.path.expanduser("~/Battlecode2013/bin"))
