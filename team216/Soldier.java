@@ -4,8 +4,8 @@ import battlecode.common.*;
 
 public class Soldier
 {
-    private static final int GL_RADIUS = 70 * 70;
-    private static final int LC_RADIUS =
+    public static final int GL_RADIUS = 70 * 70;
+    public static final int LC_RADIUS =
         RobotType.ARTILLERY.attackRadiusMaxSquared;
 
     private static final int MAX_MINES  = 10;
@@ -154,6 +154,11 @@ public class Soldier
             RobotController rc, MapLocation coord, double strength[], Team team)
         throws GameActionException
     {
+
+        //System.out.println(rc.senseNearbyGameObjects(Robot.class, 1, team.opponent()).length);
+        //System.out.println(Storage.nearbyEnemies(1).length);
+        //System.out.println("======");
+
         // if there is an adjacent enemy, don't run away
         if (rc.senseNearbyGameObjects(Robot.class, 1, team.opponent()).length > 0)
             return true;
@@ -451,9 +456,10 @@ public class Soldier
             double strength[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
             // Enemy HQ
+            // TODO: Make sure this is ok
             strengthen(
-                    strength, coord.directionTo(Storage.ENEMY_HQ), Weights.ENEMY_HQ,
-                    Storage.ENEMY_HQ.distanceSquaredTo(coord));
+                    strength, Storage.directionToEnemyHQ(), Weights.ENEMY_HQ,
+                    Storage.distanceToEnemyHQ());
 
             debug_checkBc(rc, "HQ");
 

@@ -22,6 +22,8 @@ public class Storage {
     public static double EST_RUSH_TIME;
 
     public static Direction direction_to_enemy_hq;
+    public static double distance_to_enemy_hq;
+    public static Robot[][] nearby_enemies = new Robot[5][];
 
     public static void calculateValues(RobotController rc) {
         try {
@@ -71,12 +73,7 @@ public class Storage {
     }
 
     public static double distanceBetweenHQs() {
-        if (DISTANCE_BETWEEN_HQ == 0.0) {
-            //System.out.println("cache miss");
-            //DISTANCE_BETWEEN_HQ = 5.0;
-            DISTANCE_BETWEEN_HQ = Utils.distTwoPoints(MY_HQ, ENEMY_HQ);
-        }
-        return DISTANCE_BETWEEN_HQ;
+        return DISTANCE_BETWEEN_HQ == 0.0 ? DISTANCE_BETWEEN_HQ = Utils.distTwoPoints(MY_HQ, ENEMY_HQ) : DISTANCE_BETWEEN_HQ;
     }
 
     public static double slopeBetweenHQs() {
@@ -92,11 +89,39 @@ public class Storage {
         return RC.getLocation();
     }
 
-    //public static Direction directionToEnemyHQ() {
-        //direction_to_enemy_hq == null || Clock.getRoundNum()
-        //return CENTER == null ? new MapLocation((MY_HQ.x + ENEMY_HQ.x)/2,(MY_HQ.y + ENEMY_HQ.y)/2) : CENTER;
-        //myLocation().directionTo(ENEMY_HQ);
-    //}
+    public static Direction directionToEnemyHQ() {
+        if (direction_to_enemy_hq == null || Clock.getRoundNum() % 6 == 0)
+            direction_to_enemy_hq = RC.getLocation().directionTo(ENEMY_HQ);
+        return direction_to_enemy_hq;
+    }
+
+    public static double distanceToEnemyHQ() {
+        if (distance_to_enemy_hq == 0.0 || Clock.getRoundNum() % 3 == 1)
+            distance_to_enemy_hq = Utils.distTwoPoints(RC.getLocation(), ENEMY_HQ);
+            //distance_to_enemy_hq = ENEMY_HQ.distanceSquaredTo(myLocation());
+        return distance_to_enemy_hq;
+    }
+
+    public static Robot[] nearbyEnemies(int radiusSquared) {
+        // Since we only have shitty fixed-sized arrays, we implement caching for common inputs:
+        int i;
+        switch (radiusSquared) {
+            case 1: 
+                    i = 0;
+                    break;
+            case Soldier.GL_RADIUS:
+                    i = 2;
+                    break;
+            // We don't cache that radius
+            default: return RC.senseNearbyGameObjects(Robot.class, radiusSquared, ENEMY_TEAM);
+        }
+
+        if (nearby_enemies[i] == null || Clock.getRoundNum() % 3 == 2)
+            nearby_enemies[i] = RC.senseNearbyGameObjects(Robot.class, radiusSquared, ENEMY_TEAM);
+
+        return nearby_enemies[i];
+    }
+
 
 
     // Combat methods
