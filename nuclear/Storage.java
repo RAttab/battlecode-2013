@@ -17,6 +17,9 @@ public class Storage {
     public static int MAP_SIZE;
     public static RobotInfo MY_INFO;
     public static Robot ME;
+    public static Direction TO_ENEMY;
+
+    public static MapLocation[] mineLocs;
 
     public static void calculateValues(RobotController rc) {
         try {
@@ -30,38 +33,74 @@ public class Storage {
             MAP_HEIGHT = rc.getMapHeight();
             MAP_WIDTH = rc.getMapWidth();
             MAP_SIZE = MAP_HEIGHT * MAP_WIDTH;
+            TO_ENEMY = MY_HQ.directionTo(ENEMY_HQ);
             //EST_RUSH_TIME = getRushTime(rc);
+            mineLocs = getMineLocs(rc);
         }
         catch(Exception e) { e.printStackTrace(); }
+    }
+
+    public static MapLocation[] getMineLocs(RobotController rc) {
+        MapLocation[] out = new MapLocation[25];
+        Direction rightOf = TO_ENEMY.rotateRight().rotateRight();
+        Direction leftOf = TO_ENEMY.rotateLeft().rotateLeft();
+        out[0] = MY_HQ.add(leftOf, 1);
+        out[1] = MY_HQ.add(rightOf, 1);
+        out[2] = MY_HQ.add(TO_ENEMY, 1);
+        out[3] = MY_HQ.add(TO_ENEMY.opposite(), 1);
+        out[4] = MY_HQ.add(TO_ENEMY, 1).add(rightOf, 2);
+        out[5] = MY_HQ.add(TO_ENEMY, 2).add(rightOf, 1);
+        out[6] = MY_HQ.add(TO_ENEMY, 1).add(leftOf, 2);
+        out[7] = MY_HQ.add(TO_ENEMY, 2).add(leftOf, 1);
+        out[8] = MY_HQ.add(TO_ENEMY, 3);
+        out[9] = MY_HQ.add(TO_ENEMY.opposite(), 1).add(rightOf, 2);
+        out[10] = MY_HQ.add(TO_ENEMY.opposite(), 1).add(leftOf, 2);
+        out[11] = MY_HQ.add(TO_ENEMY.opposite(), 2).add(rightOf);
+        out[12] = MY_HQ.add(TO_ENEMY.opposite(), 2).add(leftOf);
+        out[13] = MY_HQ.add(rightOf, 3);
+        out[14] = MY_HQ.add(leftOf, 3);
+        out[15] = MY_HQ.add(TO_ENEMY, 1).add(rightOf, 4);
+        out[16] = MY_HQ.add(TO_ENEMY, 1).add(leftOf, 4);
+        out[17] = MY_HQ.add(TO_ENEMY, 2).add(rightOf, 3);
+        out[18] = MY_HQ.add(TO_ENEMY, 2).add(leftOf, 3);
+        out[19] = MY_HQ.add(TO_ENEMY, 3).add(rightOf, 2);
+        out[20] = MY_HQ.add(TO_ENEMY, 3).add(leftOf, 2);
+        out[21] = MY_HQ.add(TO_ENEMY, 4).add(leftOf, 1);
+        out[22] = MY_HQ.add(TO_ENEMY, 4).add(rightOf, 1);
+        out[23] = MY_HQ.add(TO_ENEMY, 5);
+        out[24] = MY_HQ.add(TO_ENEMY.opposite(), 3);
+        return out;
     }
 
     // Variables
 
     // TODO: Commented out for now, caushes to go over bytecode limit
-    //public static double getRushTime(RobotController rc) {
-        ////calculate estimated turns for rush
-        //double x_dif = MY_HQ.x - ENEMY_HQ.x;
-        //double y_dif = MY_HQ.y - ENEMY_HQ.y;
-        //double x;
-        //double y;
-        //double offset;
-        //double time = 0.0;
-        //String s = "";
-        ////rc.setIndicatorString(0, "c=" + CENTER + ", m=" + MY_HQ + ", e=" + ENEMY_HQ + ", xdif=" + x_dif + ", ydif" + y_dif + ", slope=" + SLOPE);
-        //for (int i=0; i<20; i++) {
-            //offset = 6 * Math.random() - 3;
-            //x = Math.random() * x_dif;
-            //y = SLOPE * x + ENEMY_HQ.y;
-            //s += " (" + (int)x + ", " + (int)y + ")";
-            //if (Team.NEUTRAL.equals(rc.senseMine(new MapLocation((int)x, (int)y)))){
-                //time += 12;
-                //s += "!";
-            //}
-        //}
-        //rc.setIndicatorString(2, s);
-        //time *= (DISTANCE_BETWEEN/20.0);
-        //return time;
-    //}
+    public static double getRushTime(RobotController rc) {
+        //calculate estimated turns for rush
+        double x_dif = MY_HQ.x - ENEMY_HQ.x;
+        double y_dif = MY_HQ.y - ENEMY_HQ.y;
+        double x;
+        double y;
+        double offset;
+        double time = 0.0;
+        String s = "";
+        //rc.setIndicatorString(0, "c=" + CENTER + ", m=" + MY_HQ + ", e=" + ENEMY_HQ + ", xdif=" + x_dif + ", ydif" + y_dif + ", slope=" + SLOPE);
+        for (int i=0; i<20; i++) {
+            offset = 6 * Math.random() - 3;
+            x = Math.random() * x_dif;
+            y = SLOPE * x + ENEMY_HQ.y;
+            s += " (" + (int)x + ", " + (int)y + ")";
+            if (Team.NEUTRAL.equals(rc.senseMine(new MapLocation((int)x, (int)y)))){
+                time += 12;
+                s += "!";
+            }
+            time += 1;
+        }
+        rc.setIndicatorString(2, s);
+        time *= (DISTANCE_BETWEEN/20.0);
+        time += DISTANCE_BETWEEN;
+        return time;
+    }
 
 
     // Combat methods

@@ -23,7 +23,9 @@ public class Weights
     public static final double MAPSIZE_L    = 999;
 
     public static final double DROPOFF      = 0.4;
-    public static final double MINER        = 1;
+    public static final double MINER        = 0.4;
+
+    public static final double RUN_AWAY     = 1000;
 
     public static final double BATTLE_MED   = 100;
     public static final double BATTLE_ARTIL = 120;
