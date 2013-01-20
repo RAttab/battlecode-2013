@@ -132,26 +132,33 @@ def gen_battles():
             battles.append({'id': i * len(maps) + j,
                            'type': 'local',
                            'bc.game.maps': maps[j],
-                           'bc.game.team-a': 'gen_%d' % i,
+                           'bc.game.team-a': 'ga_%d' % i,
                            'bc.game.team-b': oponent,
                            'bc.server.save-file': "ga_%d.rms" % i})
     return battles
 
+
 def bot_index(name):
     return int(name[3:]) if name.startswith('ga_') else -1
 
-def rank_pop(pop, results, generation = 0):
-    print results
 
+def rank_pop(pop, results, generation = 0):
     cumul = {}
 
     for result in results:
         g = result['id'] / len(maps)
-        team = bot_index(result['combatResult']['winnerTeam'])
-        if team >= 0:
-            cumul[team] += result['combatResult']['maxRound']
 
-    ranks = [(index, count) for (index, count) in cumul]
+        winner = result['combatResult']['winnerTeam']
+        assert winner == 'B' or winner == 'A'
+
+        score = result['combatResult']['maxRound']
+        if winner == 'B': score = 2500
+
+        if g in cumul: cumul[g] += score
+        else: cumul[g] = score
+
+
+    ranks = [(index, cumul[index]) for index in cumul.keys()]
     ranks.sort(key = lambda (index, count): count)
 
     mean = ranks[len(ranks) / 2][1]
@@ -170,13 +177,12 @@ pop = init_pop(seed)
 
 gen = 0
 while True:
+    print_pop(pop)
+
     write_pop(pop)
     config = gen_battles()
-    print config
-    print
 
     pop = rank_pop(pop, simulator.QueueBattles(workers, config), gen)
-    print
 
     gen += 1
     pop = evolve(pop)
