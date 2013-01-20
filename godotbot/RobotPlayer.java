@@ -8,7 +8,10 @@ public class RobotPlayer
 
     public static void run(RobotController rc)
     {
-        while (true) { rc.yield(); }
+        while (true) {
+            System.out.println("[TRAIN] Round " + Clock.getRoundNum());
+            rc.yield();
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 import os
 import json
@@ -20,7 +20,7 @@ import tempfile
 class CombatRunner:
     bcTemplateFile = "bc.conf.tmpl"
     bcPath = os.path.expanduser("~/Battlecode2013/")
-    
+
     def Run(self, config):
         # print "[CombatRunner][Run] With config [%s]" % config
 
@@ -46,7 +46,7 @@ class CombatRunner:
         # Run the combat and parse the results
         result = self.ParseAntRunResult(self.AntRunHeadless(self.bcPath, filename))
 
-        print "Done %s vs %s on %s -> %s wins in %d rounds" % \
+        print "%s vs %s on %s -> %s wins in %d rounds" % \
             (config['bc.game.team-a'], config['bc.game.team-b'],
             config['bc.game.maps'], result['winnerName'], result['maxRound'])
 
@@ -64,15 +64,18 @@ class CombatRunner:
 
         for line in antResult:
             line = line.strip()
+            roundStr = "[TRAIN] Round "
 
             if line.startswith("[java] [server]") and line.endswith("wins"):
                 winnerItems = line.split(" ")
                 result['winnerName'] = winnerItems[-3]
                 result['winnerTeam'] = winnerItems[-2][1]
-            elif line.startswith("[java] Round"):
+            elif line.count(roundStr) > 0:
+                split = line.split(" ")
+
                 # This will technically be run multiple times... but wtv.. the
                 # last entry is always the max one anyway
-                result['maxRound'] = int(line.split(" ")[2])
+                result['maxRound'] = int(split[len(split) - 1])
 
         return result
 
@@ -106,6 +109,6 @@ class CombatRunner:
         print "Removing temp folder..."
         if tempFolder and len(tempFolder) >= 10: # Being paranoid about removing system files...
             shutil.rmtree(tempFolder)
-        
+
         print "RunBattle done"
         self.ReturnJson({})
