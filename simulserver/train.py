@@ -155,7 +155,7 @@ def rank_pop(pop, results, generation = 0):
         assert winner == 'B' or winner == 'A'
 
         score = result['combatResult']['maxRound']
-        if winner == 'B': score = 2500
+        if winner == 'B': score = 3000
 
         if g in cumul: cumul[g] += score
         else: cumul[g] = score
