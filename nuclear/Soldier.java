@@ -1,4 +1,4 @@
-package team216;
+package nuclear;
 
 import battlecode.common.*;
 
@@ -461,7 +461,6 @@ public class Soldier
 
             // Enemy HQ
             // TODO : once storage is going, senseEnemyNuke and adjust accordingly
-
             strengthen(
                     strength, coord.directionTo(Storage.ENEMY_HQ), Weights.ENEMY_HQ,
                     Storage.ENEMY_HQ.distanceSquaredTo(coord));
