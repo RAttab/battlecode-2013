@@ -27,7 +27,12 @@ public class Storage {
     private static double strategic_relevance;
     private static Direction direction_to_enemy_hq;
     private static double distance_to_enemy_hq;
-    private static Robot[][] nearby_enemies = new Robot[3][];
+
+    private static Robot[][] nearby_enemies = new Robot[2][];
+    private static Integer[] nearby_enemies_last_updated = new Integer[2];
+
+    private static int number_of_nearby_enemies;
+
     private static Robot[][] nearby_friendlies = new Robot[3][];
     private static MapLocation[] nearby_friendly_mines;
     private static MapLocation[][] nearby_nonallied_mines = new MapLocation[2][];
@@ -129,23 +134,29 @@ public class Storage {
         // Since we only have shitty fixed-sized arrays, we implement caching for common inputs:
         int i;
         switch (radiusSquared) {
-            case 1: 
+            case LC_RADIUS:
                     i = 0;
                     break;
-            case LC_RADIUS:
-                    i = 1;
-                    break;
             case Soldier.GL_RADIUS:
-                    i = 2;
+                    i = 1;
                     break;
             // We don't cache that radius
             default: return RC.senseNearbyGameObjects(Robot.class, radiusSquared, ENEMY_TEAM);
         }
 
-        if (nearby_enemies[i] == null || Clock.getRoundNum() % 3 == 2)
+        if (nearby_enemies[i] == null || nearby_enemies_last_updated[i] < Clock.getRoundNum()) {
             nearby_enemies[i] = RC.senseNearbyGameObjects(Robot.class, radiusSquared, ENEMY_TEAM);
+            nearby_enemies_last_updated[i] = Clock.getRoundNum();
+        }
 
         return nearby_enemies[i];
+    }
+
+    public static int numberOfNearbyEnemies() {
+        // Radius = 1
+        if (number_of_nearby_enemies == 0 || Clock.getRoundNum() % 3 == 0)
+            number_of_nearby_enemies = RC.senseNearbyGameObjects(Robot.class, 1, ENEMY_TEAM).length;
+        return number_of_nearby_enemies;
     }
 
     public static Robot[] nearbyFriendlies(int radiusSquared) {

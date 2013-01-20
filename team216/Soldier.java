@@ -66,13 +66,8 @@ public class Soldier
 
         // when enemies are nearby, group into a tight formation
 
-        //System.out.println(rc.senseNearbyGameObjects(Robot.class, 3, team));
-        //System.out.println(Storage.nearbyFriendlies(3));
-        //System.out.println("======");
-
         Robot robots[] = rc.senseNearbyGameObjects(Robot.class, 3, team);
-        //Robot enemyRobots[] = Storage.nearbyEnemies(LC_RADIUS);
-        Robot enemyRobots[] = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team.opponent());
+        Robot enemyRobots[] = Storage.nearbyEnemies(LC_RADIUS);
 
         // TODO: I (David) temporarly fixed a bug here that caused exceptions, 
         // make sure to add logic to deal with when no enemies are nearby
@@ -166,11 +161,10 @@ public class Soldier
     {
 
         // if there is an adjacent enemy, don't run away
-        if (Storage.nearbyEnemies(1).length > 0)
+        if (Storage.numberOfNearbyEnemies() > 0)
             return true;
 
-        //Robot enemies[] = Storage.nearbyEnemies(LC_RADIUS);
-        Robot enemies[] = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team.opponent());
+        Robot enemies[] = Storage.nearbyEnemies(LC_RADIUS);
 
         if (enemies.length == 0) return false;
 
