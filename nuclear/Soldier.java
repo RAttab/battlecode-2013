@@ -136,28 +136,6 @@ public class Soldier
 
     /**
      */
-    private static void globalRobots(
-            RobotController rc, MapLocation coord,
-            double strength[], double w, Team team)
-        throws GameActionException
-    {
-        Robot robots[] = rc.senseNearbyGameObjects(
-                Robot.class, GL_RADIUS, team);
-
-        int steps = Utils.ceilDiv(robots.length, MAX_ROBOTS);
-
-        for (int i = 0; i < robots.length; i += steps) {
-            MapLocation robotCoord = rc.senseRobotInfo(robots[i]).location;
-            Direction dir = coord.directionTo(robotCoord);
-
-            strengthen(strength, dir, w, coord.distanceSquaredTo(robotCoord));
-        }
-
-        rc.setIndicatorString(0, "global=" + robots.length);
-    }
-
-    /**
-     */
     private static boolean localRobots(
             RobotController rc, MapLocation coord, double strength[], Team team)
         throws GameActionException
@@ -229,8 +207,6 @@ public class Soldier
     }
 
 
-    /**
-     */
     private static void neutralBases(
             RobotController rc, MapLocation coord, double strength[])
         throws GameActionException
@@ -242,14 +218,14 @@ public class Soldier
         double cost = rc.senseCaptureCost();
         if (cost >= rc.getTeamPower()) return;
 
-        MapLocation bases[] =
-            rc.senseEncampmentSquares(coord, LC_RADIUS, Team.NEUTRAL);
+        MapLocation hq = rc.senseHQLocation();
+        MapLocation evilHq = rc.senseEnemyHQLocation();
+        Direction dir = hq.directionTo(evilHq);
 
-        int radius = LC_RADIUS;
-        while (bases.length < 1 && radius < GL_RADIUS) {
-            radius *= 3;
-            bases = rc.senseEncampmentSquares(coord, radius, Team.NEUTRAL);
-        }
+        MapLocation stratLoc = hq.add(dir, 2);
+
+        MapLocation bases[] =
+            rc.senseEncampmentSquares(stratLoc, LC_RADIUS*2, Team.NEUTRAL);
 
         int steps = Utils.ceilDiv(bases.length, MAX_BASES);
         int count = 0, taken = 0;
@@ -271,7 +247,7 @@ public class Soldier
             // if (rc.canSenseSquare(bases[i].add(Direction.WEST)) != null)
             //     ???
 
-            Direction dir = coord.directionTo(bases[i]);
+            dir = coord.directionTo(bases[i]);
             strengthen(
                     strength, dir, Weights.CAPTURE,
                     coord.distanceSquaredTo(bases[i]));
@@ -356,57 +332,17 @@ public class Soldier
         if (cost <= 0.0) return false;
         if (cost >= rc.getTeamPower()) return false;
 
-        double rnd = Math.random();
-
-        // prioritize artillery on the path between the HQs, and closer to enemy HQ
-        double militaryWeight = Weights.MILITARY *
-        (Weights.STRAT_CAMP * stratLoc + Weights.DEF_CAMP * defLoc);
-
-        rc.setIndicatorString(1, "def=" + defLoc + ", strat=" + stratLoc +
-            ", w=" + militaryWeight + ", rnd=" + rnd/* +
-            ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
-
-
-        if (rnd < militaryWeight) {
-            rnd = Math.random();
-            if (rnd < Weights.MEDBAY_SUM)
-                rc.captureEncampment(RobotType.MEDBAY);
-            else if (rnd < Weights.SHIELDS_SUM)
-                rc.captureEncampment(RobotType.SHIELDS);
-            else
-                rc.captureEncampment(RobotType.ARTILLERY);
-        } else {
-            // TODO: improve supplier/generator decision
-            if (Clock.getRoundNum() < Weights.MIN_ROUND)
-                rc.captureEncampment(RobotType.SUPPLIER);
-            else if (rc.getTeamPower() < Weights.MIN_POWER)
-                rc.captureEncampment(RobotType.GENERATOR);
-            else if (rc.getTeamPower() > maxPower)
-                rc.captureEncampment(RobotType.SUPPLIER);
-            else {
-                rnd = Math.random();
-                double ratio =
-                    (rc.getTeamPower() - Weights.MIN_POWER) /
-                    (maxPower - Weights.MIN_POWER);
-
-                rc.setIndicatorString(1,
-                        "def=" + defLoc + ", strat=" + stratLoc + 
-                        ", w=" + militaryWeight + ", rnd=" + rnd
-                        + ", pratio=" + ratio
-                        /* + ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
-
-                if (rnd < ratio)
-                    rc.captureEncampment(RobotType.GENERATOR);
-                else
-                    rc.captureEncampment(RobotType.SUPPLIER);
-            }
-        }
+        rc.captureEncampment(RobotType.ARTILLERY);
 
         return true;
     }
 
     public static double getMineStr(
         RobotController rc, double defense, MapLocation coord, int minesNearby) {
+
+
+        if ((coord.x + coord.y)%2 == 0 && !coord.isAdjacentTo(rc.senseHQLocation()))
+            return 0;
 
         double mineStr = defense * Weights.LAY_MINE;
         if (rc.hasUpgrade(Upgrade.PICKAXE)) {
@@ -425,8 +361,40 @@ public class Soldier
         // if (rc.senseEncampmentSquare(coord)){
         //     mineStr += Weights.LAY_MINE;
         // }
+
         double minesNearbyFactor = Weights.NEARBY_MINE * ((LC_RADIUS/2)-(minesNearby));
         return mineStr + minesNearbyFactor;
+    }
+
+    public static void layTraps(
+        RobotController rc, MapLocation coord, MapLocation hq, double strength[])
+    {
+        Direction toEnemy = hq.directionTo(rc.senseEnemyHQLocation());
+        MapLocation stratLoc = hq.add(toEnemy);
+        int sum = hq.x + hq.y;
+        int dy = hq.y - stratLoc.y;
+        int dx = hq.x - stratLoc.x;
+        stratLoc = stratLoc.add(toEnemy);
+        int x;
+        int y;
+        int count = 0;
+        for (int i=-5; i<=7; ++i){
+            for (int j=-5; j<=7; ++j){
+                x = stratLoc.x + (i*dx);
+                y = stratLoc.y + (i*dy);
+                MapLocation mineLoc = new MapLocation(x, y);
+                if ((hq.x + hq.y + x + y) % 2 != 0 || mineLoc.isAdjacentTo(rc.senseHQLocation())) {
+                    if (rc.senseMine(mineLoc) == null) {
+                        strengthen(strength, coord.directionTo(mineLoc), Weights.MINER);
+                        ++count;
+                        if (count > 3)
+                            break;
+                    }
+                }
+            }
+            if (count > 3)
+                break;
+        }
     }
 
 
@@ -455,6 +423,7 @@ public class Soldier
             debug_resetBc();
 
             MapLocation coord = rc.getLocation();
+            MapLocation hq = rc.senseHQLocation();
             // These represent the pull strengths in each direction by the affecting fields
             double strength[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
@@ -480,8 +449,8 @@ public class Soldier
                 neutralBases(rc, coord, strength);
                 debug_checkBc(rc, "neutral-base");
 
-                globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, team.opponent());
-                debug_checkBc(rc, "global-robot");
+                layTraps(rc, coord, hq, strength);
+                debug_checkBc(rc, "layTraps");
 
                 //TODO: defensiveMines(rc, coord, strength);
             }

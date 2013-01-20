@@ -1,5 +1,7 @@
 package testplayer;
 
+import battlecode.common.*;
+
 // going to use Marc's rusher to test out battle formation tactics
 
 public class RobotPlayer {
@@ -7,12 +9,11 @@ public class RobotPlayer {
 	private static boolean TryMove(RobotController rc, MapLocation targetLoc, Direction dir) {
 		rc.yield();
 		try {
-			if (rc.senseMine(targetLoc) == null) {
+			if (rc.senseMine(targetLoc) == null || rc.senseMine(targetLoc) == rc.getTeam()) {
 				rc.move(dir);
 				return true;
 			} else {
 				rc.defuseMine(targetLoc);
-				rc.move(dir);
 				return true;
 			}
 		} catch (Exception e) {
@@ -72,7 +73,7 @@ public class RobotPlayer {
 	}
 
 	public static void run(RobotController rc) {
-
+		// Storage.calculateValues(rc);
 		while (true) {
 			try {
 				if (rc.getType() == RobotType.HQ) {
@@ -80,6 +81,9 @@ public class RobotPlayer {
 				} else if (rc.getType() == RobotType.SOLDIER) {
 					RobotPlayer.LogicSoldier(rc);
 				}
+				//Storage.incrementTurn();
+				rc.setIndicatorString(0, "turn=" + Storage.TURN);
+				rc.setIndicatorString(1, "BC=" + Clock.getBytecodeNum());
 				// End turn
 				rc.yield();
 			} catch (Exception e) {

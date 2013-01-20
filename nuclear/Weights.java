@@ -23,16 +23,17 @@ public class Weights
     public static final double MAPSIZE_L    = 999;
 
     public static final double DROPOFF      = 0.4;
+    public static final double MINER        = 1;
 
     public static final double BATTLE_MED   = 100;
     public static final double BATTLE_ARTIL = 120;
     public static final double BATTLE_SOLDI = 40;
 
-    public static final double ENEMY_HQ     = 1.0;
-    public static final double ALLY_HQ      = 5.0;
+    public static final double ENEMY_HQ     = 0.1;
+    public static final double ALLY_HQ      = 0.1;
 
-    public static final double GL_ENEMY_SD  =  2.0;
-    public static final double GL_ALLY_SD   = -0.01;
+    public static final double GL_ENEMY_SD  = -0.01;
+    public static final double GL_ALLY_SD   = 2;
 
     public static final double LC_ENEMY_SD  =   1.0;
     public static final double LC_ALLY_SD   =   0.7;
@@ -46,7 +47,7 @@ public class Weights
 
     public static final double MIN_CAPT_POW = 15.0;
 
-    public static final double GROUP_ATTACK = 2.0;
+    public static final double GROUP_ATTACK = 1.0;
     public static final double GROUP_UP     = 2.0;
 
     public static final double STRAT_CAMP   = 0.1;
