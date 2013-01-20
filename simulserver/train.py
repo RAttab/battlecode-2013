@@ -189,4 +189,3 @@ while True:
     pop = evolve(pop)
 
     shutil.rmtree(os.path.expanduser("~/Battlecode2013/bin"))
-    print "Generation [%s]" % gen
