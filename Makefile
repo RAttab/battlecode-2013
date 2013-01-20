@@ -39,6 +39,7 @@ clean-template:
 	-rm weights.tpl genome.txt
 
 template: clean-template
+	-mkdir weights # trained weights are stored here.
 	cat team216/Weights.java | \
 	sed -r 's/double\s+([_A-Z]+)\s*=\s*(-?[0-9]*\.?[0-9]*);/double \1 = %(\1)f;/' | \
 	sed -r 's/package (team216);/package %(team)s;/' > weights.tpl
