@@ -23,10 +23,9 @@ bin_dir = install_dir + "/bin"
 team_dir = install_dir + "/teams"
 ga_path = team_dir + "/ga_%d/Weights.java"
 
-pop_size = 10
-optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'ALLY_HQ', 'DROPOFF']
-#maps = ['spiral', 'maze1', 'choices', 'bloodbath', 'fused']
-maps = ['spiral']
+pop_size = 20
+optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'ALLY_HQ']
+maps = ['maze1', 'choices', 'bloodbath', 'fused']
 oponent = 'godotbot'
 workers = 2
 
@@ -58,7 +57,7 @@ def print_pop(pop, generation = 0):
 #------------------------------------------------------------------------------#
 
 def random_genome():
-    return [random.randrange(-100, 100) for i in range(len(optimize))]
+    return [float(random.randrange(-100, 100)) for i in range(len(optimize))]
 
 
 def init_pop(seed):
@@ -165,7 +164,10 @@ def rank_pop(pop, results, generation = 0):
     ranks = [(index, cumul[index]) for index in cumul.keys()]
     ranks.sort(key = lambda (index, count): count)
 
-    print "RANK: %s" % ranks
+    print "\nRANKS:"
+    for i in range(len(ranks)):
+        print "  %d: %s" % (i, ranks[i])
+    print ""
 
     mean = ranks[len(ranks) / 2][1]
     print "generation %d: [%d, %d, %d]" % \
@@ -185,7 +187,7 @@ pop = init_pop(seed)
 
 gen = 0
 while True:
-    print_pop(pop)
+    print_pop(pop, gen)
 
     write_pop(pop)
     config = gen_battles()
