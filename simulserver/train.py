@@ -25,7 +25,7 @@ optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'ALLY_HQ', 'DROPOFF']
 #maps = ['spiral', 'maze1', 'choices', 'bloodbath', 'fused']
 maps = ['spiral']
 oponent = 'godotbot'
-workers = 4
+workers = 14
 
 template = ""
 with open("../weights.tpl", 'r') as f:
@@ -189,3 +189,4 @@ while True:
     pop = evolve(pop)
 
     shutil.rmtree(os.path.expanduser("~/Battlecode2013/bin"))
+    print "Generation [%s]" % gen
