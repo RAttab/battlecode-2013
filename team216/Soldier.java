@@ -5,7 +5,7 @@ import battlecode.common.*;
 public class Soldier
 {
     public static final int GL_RADIUS = 70 * 70;
-    public static final int LC_RADIUS =
+    private static final int LC_RADIUS =
         RobotType.ARTILLERY.attackRadiusMaxSquared;
 
     private static final int MAX_MINES  = 10;
@@ -155,16 +155,12 @@ public class Soldier
         throws GameActionException
     {
 
-        //System.out.println(rc.senseNearbyGameObjects(Robot.class, 1, team.opponent()).length);
-        //System.out.println(Storage.nearbyEnemies(1).length);
-        //System.out.println("======");
-
         // if there is an adjacent enemy, don't run away
-        if (rc.senseNearbyGameObjects(Robot.class, 1, team.opponent()).length > 0)
+        if (Storage.nearbyEnemies(1).length > 0)
             return true;
 
-        Robot enemies[] = rc.senseNearbyGameObjects(
-                Robot.class, LC_RADIUS, team.opponent());
+
+        Robot enemies[] = Storage.nearbyEnemies(LC_RADIUS);
 
         if (enemies.length == 0) return false;
 
@@ -198,7 +194,7 @@ public class Soldier
         double allyForce = 0.0;
 
         for (int i = 0; i < allies.length; i += steps) {
-            RobotInfo info = rc.senseRobotInfo(allies[i]);
+            RobotInfo info = Storage.robotInfo(allies[i]);
             if (info.type != RobotType.SOLDIER &&
                     info.type != RobotType.ARTILLERY &&
                     info.type != RobotType.MEDBAY)
@@ -511,11 +507,8 @@ public class Soldier
             if (finalDir == null) { rc.yield(); continue; }
             rc.setIndicatorString(0, "max_str=" + maxStrength + ", dir=" + finalDir);
 
-            // TODO: all of these are things are Storage
-            double defense = Utils.defensiveRelevance(
-                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, Storage.distanceBetweenHQs(), Weights.DEF_RATIO);
-            double strat = Utils.strategicRelevance(
-                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, Storage.distanceBetweenHQs(), Weights.STRAT_RATIO);
+            double defense = Storage.defensiveRelevance();
+            double strat = Storage.strategicRelevance();
             double mineStr = 0;
 
             // TODO: incorporate threat level instead of boolean enemiesNearby

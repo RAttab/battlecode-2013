@@ -21,6 +21,8 @@ public class Storage {
     public static RobotController RC;
     public static double EST_RUSH_TIME;
 
+    public static double defensive_relevance; 
+    public static double strategic_relevance;
     public static Direction direction_to_enemy_hq;
     public static double distance_to_enemy_hq;
     public static Robot[][] nearby_enemies = new Robot[5][];
@@ -102,12 +104,32 @@ public class Storage {
         return distance_to_enemy_hq;
     }
 
+    public static double defensiveRelevance() {
+        if (defensive_relevance == 0.0 || Clock.getRoundNum() % 3 == 2)
+            defensive_relevance = Utils.defensiveRelevance(RC.getLocation(), MY_HQ, ENEMY_HQ, distanceBetweenHQs(), Weights.DEF_RATIO);
+        return defensive_relevance;
+    }
+
+    public static double strategicRelevance() {
+        if (strategic_relevance == 0.0 || Clock.getRoundNum() % 3 == 2)
+            strategic_relevance = Utils.strategicRelevance(RC.getLocation(), MY_HQ, ENEMY_HQ, distanceBetweenHQs(), Weights.STRAT_RATIO);
+        return strategic_relevance;
+    }
+
+    public static RobotInfo robotInfo(Robot r) throws GameActionException {
+        // TODO: No caching here yet
+        return RC.senseRobotInfo(r);
+    }
+
     public static Robot[] nearbyEnemies(int radiusSquared) {
         // Since we only have shitty fixed-sized arrays, we implement caching for common inputs:
         int i;
         switch (radiusSquared) {
             case 1: 
                     i = 0;
+                    break;
+            case 63: // FIXME: LC_RADIUS
+                    i = 1;
                     break;
             case Soldier.GL_RADIUS:
                     i = 2;
@@ -121,11 +143,4 @@ public class Storage {
 
         return nearby_enemies[i];
     }
-
-
-
-    // Combat methods
-    // getEnemyCenter
-    // getFriendlyCenter
-
 }
