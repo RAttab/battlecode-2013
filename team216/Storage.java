@@ -21,11 +21,15 @@ public class Storage {
     public static RobotController RC;
     public static double EST_RUSH_TIME;
 
-    public static double defensive_relevance; 
-    public static double strategic_relevance;
-    public static Direction direction_to_enemy_hq;
-    public static double distance_to_enemy_hq;
-    public static Robot[][] nearby_enemies = new Robot[5][];
+    private static final int LC_RADIUS = 63; // FIXME
+
+    private static double defensive_relevance; 
+    private static double strategic_relevance;
+    private static Direction direction_to_enemy_hq;
+    private static double distance_to_enemy_hq;
+    private static Robot[][] nearby_enemies = new Robot[3][];
+    private static MapLocation[] nearby_friendly_mines;
+    private static MapLocation[][] nearby_nonallied_mines = new MapLocation[2][];
 
     public static void calculateValues(RobotController rc) {
         try {
@@ -99,8 +103,7 @@ public class Storage {
 
     public static double distanceToEnemyHQ() {
         if (distance_to_enemy_hq == 0.0 || Clock.getRoundNum() % 3 == 1)
-            distance_to_enemy_hq = Utils.distTwoPoints(RC.getLocation(), ENEMY_HQ);
-            //distance_to_enemy_hq = ENEMY_HQ.distanceSquaredTo(myLocation());
+            distance_to_enemy_hq = RC.getLocation().distanceSquaredTo(ENEMY_HQ);
         return distance_to_enemy_hq;
     }
 
@@ -128,7 +131,7 @@ public class Storage {
             case 1: 
                     i = 0;
                     break;
-            case 63: // FIXME: LC_RADIUS
+            case LC_RADIUS:
                     i = 1;
                     break;
             case Soldier.GL_RADIUS:
@@ -142,5 +145,29 @@ public class Storage {
             nearby_enemies[i] = RC.senseNearbyGameObjects(Robot.class, radiusSquared, ENEMY_TEAM);
 
         return nearby_enemies[i];
+    }
+
+    public static MapLocation[] nearbyNonAlliedMines(int radiusSquared) {
+        int i;
+        switch (radiusSquared) {
+            case LC_RADIUS:
+                    i = 0;
+                    break;
+            case Soldier.GL_RADIUS:
+                    i = 1;
+                    break;
+            default: return RC.senseNonAlliedMineLocations(RC.getLocation(), radiusSquared);
+        }
+
+        if(nearby_nonallied_mines[i] == null || Clock.getRoundNum() % 3 == 0)
+            nearby_nonallied_mines[i] = RC.senseNonAlliedMineLocations(RC.getLocation(), radiusSquared);
+
+        return nearby_nonallied_mines[i];
+    }
+
+    public static MapLocation[] nearbyFriendlyMines() {
+        if (nearby_friendly_mines == null || Clock.getRoundNum() % 3 == 0)
+            nearby_friendly_mines = RC.senseMineLocations(RC.getLocation(), LC_RADIUS, MY_TEAM);
+        return nearby_friendly_mines;
     }
 }

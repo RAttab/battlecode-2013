@@ -43,7 +43,7 @@ public class Soldier
             double w, int radius)
         throws GameActionException
     {
-        MapLocation mines[] = rc.senseNonAlliedMineLocations(coord, radius);
+        MapLocation mines[] = Storage.nearbyNonAlliedMines(radius);
         int steps = Math.max(1, Utils.ceilDiv(mines.length, MAX_MINES));
         int count = 0;
 
@@ -517,7 +517,7 @@ public class Soldier
                 debug_checkBc(rc, "capture");
                 if (!enemiesNearby && rc.senseMine(coord) == null) {
                     // see if we should lay a mine here
-                    int minesNearby = rc.senseMineLocations(coord, LC_RADIUS, team).length;
+                    int minesNearby = Storage.nearbyFriendlyMines().length;
                     mineStr = getMineStr(rc, defense, coord, minesNearby);
                     rc.setIndicatorString(1, "defense=" + defense + ", mine_str=" + mineStr);
                     debug_checkBc(rc, "getMineStr");
