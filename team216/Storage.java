@@ -127,11 +127,6 @@ public class Storage {
         return strategic_relevance;
     }
 
-    public static RobotInfo robotInfo(Robot r) throws GameActionException {
-        // TODO: No caching here yet
-        return RC.senseRobotInfo(r);
-    }
-
     // This method doesn't cache, it simply returns the store result if we call it more than once in a turn
     public static Robot[] nearbyEnemies(int radiusSquared) {
         // Since we only have shitty fixed-sized arrays, we implement this only for common inputs:

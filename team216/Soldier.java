@@ -283,13 +283,13 @@ public class Soldier
 
 
     private static void allyBases(
-            RobotController rc, MapLocation coord, double strength[], Team team)
+            RobotController rc, MapLocation coord, double strength[])
         throws GameActionException
     {
         double energon = rc.getEnergon();
         double shield = rc.getShields();
 
-        MapLocation bases[] = rc.senseEncampmentSquares(coord, LC_RADIUS, team);
+        MapLocation bases[] = rc.senseEncampmentSquares(coord, LC_RADIUS, Storage.MY_TEAM);
         int steps = Math.max(1, Utils.ceilDiv(bases.length, MAX_BASES));
 
         int count = 0;
@@ -485,7 +485,7 @@ public class Soldier
                 mines(rc, coord, strength, Weights.BATTLE_MINE, LC_RADIUS);
                 debug_checkBc(rc, "battle-mine");
 
-                allyBases(rc, coord, strength, Storage.MY_TEAM);
+                allyBases(rc, coord, strength);
                 debug_checkBc(rc, "ally-base");
 
                 battleFormation(rc, coord, strength, Storage.MY_TEAM);
