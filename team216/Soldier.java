@@ -66,11 +66,13 @@ public class Soldier
 
         // when enemies are nearby, group into a tight formation
 
+
         Robot robots[] = Storage.nearbyAllies(3);
+        if (robots.length < 1)
+            robots = Storage.nearbyAllies(LC_RADIUS);
+
         Robot enemyRobots[] = Storage.nearbyEnemies(LC_RADIUS);
 
-        // TODO: I (David) temporarly fixed a bug here that caused exceptions, 
-        // make sure to add logic to deal with when no enemies are nearby
         if (enemyRobots.length != 0) {
 
             MapLocation closestEnemy = findClosest(rc, enemyRobots);
@@ -96,7 +98,7 @@ public class Soldier
             // otherwise, group up
             else {
                 MapLocation closestAlly = findClosest(rc, robots);
-                strengthen(strength, toward, Weights.GROUP_UP);
+                strengthen(strength, coord.directionTo(closestAlly), Weights.GROUP_UP);
             }
         }
     }
