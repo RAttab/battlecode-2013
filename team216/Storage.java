@@ -34,7 +34,7 @@ public class Storage {
     private static int number_of_nearby_enemies;
 
     private static Robot[][] nearby_allies = new Robot[3][];
-    private static Integer[] nearby_allies_last_updated = new Integer[2];
+    private static Integer[] nearby_allies_last_updated = new Integer[3];
 
     private static MapLocation[] nearby_friendly_mines;
     private static MapLocation[][] nearby_nonallied_mines = new MapLocation[2][];
