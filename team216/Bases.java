@@ -11,9 +11,7 @@ public class Bases
 
     private static void artillery(RobotController rc) throws GameActionException
     {
-        Robot enemies[] = rc.senseNearbyGameObjects(
-                Robot.class, RobotType.ARTILLERY.attackRadiusMaxSquared,
-                rc.getTeam().opponent());
+        Robot enemies[] = Storage.nearbyEnemies(RobotType.ARTILLERY.attackRadiusMaxSquared);
 
         MapLocation target = null;
         double targetScore = -1;
