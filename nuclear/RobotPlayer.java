@@ -3,9 +3,17 @@ package nuclear;
 import battlecode.common.*;
 
 public class RobotPlayer {
+    private static double sum;
 
 	private static void NukeHQ(RobotController rc) {
     MapLocation coord = rc.getLocation();
+    double rushTime = Storage.getRushTime(rc);
+    sum += rushTime;
+    double avg = sum/(Clock.getRoundNum() + 1);
+
+    rc.setIndicatorString(0, "rushTurns=" + rushTime + ", avg=" + avg);
+    rc.setIndicatorString(1, "distance=" + Storage.DISTANCE_BETWEEN);
+    rc.setIndicatorString(2, "byteCodes=" + Clock.getBytecodeNum() + "numRndsNuke=" + (Upgrade.NUKE.numRounds - Clock.getRoundNum() + 50));
 		try {
 			if (rc.isActive()) {
 				if (Clock.getRoundNum() < 50)
@@ -31,9 +39,6 @@ public class RobotPlayer {
     }
 
 
-    /**
-     *
-     */
     private static void spawn(RobotController rc, MapLocation coord)
         throws GameActionException
     {
@@ -50,6 +55,7 @@ public class RobotPlayer {
 
 	public static void run(RobotController rc) {
 		Storage.calculateValues(rc);
+        sum=0;
         while (true) {
             try {
                 if (rc.getType() == RobotType.SOLDIER)

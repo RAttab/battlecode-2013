@@ -225,7 +225,7 @@ public class Soldier
         MapLocation stratLoc = hq.add(dir, 2);
 
         MapLocation bases[] =
-            rc.senseEncampmentSquares(stratLoc, LC_RADIUS*2, Team.NEUTRAL);
+            rc.senseEncampmentSquares(stratLoc, 100, Team.NEUTRAL);
 
         int steps = Utils.ceilDiv(bases.length, MAX_BASES);
         int count = 0, taken = 0;
@@ -259,45 +259,10 @@ public class Soldier
     }
 
 
-    private static void allyBases(
-            RobotController rc, MapLocation coord, double strength[], Team team)
-        throws GameActionException
+    private static void getToTheChoppa(
+            RobotController rc, MapLocation coord, MapLocation hq, double strength[])
     {
-        double energon = rc.getEnergon();
-        double shield = rc.getShields();
-
-        MapLocation bases[] = rc.senseEncampmentSquares(coord, LC_RADIUS, team);
-        int steps = Math.max(1, Utils.ceilDiv(bases.length, MAX_BASES));
-
-        int count = 0;
-        double shields = 0;
-        double med = 0;
-
-        for (int i = 0; i < bases.length; i += steps) {
-            Robot base = (Robot) rc.senseObjectAtLocation(bases[i]);
-            RobotInfo info = rc.senseRobotInfo(base);
-
-            double force;
-            count++;
-
-            if (info.type == RobotType.MEDBAY) {
-                force = ((RobotType.SOLDIER.maxEnergon - energon) /
-                        RobotType.SOLDIER.maxEnergon) * Weights.HEAL;
-                med += force;
-            }
-
-            else if (info.type == RobotType.SHIELDS) {
-                force = (MAX_SHIELD - shield) * Weights.SHIELD;
-                shields += force;
-            }
-
-            else continue;
-
-            strengthen(strength, coord.directionTo(info.location), force);
-        }
-
-        rc.setIndicatorString(2,
-                "ally=" + count + ", meds=" + med + ", shields=" + shields);
+        strengthen(strength, coord.directionTo(hq), Weights.RUN_AWAY);
     }
 
     // \todo this is never used...
@@ -367,33 +332,26 @@ public class Soldier
     }
 
     public static void layTraps(
-        RobotController rc, MapLocation coord, MapLocation hq, double strength[])
+        RobotController rc, MapLocation coord, double strength[])
+    throws GameActionException
     {
-        Direction toEnemy = hq.directionTo(rc.senseEnemyHQLocation());
-        MapLocation stratLoc = hq.add(toEnemy);
-        int sum = hq.x + hq.y;
-        int dy = hq.y - stratLoc.y;
-        int dx = hq.x - stratLoc.x;
-        stratLoc = stratLoc.add(toEnemy);
-        int x;
-        int y;
-        int count = 0;
-        for (int i=-5; i<=7; ++i){
-            for (int j=-5; j<=7; ++j){
-                x = stratLoc.x + (i*dx);
-                y = stratLoc.y + (i*dy);
-                MapLocation mineLoc = new MapLocation(x, y);
-                if ((hq.x + hq.y + x + y) % 2 != 0 || mineLoc.isAdjacentTo(rc.senseHQLocation())) {
-                    if (rc.senseMine(mineLoc) == null) {
-                        strengthen(strength, coord.directionTo(mineLoc), Weights.MINER);
-                        ++count;
-                        if (count > 3)
+        for (int i=0; i<25; ++i) {
+            MapLocation loc = Storage.mineLocs[i];
+            if (loc != null && rc.canSenseSquare(loc)) {
+                if (rc.senseMine(loc) == null){
+                    GameObject obj = rc.senseObjectAtLocation(loc);
+                    if (obj == null) {
+                        Direction dir = coord.directionTo(loc);
+                        if (rc.canMove(dir)){
+                            rc.setIndicatorString(2, "mustMine! " + dir + " ,(xy) = (" + loc.x + ", " + loc.y + "), sense=" + rc.senseMine(loc));
+                            strengthen(strength, dir, Weights.MINER);
                             break;
-                    }
+                        }
+                    } 
+                } else {
+                    loc = null;
                 }
             }
-            if (count > 3)
-                break;
         }
     }
 
@@ -449,20 +407,20 @@ public class Soldier
                 neutralBases(rc, coord, strength);
                 debug_checkBc(rc, "neutral-base");
 
-                layTraps(rc, coord, hq, strength);
+                layTraps(rc, coord, strength);
                 debug_checkBc(rc, "layTraps");
 
                 //TODO: defensiveMines(rc, coord, strength);
             }
             else {
-                mines(rc, coord, strength, Weights.BATTLE_MINE, LC_RADIUS);
-                debug_checkBc(rc, "battle-mine");
+                // mines(rc, coord, strength, Weights.BATTLE_MINE, LC_RADIUS);
+                // debug_checkBc(rc, "battle-mine");
 
-                allyBases(rc, coord, strength, team);
-                debug_checkBc(rc, "ally-base");
+                getToTheChoppa(rc, coord, hq, strength);
+                debug_checkBc(rc, "getToTheChoppa");
 
-                battleFormation(rc, coord, strength, team);
-                debug_checkBc(rc, "battle-formation");
+                // battleFormation(rc, coord, strength, team);
+                // debug_checkBc(rc, "battle-formation");
             }
 
             // Compute the final direction.
