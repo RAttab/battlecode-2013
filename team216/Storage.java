@@ -4,6 +4,11 @@ import battlecode.common.*;
 
 public class Storage {
 
+    // TODO
+        // All the methods for non-constants need to check if they've been called
+        // already this turn (and if so, just return the cache). Otherwise, even if
+        // we're on a round % 3 (for example), we still risk doing the calculation many times.
+
     // Constants
 
     public static Team MY_TEAM;
@@ -21,7 +26,7 @@ public class Storage {
     public static RobotController RC;
     public static double EST_RUSH_TIME;
 
-    private static final int LC_RADIUS = 63; // FIXME
+    private static final int LC_RADIUS = 63;
 
     private static double defensive_relevance; 
     private static double strategic_relevance;
@@ -38,6 +43,13 @@ public class Storage {
 
     private static MapLocation[] nearby_friendly_mines;
     private static MapLocation[][] nearby_nonallied_mines = new MapLocation[2][];
+
+    private static MapLocation[] allEncampments = null;
+    private static MapLocation[] alliedEncampments = null;
+    private static int campRadius;
+    public static MapLocation[] localEncampments = null;
+
+    public static boolean nukePanic = false;
 
     public static void calculateValues(RobotController rc) {
         try {
@@ -204,5 +216,50 @@ public class Storage {
         if (nearby_friendly_mines == null || Clock.getRoundNum() % 3 == 0)
             nearby_friendly_mines = RC.senseMineLocations(RC.getLocation(), LC_RADIUS, MY_TEAM);
         return nearby_friendly_mines;
+    }
+
+    public static boolean nukePanic() throws GameActionException {
+        if (Clock.getRoundNum() < 199){
+            RC.setIndicatorString(2, "<199");
+            return false;
+        } else {
+            RC.setIndicatorString(2, "200+");
+            if (RC.getType().equals(RobotType.HQ)){
+                nukePanic = RC.senseEnemyNukeHalfDone();
+                RC.broadcast(5666, 1); //TODO : broadcasting stuff
+                return nukePanic;
+            } else {
+                if (nukePanic)
+                    return true;
+                if (RC.readBroadcast(5666) == 1){
+                    nukePanic = true;
+                    return true;
+                }
+                return false;
+            }
+        }
+    }
+
+    public static MapLocation[] allEncampments() {
+        if (allEncampments == null)
+            allEncampments = RC.senseAllEncampmentSquares();
+        return allEncampments;
+    }
+
+    public static MapLocation[] alliedEncampments() {
+        if (alliedEncampments == null)
+            alliedEncampments = RC.senseAlliedEncampmentSquares();
+        return alliedEncampments;
+    }
+
+    public static MapLocation[] localEncampments() 
+    throws GameActionException{
+        localEncampments = RC.senseEncampmentSquares(MY_INFO.location, LC_RADIUS, Team.NEUTRAL);
+        campRadius = LC_RADIUS;
+        while (localEncampments.length < 1 && campRadius < 490) {
+            campRadius *= 2;
+            localEncampments = RC.senseEncampmentSquares(MY_INFO.location, campRadius, Team.NEUTRAL);
+        }
+        return localEncampments;
     }
 }

@@ -227,58 +227,53 @@ public class Soldier
         return true;
     }
 
-
-    /**
-     */
     private static void neutralBases(
             RobotController rc, MapLocation coord, double strength[])
         throws GameActionException
     {
-        // TODO : if there are no free encampments on the map, return
-        // TODO : this is all bytecode-heavy and can be greatly alleviated
-            // by Storage.
+        // TODO: update with storage changes
 
         double cost = rc.senseCaptureCost();
         if (cost >= rc.getTeamPower()) return;
 
-        MapLocation bases[] =
-            rc.senseEncampmentSquares(coord, LC_RADIUS, Team.NEUTRAL);
 
-        int radius = LC_RADIUS;
-        while (bases.length < 1 && radius < GL_RADIUS) {
-            radius *= 3;
-            bases = rc.senseEncampmentSquares(coord, radius, Team.NEUTRAL);
-        }
+        int steps = Utils.ceilDiv(Storage.localEncampments().length, MAX_BASES);
+        int count = 0, taken = 0, ignored = 0;
 
-        int steps = Utils.ceilDiv(bases.length, MAX_BASES);
-        int count = 0, taken = 0;
-
-        for (int i = 0; i < bases.length; i += steps) {
-            if (rc.canSenseSquare(bases[i]) &&
-                    rc.senseObjectAtLocation(bases[i]) != null)
+        for (int i = 0; i < Storage.localEncampments.length; i += steps) {
+            if (rc.canSenseSquare(Storage.localEncampments[i]) &&
+                    rc.senseObjectAtLocation(Storage.localEncampments[i]) != null)
             {
                 taken++;
                 continue;
             }
-            // TODO
-            // if (rc.canSenseSquare(bases[i].add(Direction.NORTH)) != null)
-            //     ???
-            // if (rc.canSenseSquare(bases[i].add(Direction.SOUTH)) != null)
-            //     ???
-            // if (rc.canSenseSquare(bases[i].add(Direction.EAST)) != null)
-            //     ???
-            // if (rc.canSenseSquare(bases[i].add(Direction.WEST)) != null)
-            //     ???
 
-            Direction dir = coord.directionTo(bases[i]);
+            // TODO : improve this
+            if (encampmentHack(rc, Storage.localEncampments[i])) {
+                ignored++;
+                continue;
+            }
+                
+
+            Direction dir = coord.directionTo(Storage.localEncampments[i]);
             strengthen(
                     strength, dir, Weights.CAPTURE,
-                    coord.distanceSquaredTo(bases[i]));
+                    coord.distanceSquaredTo(Storage.localEncampments[i]));
 
+            // TODO : just pick one, broadcast a message saying "I got it"
             count++;
         }
 
-        rc.setIndicatorString(2, "neutral=" + taken + "/" + count + ", cost=" + cost);
+        rc.setIndicatorString(2, "neutral=" + taken + "/" + count + ", cost=" + cost + ", ignored=" + ignored);
+    }
+
+    private static boolean encampmentHack(RobotController rc, MapLocation camp) 
+    throws GameActionException{
+        if (rc.senseEncampmentSquares(camp, 4, null).length > 4){
+            if ((camp.x + camp.y) % 2 == 0)
+                return true;
+        }
+        return false;
     }
 
 
@@ -345,6 +340,7 @@ public class Soldier
         throws GameActionException
     {
         if (!rc.senseEncampmentSquare(coord)) return false;
+        if (encampmentHack(rc, coord)) return false;
 
         MapLocation ourBases[] = rc.senseAlliedEncampmentSquares();
         MapLocation neutBases[] = rc.senseEncampmentSquares(coord, GL_RADIUS, Team.NEUTRAL);
@@ -404,8 +400,15 @@ public class Soldier
         return true;
     }
 
+    // another communication thing
+    public static void evilArtillery(RobotController rc, int[] strength, double weight) {
+
+    }
+
     public static double getMineStr(
         RobotController rc, double defense, MapLocation coord, int minesNearby) {
+        if (Storage.nukePanic)
+            return -999;
 
         double mineStr = defense * Weights.LAY_MINE;
         if (rc.hasUpgrade(Upgrade.PICKAXE)) {
@@ -454,12 +457,15 @@ public class Soldier
             // These represent the pull strengths in each direction by the affecting fields
             double strength[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
-
-            // Enemy HQ
-            // TODO : once storage is going, senseEnemyNuke and adjust accordingly
-            strengthen(
-                    strength, Storage.directionToEnemyHQ(), Weights.ENEMY_HQ,
-                    Storage.distanceToEnemyHQ());
+            if (Storage.nukePanic()) {
+                strengthen(
+                        strength, Storage.directionToEnemyHQ(), Weights.PANIC_HQ,
+                        Storage.distanceToEnemyHQ());
+            } else {
+                strengthen(
+                        strength, Storage.directionToEnemyHQ(), Weights.ENEMY_HQ,
+                        Storage.distanceToEnemyHQ());
+            }
 
             debug_checkBc(rc, "HQ");
 
