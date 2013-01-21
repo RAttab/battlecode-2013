@@ -128,7 +128,10 @@ public class Headquarter
 
 
         while (true) {
-
+            if (Clock.getRoundNum() > 198){
+                if (Storage.nukePanic())
+                    rc.setIndicatorString(1, "PANIC!!!!");
+            }
             if (!rc.isActive()) { rc.yield(); continue; }
 
             int round = Clock.getRoundNum();

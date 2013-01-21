@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class Soldier
 {
-    private static final int GL_RADIUS = 70 * 70;
+    public static final int GL_RADIUS = 70 * 70;
     private static final int LC_RADIUS =
         RobotType.ARTILLERY.attackRadiusMaxSquared;
 
@@ -43,7 +43,7 @@ public class Soldier
             double w, int radius)
         throws GameActionException
     {
-        MapLocation mines[] = rc.senseNonAlliedMineLocations(coord, radius);
+        MapLocation mines[] = Storage.nearbyNonAlliedMines(radius);
         int steps = Math.max(1, Utils.ceilDiv(mines.length, MAX_MINES));
         int count = 0;
 
@@ -66,40 +66,40 @@ public class Soldier
 
         // when enemies are nearby, group into a tight formation
 
-        Robot robots[] = rc.senseNearbyGameObjects(Robot.class, 4, team);
-        if (robots.length < 1) {
-            robots = rc.senseNearbyGameObjects(Robot.class, 9, team);
-        }
-        if (robots.length < 1) {
-            robots = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team);
-        }
-        Robot enemyRobots[] = rc.senseNearbyGameObjects(
-                Robot.class, LC_RADIUS, team.opponent());
+        Robot robots[] = Storage.nearbyAllies(4);
+        if (robots.length < 1)
+            robots = Storage.nearbyAllies(LC_RADIUS);
+
+        Robot enemyRobots[] = Storage.nearbyEnemies(LC_RADIUS);
 
         MapLocation closestEnemy = findClosest(rc, enemyRobots);
-        Direction toward = coord.directionTo(closestEnemy);
 
-        // check if we're already in formation
-        boolean grouped = false;
-        GameObject oneLeft = rc.senseObjectAtLocation(coord.add(leftOf(toward)));
-        if (oneLeft != null) {
-            if (oneLeft.getTeam().equals(team))
-                grouped = true;
-        }
-        GameObject oneRight = rc.senseObjectAtLocation(coord.add(rightOf(toward)));
-        if (oneRight != null) {
-            if (oneRight.getTeam().equals(team))
-                grouped = true;
-        }
+        // Not sure what we should do when no enemies are around
+        if (enemyRobots.length != 0) {
+            Direction toward = coord.directionTo(closestEnemy);
 
-        // if we're already grouped, attack!
-        if (grouped)
-            strengthen(strength, toward, Weights.GROUP_ATTACK);
-        // otherwise, group up
-        else {
-            if (robots.length != 0) {
-                MapLocation closestAlly = findClosest(rc, robots);
-                strengthen(strength, coord.directionTo(closestAlly), Weights.GROUP_UP);
+            // check if we're already in formation
+            boolean grouped = false;
+            GameObject oneLeft = rc.senseObjectAtLocation(coord.add(leftOf(toward)));
+            if (oneLeft != null) {
+                if (oneLeft.getTeam().equals(team))
+                    grouped = true;
+            }
+            GameObject oneRight = rc.senseObjectAtLocation(coord.add(rightOf(toward)));
+            if (oneRight != null) {
+                if (oneRight.getTeam().equals(team))
+                    grouped = true;
+            }
+
+            // if we're already grouped, attack!
+            if (grouped)
+                strengthen(strength, toward, Weights.GROUP_ATTACK);
+            // otherwise, group up
+            else {
+                if (robots.length != 0) {
+                    MapLocation closestAlly = findClosest(rc, robots);
+                    strengthen(strength, coord.directionTo(closestAlly), Weights.GROUP_UP);
+                }
             }
         }
     }
@@ -138,11 +138,11 @@ public class Soldier
      */
     private static void globalRobots(
             RobotController rc, MapLocation coord,
-            double strength[], double w, Team team)
+            double strength[], double w)
         throws GameActionException
     {
-        Robot robots[] = rc.senseNearbyGameObjects(
-                Robot.class, GL_RADIUS, team);
+
+        Robot robots[] = Storage.nearbyEnemies(GL_RADIUS);
 
         int steps = Utils.ceilDiv(robots.length, MAX_ROBOTS);
 
@@ -163,11 +163,10 @@ public class Soldier
         throws GameActionException
     {
         // if there is an adjacent enemy, don't run away
-        if (rc.senseNearbyGameObjects(Robot.class, 1, team.opponent()).length > 0)
+        if (Storage.numberOfNearbyEnemies() > 0)
             return true;
 
-        Robot enemies[] = rc.senseNearbyGameObjects(
-                Robot.class, LC_RADIUS, team.opponent());
+        Robot enemies[] = Storage.nearbyEnemies(LC_RADIUS);
 
         if (enemies.length == 0) return false;
 
@@ -195,7 +194,7 @@ public class Soldier
 
         MapLocation enemyCenter = new MapLocation(x/numEnemies, y/numEnemies);
 
-        Robot allies[] = rc.senseNearbyGameObjects(Robot.class, LC_RADIUS, team);
+        Robot allies[] = Storage.nearbyAllies(LC_RADIUS);
         steps = Utils.ceilDiv(enemies.length, MAX_ROBOTS);
         int numAllies = 0;
         double allyForce = 0.0;
@@ -228,69 +227,64 @@ public class Soldier
         return true;
     }
 
-
-    /**
-     */
     private static void neutralBases(
             RobotController rc, MapLocation coord, double strength[])
         throws GameActionException
     {
-        // TODO : if there are no free encampments on the map, return
-        // TODO : this is all bytecode-heavy and can be greatly alleviated
-            // by Storage.
+        // TODO: update with storage changes
 
         double cost = rc.senseCaptureCost();
         if (cost >= rc.getTeamPower()) return;
 
-        MapLocation bases[] =
-            rc.senseEncampmentSquares(coord, LC_RADIUS, Team.NEUTRAL);
 
-        int radius = LC_RADIUS;
-        while (bases.length < 1 && radius < GL_RADIUS) {
-            radius *= 3;
-            bases = rc.senseEncampmentSquares(coord, radius, Team.NEUTRAL);
-        }
+        int steps = Utils.ceilDiv(Storage.localEncampments().length, MAX_BASES);
+        int count = 0, taken = 0, ignored = 0;
 
-        int steps = Utils.ceilDiv(bases.length, MAX_BASES);
-        int count = 0, taken = 0;
-
-        for (int i = 0; i < bases.length; i += steps) {
-            if (rc.canSenseSquare(bases[i]) &&
-                    rc.senseObjectAtLocation(bases[i]) != null)
+        for (int i = 0; i < Storage.localEncampments.length; i += steps) {
+            if (rc.canSenseSquare(Storage.localEncampments[i]) &&
+                    rc.senseObjectAtLocation(Storage.localEncampments[i]) != null)
             {
                 taken++;
                 continue;
             }
-            // TODO
-            // if (rc.canSenseSquare(bases[i].add(Direction.NORTH)) != null)
-            //     ???
-            // if (rc.canSenseSquare(bases[i].add(Direction.SOUTH)) != null)
-            //     ???
-            // if (rc.canSenseSquare(bases[i].add(Direction.EAST)) != null)
-            //     ???
-            // if (rc.canSenseSquare(bases[i].add(Direction.WEST)) != null)
-            //     ???
 
-            Direction dir = coord.directionTo(bases[i]);
+            // TODO : improve this
+            if (encampmentHack(rc, Storage.localEncampments[i])) {
+                ignored++;
+                continue;
+            }
+                
+
+            Direction dir = coord.directionTo(Storage.localEncampments[i]);
             strengthen(
                     strength, dir, Weights.CAPTURE,
-                    coord.distanceSquaredTo(bases[i]));
+                    coord.distanceSquaredTo(Storage.localEncampments[i]));
 
+            // TODO : just pick one, broadcast a message saying "I got it"
             count++;
         }
 
-        rc.setIndicatorString(2, "neutral=" + taken + "/" + count + ", cost=" + cost);
+        rc.setIndicatorString(2, "neutral=" + taken + "/" + count + ", cost=" + cost + ", ignored=" + ignored);
+    }
+
+    private static boolean encampmentHack(RobotController rc, MapLocation camp) 
+    throws GameActionException{
+        if (rc.senseEncampmentSquares(camp, 4, null).length > 4){
+            if ((camp.x + camp.y) % 2 == 0)
+                return true;
+        }
+        return false;
     }
 
 
     private static void allyBases(
-            RobotController rc, MapLocation coord, double strength[], Team team)
+            RobotController rc, MapLocation coord, double strength[])
         throws GameActionException
     {
         double energon = rc.getEnergon();
         double shield = rc.getShields();
 
-        MapLocation bases[] = rc.senseEncampmentSquares(coord, LC_RADIUS, team);
+        MapLocation bases[] = rc.senseEncampmentSquares(coord, LC_RADIUS, Storage.MY_TEAM);
         int steps = Math.max(1, Utils.ceilDiv(bases.length, MAX_BASES));
 
         int count = 0;
@@ -346,6 +340,7 @@ public class Soldier
         throws GameActionException
     {
         if (!rc.senseEncampmentSquare(coord)) return false;
+        if (encampmentHack(rc, coord)) return false;
 
         MapLocation ourBases[] = rc.senseAlliedEncampmentSquares();
         MapLocation neutBases[] = rc.senseEncampmentSquares(coord, GL_RADIUS, Team.NEUTRAL);
@@ -405,8 +400,15 @@ public class Soldier
         return true;
     }
 
+    // another communication thing
+    public static void evilArtillery(RobotController rc, int[] strength, double weight) {
+
+    }
+
     public static double getMineStr(
         RobotController rc, double defense, MapLocation coord, int minesNearby) {
+        if (Storage.nukePanic)
+            return -999;
 
         double mineStr = defense * Weights.LAY_MINE;
         if (rc.hasUpgrade(Upgrade.PICKAXE)) {
@@ -455,13 +457,15 @@ public class Soldier
             // These represent the pull strengths in each direction by the affecting fields
             double strength[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
-
-            // Enemy HQ
-            // TODO : once storage is going, senseEnemyNuke and adjust accordingly
-
-            strengthen(
-                    strength, coord.directionTo(Storage.ENEMY_HQ), Weights.ENEMY_HQ,
-                    Storage.ENEMY_HQ.distanceSquaredTo(coord));
+            if (Storage.nukePanic()) {
+                strengthen(
+                        strength, Storage.directionToEnemyHQ(), Weights.PANIC_HQ,
+                        Storage.distanceToEnemyHQ());
+            } else {
+                strengthen(
+                        strength, Storage.directionToEnemyHQ(), Weights.ENEMY_HQ,
+                        Storage.distanceToEnemyHQ());
+            }
 
             debug_checkBc(rc, "HQ");
 
@@ -478,7 +482,7 @@ public class Soldier
                 neutralBases(rc, coord, strength);
                 debug_checkBc(rc, "neutral-base");
 
-                globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, Storage.ENEMY_TEAM);
+                globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD);
                 debug_checkBc(rc, "global-robot");
 
                 //TODO: defensiveMines(rc, coord, strength);
@@ -487,7 +491,7 @@ public class Soldier
                 mines(rc, coord, strength, Weights.BATTLE_MINE, LC_RADIUS);
                 debug_checkBc(rc, "battle-mine");
 
-                allyBases(rc, coord, strength, Storage.MY_TEAM);
+                allyBases(rc, coord, strength);
                 debug_checkBc(rc, "ally-base");
 
                 battleFormation(rc, coord, strength, Storage.MY_TEAM);
@@ -514,10 +518,8 @@ public class Soldier
             rc.setIndicatorString(0, "max_str=" + maxStrength + ", dir=" + finalDir);
 
             // TODO: all of these are things are Storage
-            double defense = Utils.defensiveRelevance(
-                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, Storage.distanceBetweenHQs(), Weights.DEF_RATIO);
-            double strat = Utils.strategicRelevance(
-                    coord, Storage.MY_HQ, Storage.ENEMY_HQ, Storage.distanceBetweenHQs(), Weights.STRAT_RATIO);
+            double defense = Storage.defensiveRelevance();
+            double strat = Storage.strategicRelevance();
             double mineStr = 0;
 
             // TODO: incorporate threat level instead of boolean enemiesNearby
@@ -526,7 +528,7 @@ public class Soldier
                 debug_checkBc(rc, "capture");
                 if (!enemiesNearby && rc.senseMine(coord) == null) {
                     // see if we should lay a mine here
-                    int minesNearby = rc.senseMineLocations(coord, LC_RADIUS, Storage.MY_TEAM).length;
+                    int minesNearby = Storage.nearbyFriendlyMines().length;
                     mineStr = getMineStr(rc, defense, coord, minesNearby);
                     rc.setIndicatorString(1, "defense=" + defense + ", mine_str=" + mineStr);
                     debug_checkBc(rc, "getMineStr");

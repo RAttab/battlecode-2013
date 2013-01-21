@@ -74,7 +74,7 @@ public class Storage {
 
     // Variables
 
-    // TODO: Commented out for now, caushes to go over bytecode limit
+
     public static double getRushTime(RobotController rc) {
         //calculate estimated turns for rush
         double x_dif = MY_HQ.x - ENEMY_HQ.x;

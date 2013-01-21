@@ -20,7 +20,6 @@ public class RobotPlayer {
 					spawn(rc, coord);
 				else
 					rc.researchUpgrade(Upgrade.NUKE);
-				rc.yield();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

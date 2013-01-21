@@ -29,6 +29,7 @@ public class Weights
     public static final double BATTLE_SOLDI = 40;
 
     public static final double ENEMY_HQ     = 20.0;
+    public static final double PANIC_HQ     = 100.0;
     public static final double ALLY_HQ      = -1.0;
 
     public static final double GL_ENEMY_SD  =  2.0;
@@ -40,7 +41,7 @@ public class Weights
 
     public static final double EXPLORE_MINE = -0.3;
     public static final double BATTLE_MINE  = -0.5;
-    public static final double CAPTURE      = 10.0;
+    public static final double CAPTURE      = 25.0;
     public static final double HEAL         = 10.0;
     public static final double SHIELD       = 10.0;
 
@@ -69,7 +70,7 @@ public class Weights
     public static final double SHIELDS_SUM   = SHIELDS   + MEDBAY_SUM;
     public static final double ARTILLERY_SUM = ARTILLERY + SHIELDS_SUM;
 
-    public static final double LAY_MINE     = 0.005;
+    public static final double LAY_MINE     = 0.002;
     public static final double NEARBY_MINE  = 0.0007;
 
     public static final double DEF_RATIO    = 3;
