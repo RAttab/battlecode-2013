@@ -66,17 +66,16 @@ public class Soldier
 
         // when enemies are nearby, group into a tight formation
 
-
-        Robot robots[] = Storage.nearbyAllies(3);
+        Robot robots[] = Storage.nearbyAllies(4);
         if (robots.length < 1)
             robots = Storage.nearbyAllies(LC_RADIUS);
 
         Robot enemyRobots[] = Storage.nearbyEnemies(LC_RADIUS);
 
+        MapLocation closestEnemy = findClosest(rc, enemyRobots);
+
+        // Not sure what we should do when no enemies are around
         if (enemyRobots.length != 0) {
-
-            MapLocation closestEnemy = findClosest(rc, enemyRobots);
-
             Direction toward = coord.directionTo(closestEnemy);
 
             // check if we're already in formation
@@ -97,8 +96,10 @@ public class Soldier
                 strengthen(strength, toward, Weights.GROUP_ATTACK);
             // otherwise, group up
             else {
-                MapLocation closestAlly = findClosest(rc, robots);
-                strengthen(strength, coord.directionTo(closestAlly), Weights.GROUP_UP);
+                if (robots.length != 0) {
+                    MapLocation closestAlly = findClosest(rc, robots);
+                    strengthen(strength, coord.directionTo(closestAlly), Weights.GROUP_UP);
+                }
             }
         }
     }
@@ -137,10 +138,11 @@ public class Soldier
      */
     private static void globalRobots(
             RobotController rc, MapLocation coord,
-            double strength[], double w, Team team)
+            double strength[], double w)
         throws GameActionException
     {
-        Robot robots[] = Storage.nearbyAllies(GL_RADIUS);
+
+        Robot robots[] = Storage.nearbyEnemies(GL_RADIUS);
 
         int steps = Utils.ceilDiv(robots.length, MAX_ROBOTS);
 
@@ -160,7 +162,6 @@ public class Soldier
             RobotController rc, MapLocation coord, double strength[], Team team)
         throws GameActionException
     {
-
         // if there is an adjacent enemy, don't run away
         if (Storage.numberOfNearbyEnemies() > 0)
             return true;
@@ -436,8 +437,6 @@ public class Soldier
         // first things first.
         rc.wearHat();
 
-        Team team = Storage.MY_TEAM;
-
         while (true) {
 
             // This is an extremely ugly hack to get around the fact that every
@@ -451,10 +450,10 @@ public class Soldier
 
             debug_resetBc();
 
-            MapLocation coord = Storage.myLocation();
-
+            MapLocation coord = rc.getLocation();
             // These represent the pull strengths in each direction by the affecting fields
             double strength[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+
 
             // Enemy HQ
             // TODO : once storage is going, senseEnemyNuke and adjust accordingly
@@ -465,7 +464,7 @@ public class Soldier
             debug_checkBc(rc, "HQ");
 
             // Check if there are enemies nearby
-            boolean enemiesNearby = localRobots(rc, coord, strength, team);
+            boolean enemiesNearby = localRobots(rc, coord, strength, Storage.MY_TEAM);
             debug_checkBc(rc, "local-robot");
 
             // There are two different modes of action
@@ -477,7 +476,7 @@ public class Soldier
                 neutralBases(rc, coord, strength);
                 debug_checkBc(rc, "neutral-base");
 
-                globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD, Storage.ENEMY_TEAM);
+                globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD);
                 debug_checkBc(rc, "global-robot");
 
                 //TODO: defensiveMines(rc, coord, strength);
@@ -486,10 +485,10 @@ public class Soldier
                 mines(rc, coord, strength, Weights.BATTLE_MINE, LC_RADIUS);
                 debug_checkBc(rc, "battle-mine");
 
-                allyBases(rc, coord, strength, team);
+                allyBases(rc, coord, strength, Storage.MY_TEAM);
                 debug_checkBc(rc, "ally-base");
 
-                battleFormation(rc, coord, strength, team);
+                battleFormation(rc, coord, strength, Storage.MY_TEAM);
                 debug_checkBc(rc, "battle-formation");
             }
 
@@ -512,6 +511,7 @@ public class Soldier
             if (finalDir == null) { rc.yield(); continue; }
             rc.setIndicatorString(0, "max_str=" + maxStrength + ", dir=" + finalDir);
 
+            // TODO: all of these are things are Storage
             double defense = Storage.defensiveRelevance();
             double strat = Storage.strategicRelevance();
             double mineStr = 0;
@@ -533,7 +533,7 @@ public class Soldier
                     MapLocation target = coord.add(finalDir);
                     Team mine = rc.senseMine(target);
                     // Execute the move safely.
-                    if (mine == null || mine == team) {
+                    if (mine == null || mine == Storage.MY_TEAM) {
                         if (rc.canMove(finalDir))
                             rc.move(finalDir);
                     }

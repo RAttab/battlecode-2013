@@ -166,7 +166,7 @@ public class Storage {
         // Since we only have shitty fixed-sized arrays, we implement caching for common inputs:
         int i;
         switch (radiusSquared) {
-            case 3: 
+            case 4: 
                     i = 0;
                     break;
             case LC_RADIUS:
