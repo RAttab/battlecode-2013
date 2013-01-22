@@ -516,7 +516,6 @@ public class Soldier
             if (finalDir == null) { rc.yield(); continue; }
             rc.setIndicatorString(0, "max_str=" + maxStrength + ", dir=" + finalDir);
 
-            // TODO: all of these are things are Storage
             double defense = Storage.defensiveRelevance();
             double strat = Storage.strategicRelevance();
             double mineStr = 0;
