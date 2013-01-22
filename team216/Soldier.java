@@ -13,23 +13,38 @@ public class Soldier
     private static final int MAX_BASES = 5;
     private static final double MAX_SHIELD = 40;
 
+
+    // THIS HAS A BYTECODE COST OF 133
     private static void strengthen(
             double[] strength, Direction dir, double force)
     {
+        // debug_checkBc(Storage.RC, "pre");
         if (dir == Direction.OMNI) return;
-
         int ord = dir.ordinal();
-        final int mask = 8 - 1;
+        // final int mask = 8 - 1;
 
         strength[ord] += force;
+        // double dropoff = 1.0;
 
-        double dropoff = 1.0;
+        // System.err.println(ord);
+        force *= Weights.DROPOFF;
+        strength[((ord-1) & 7)] += force;
+        // System.err.println((ord-1) + "&7=" + (ord-1)%7);
+        strength[((ord+1) & 7)] += force;
+        // System.err.println((ord+1) + "&7=" + (ord+1)%7);
+        force *= Weights.DROPOFF;
+        strength[((ord-2) & 7)] += force;
+        // System.err.println((ord-2) + "&7=" + (ord-2)%7);
+        strength[((ord+2) & 7)] += force;
+        // System.err.println((ord+2) + "&7=" + (ord+2)%7);
 
-        for (int i = 1; dropoff > 0.0; ++i) {
-            dropoff -= Weights.DROPOFF;
-            strength[(ord - i) & mask] += force * dropoff;
-            strength[(ord + i) & mask] += force * dropoff;
-        }
+
+        // for (int i = 1; dropoff > 0.0; ++i) {
+        //     dropoff -= Weights.DROPOFF;
+        //     strength[(ord - i) & mask] += force * dropoff;
+        //     strength[(ord + i) & mask] += force * dropoff;s
+        // }
+        // debug_checkBc(Storage.RC, "post");
     }
 
     private static void strengthen(
@@ -46,18 +61,15 @@ public class Soldier
         MapLocation mines[] = Storage.nearbyNonAlliedMines(radius);
         int steps = Math.max(1, Utils.ceilDiv(mines.length, MAX_MINES));
         int count = 0;
-
+        // TODO: add up the strengths and call strengthen as few times as possible
         for (int i = 0; i < mines.length; i += steps) {
             Direction dir = coord.directionTo(mines[i]);
             strengthen(strength, dir, w, coord.distanceSquaredTo(mines[i]));
             count++;
         }
-
-        rc.setIndicatorString(1, "mines=" + count + "/" + mines.length);
+        // System.err.println("mines=" + count + "/" + mines.length);
     }
 
-    /**
-     */
     private static void battleFormation(
             RobotController rc, MapLocation coord, double strength[], Team team)
         throws GameActionException
@@ -145,7 +157,7 @@ public class Soldier
         Robot robots[] = Storage.nearbyEnemies(GL_RADIUS);
 
         int steps = Utils.ceilDiv(robots.length, MAX_ROBOTS);
-
+        // TODO: add up weights and call strengthen as few times as possible
         for (int i = 0; i < robots.length; i += steps) {
             MapLocation robotCoord = rc.senseRobotInfo(robots[i]).location;
             Direction dir = coord.directionTo(robotCoord);
@@ -357,11 +369,6 @@ public class Soldier
         double militaryWeight = Weights.MILITARY *
             (Weights.STRAT_CAMP * stratLoc + Weights.DEF_CAMP * defLoc);
 
-        rc.setIndicatorString(1, "def=" + defLoc + ", strat=" + stratLoc +
-                ", w=" + militaryWeight + ", rnd=" + rnd/* +
-                                                           ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
-
-
         if (rnd < militaryWeight) {
             rnd = Math.random();
             if (rnd < Weights.MEDBAY_SUM)
@@ -383,12 +390,6 @@ public class Soldier
                 double ratio =
                     (rc.getTeamPower() - Weights.MIN_POWER) /
                     (maxPower - Weights.MIN_POWER);
-
-                rc.setIndicatorString(1,
-                        "def=" + defLoc + ", strat=" + stratLoc +
-                        ", w=" + militaryWeight + ", rnd=" + rnd
-                        + ", pratio=" + ratio
-                        /* + ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
 
                 if (rnd < ratio)
                     rc.captureEncampment(RobotType.GENERATOR);
@@ -437,8 +438,6 @@ public class Soldier
     }
 
 
-    /**
-     */
     public static void run(RobotController rc) throws GameActionException
     {
 
@@ -545,7 +544,7 @@ public class Soldier
                     MapLocation target = coord.add(finalDir);
                     Team mine = rc.senseMine(target);
                     // Execute the move safely.
-                    if (mine == null || mine == Storage.MY_TEAM) {
+                    if (mine == null || mine.equals(Storage.MY_TEAM)) {
                         if (rc.canMove(finalDir))
                             rc.move(finalDir);
                     }
@@ -554,7 +553,6 @@ public class Soldier
             }
 
             debug_checkBc(rc, "end");
-
             rc.yield();
         }
     }
@@ -566,7 +564,7 @@ public class Soldier
         lastBcCounter = Clock.getBytecodeNum();
     }
 
-    private static void debug_checkBc(RobotController rc, String where)
+    public static void debug_checkBc(RobotController rc, String where)
     {
         int bcCounter = Clock.getBytecodeNum();
         if (bcCounter < lastBcCounter) {
