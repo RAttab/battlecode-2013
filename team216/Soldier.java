@@ -390,7 +390,6 @@ public class Soldier
                 double ratio =
                     (rc.getTeamPower() - Weights.MIN_POWER) /
                     (maxPower - Weights.MIN_POWER);
-
                 if (rnd < ratio)
                     rc.captureEncampment(RobotType.GENERATOR);
                 else
