@@ -2,9 +2,6 @@ package team216;
 
 import battlecode.common.*;
 
-/**
- *
- */
 public class Utils
 {
 

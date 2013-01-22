@@ -71,31 +71,31 @@ public class Storage {
 
     public static double getRushTime(RobotController rc) {
         //calculate estimated turns for rush
-        if (EST_RUSH_TIME == 0.0) {
-            double x_dif = MY_HQ.x - ENEMY_HQ.x;
-            double y_dif = MY_HQ.y - ENEMY_HQ.y;
-            double x;
-            double y;
-            double offset;
-            double time = 0.0;
-            String s = "";
-            //rc.setIndicatorString(0, "c=" + CENTER + ", m=" + MY_HQ + ", e=" + ENEMY_HQ + ", xdif=" + x_dif + ", ydif" + y_dif + ", slope=" + SLOPE);
-            for (int i=0; i<20; i++) {
-                offset = 6 * Math.random() - 3;
-                x = Math.random() * x_dif;
-                y = SLOPE * x + ENEMY_HQ.y;
-                s += " (" + (int)x + ", " + (int)y + ")";
-                if (Team.NEUTRAL.equals(rc.senseMine(new MapLocation((int)x, (int)y)))){
-                    time += 12;
-                    s += "!";
-                }
+        // System.err.println(Clock.getBytecodeNum());
+        double x_dif = ENEMY_HQ.x - MY_HQ.x;
+        double y_dif = ENEMY_HQ.y - MY_HQ.y;
+        double x;
+        double y;
+        double offset;
+        double time = 0.0;
+        String s = "";
+        //rc.setIndicatorString(0, "c=" + CENTER + ", m=" + MY_HQ + ", e=" + ENEMY_HQ + ", xdif=" + x_dif + ", ydif" + y_dif + ", slope=" + SLOPE);
+        for (int i=0; i<20; i++) {
+            offset = 6 * Math.random() - 3;
+            x = Math.random() * x_dif + MY_HQ.x;
+            y = SLOPE * x + ENEMY_HQ.y;
+            s += " (" + (int)x + ", " + (int)y + ")";
+            s += 1;
+            if (Team.NEUTRAL.equals(rc.senseMine(new MapLocation((int)x, (int)y)))){
+                time += 12;
+                s += "!";
             }
-            rc.setIndicatorString(2, s);
-            time *= (distanceBetweenHQs()/20.0);
-            EST_RUSH_TIME = time;
-            return time;
-        } else
-            return EST_RUSH_TIME;
+        }
+        System.err.println(s);
+        time *= (distanceBetweenHQs()/20.0);
+        time += distanceBetweenHQs();
+        EST_RUSH_TIME = time;
+        return time;
     }
 
     public static double distanceBetweenHQs() {
@@ -208,6 +208,8 @@ public class Storage {
 
         if(nearby_nonallied_mines[i] == null || Clock.getRoundNum() % 3 == 0)
             nearby_nonallied_mines[i] = RC.senseNonAlliedMineLocations(RC.getLocation(), radiusSquared);
+
+        Soldier.debug_checkBc(RC, "Storage.nearbyNonAlliedMines()");
 
         return nearby_nonallied_mines[i];
     }

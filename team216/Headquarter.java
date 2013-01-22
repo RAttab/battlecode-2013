@@ -13,9 +13,7 @@ public class Headquarter
     private static int nextSpawn = 0;
     private static int nextResearch = 0;
 
-    /**
-     *
-     */
+
     private static boolean trySpawn(RobotController rc, int ord)
         throws GameActionException
     {
@@ -28,9 +26,6 @@ public class Headquarter
     }
 
 
-    /**
-     *
-     */
     private static void spawn(RobotController rc, MapLocation coord)
         throws GameActionException
     {
@@ -49,14 +44,11 @@ public class Headquarter
     }
 
 
-    /**
-     *
-     */
     public static boolean research(RobotController rc, double mapSize)
         throws GameActionException
     {
 
-        if (mapSize < Weights.MAPSIZE_S) {
+        if (Storage.EST_RUSH_TIME < Weights.MAPSIZE_S) {
             if (!rc.hasUpgrade(Upgrade.VISION)) {
                 rc.researchUpgrade(Upgrade.VISION);
                 return true;
@@ -67,17 +59,17 @@ public class Headquarter
             }
         }
 
-        else if (mapSize < Weights.MAPSIZE_M) {
+        else if (Storage.EST_RUSH_TIME < Weights.MAPSIZE_M) {
+            if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
+                rc.researchUpgrade(Upgrade.DEFUSION);
+                return true;
+            }
             if (!rc.hasUpgrade(Upgrade.VISION)) {
                 rc.researchUpgrade(Upgrade.VISION);
                 return true;
             }
             if (!rc.hasUpgrade(Upgrade.FUSION)) {
                 rc.researchUpgrade(Upgrade.FUSION);
-                return true;
-            }
-            if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
-                rc.researchUpgrade(Upgrade.DEFUSION);
                 return true;
             }
             if (!rc.hasUpgrade(Upgrade.PICKAXE)) {
@@ -112,8 +104,7 @@ public class Headquarter
     public static void run(RobotController rc) throws GameActionException
     {
         MapLocation coord = rc.getLocation();
-        double mapSize = Math.sqrt(
-                Storage.ENEMY_HQ.distanceSquaredTo(Storage.ENEMY_HQ));
+        double mapSize = Storage.getRushTime(rc);
 
         rc.setIndicatorString(0, "mapsize=" + mapSize);
 
