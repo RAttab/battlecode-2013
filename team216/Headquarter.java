@@ -19,9 +19,8 @@ public class Headquarter
     private static boolean trySpawn(RobotController rc, int ord)
         throws GameActionException
     {
-        // TODO: check for mines
         Direction dir = Utils.dirByOrd[ord & Utils.dirOrdMask];
-        if (!rc.canMove(dir)) return false;
+        if (!rc.canMove(dir) || rc.senseMine(rc.getLocation().add(ord)) != null) return false;
 
         rc.spawn(dir);
         return true;
