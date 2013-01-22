@@ -20,7 +20,8 @@ public class Headquarter
         throws GameActionException
     {
         Direction dir = Utils.dirByOrd[ord & Utils.dirOrdMask];
-        if (!rc.canMove(dir) || rc.senseMine(rc.getLocation().add(dir)) != null) return false;
+        Team mineTeamAtTarget = rc.senseMine(rc.getLocation().add(dir));
+        if (!rc.canMove(dir) ||(mineTeamAtTarget != null && mineTeamAtTarget != rc.getTeam())) return false;
 
         rc.spawn(dir);
         return true;
