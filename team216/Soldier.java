@@ -114,7 +114,7 @@ public class Soldier
     private static MapLocation findClosest(
             RobotController rc, Robot[] otherRobots)
         throws GameActionException {
-            // Be careful of bytecode problems, as this method is unbounded
+        // Be careful of bytecode problems, as this method is unbounded
         int closestDist = Integer.MAX_VALUE;
         MapLocation closestEnemy = null;
 
@@ -253,7 +253,7 @@ public class Soldier
                 ignored++;
                 continue;
             }
-                
+
 
             Direction dir = coord.directionTo(Storage.localEncampments[i]);
             strengthen(
@@ -267,8 +267,8 @@ public class Soldier
         rc.setIndicatorString(2, "neutral=" + taken + "/" + count + ", cost=" + cost + ", ignored=" + ignored);
     }
 
-    private static boolean encampmentHack(RobotController rc, MapLocation camp) 
-    throws GameActionException{
+    private static boolean encampmentHack(RobotController rc, MapLocation camp)
+        throws GameActionException{
         if (rc.senseEncampmentSquares(camp, 4, null).length > 4){
             if ((camp.x + camp.y) % 2 == 0)
                 return true;
@@ -355,11 +355,11 @@ public class Soldier
 
         // prioritize artillery on the path between the HQs, and closer to enemy HQ
         double militaryWeight = Weights.MILITARY *
-        (Weights.STRAT_CAMP * stratLoc + Weights.DEF_CAMP * defLoc);
+            (Weights.STRAT_CAMP * stratLoc + Weights.DEF_CAMP * defLoc);
 
         rc.setIndicatorString(1, "def=" + defLoc + ", strat=" + stratLoc +
-            ", w=" + militaryWeight + ", rnd=" + rnd/* +
-            ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
+                ", w=" + militaryWeight + ", rnd=" + rnd/* +
+                                                           ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
 
 
         if (rnd < militaryWeight) {
@@ -385,7 +385,7 @@ public class Soldier
                     (maxPower - Weights.MIN_POWER);
 
                 rc.setIndicatorString(1,
-                        "def=" + defLoc + ", strat=" + stratLoc + 
+                        "def=" + defLoc + ", strat=" + stratLoc +
                         ", w=" + militaryWeight + ", rnd=" + rnd
                         + ", pratio=" + ratio
                         /* + ", suppliers=" + numAlliedBases(rc, RobotType.SUPPLIER)*/);
@@ -406,9 +406,14 @@ public class Soldier
     }
 
     public static double getMineStr(
-        RobotController rc, double defense, MapLocation coord, int minesNearby) {
+            RobotController rc, double defense, MapLocation coord, int minesNearby)
+    {
+
         if (Storage.nukePanic)
-            return -999;
+            return Double.NEGATIVE_INFINITY;
+
+        if (rc.senseMine(rc.getLocation()) != null)
+            return Double.NEGATIVE_INFINITY;
 
         double mineStr = defense * Weights.LAY_MINE;
         if (rc.hasUpgrade(Upgrade.PICKAXE)) {
@@ -532,9 +537,11 @@ public class Soldier
                     rc.setIndicatorString(1, "defense=" + defense + ", mine_str=" + mineStr);
                     debug_checkBc(rc, "getMineStr");
                 }
-                if (mineStr > maxStrength){
-                        rc.layMine();
-                } else {
+
+                if (mineStr > maxStrength)
+                    rc.layMine();
+
+                else {
                     MapLocation target = coord.add(finalDir);
                     Team mine = rc.senseMine(target);
                     // Execute the move safely.
