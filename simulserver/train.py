@@ -23,10 +23,10 @@ bin_dir = install_dir + "/bin"
 team_dir = install_dir + "/teams"
 ga_path = team_dir + "/ga_%d/Weights.java"
 
-pop_size = 20
-optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'ALLY_HQ']
-maps = ['maze1', 'choices', 'bloodbath', 'fused']
-oponent = 'godotbot'
+pop_size = 30
+# optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'CAPTURE']
+maps = ['maze1', 'lilforts', 'jacket', 'smiles']
+oponents = ['team216', 'nuclear', 'rusher']
 workers = 2
 
 template = ""
@@ -39,6 +39,8 @@ with open("../genome.txt", 'r') as f:
         (key, val) = line.split('=')
         weights[key.strip()] = float(val.strip())
 
+
+optimize = weights.keys()
 seed = [weights[w] for w in optimize]
 
 
@@ -61,6 +63,10 @@ def random_genome():
 
 
 def init_pop(seed):
+    # split = pop_size / 2
+    # pop = [tweak(seed) for i in range(split - 1) ]
+    # pop.extend([random_genome() for i in range(split)])
+
     pop = [random_genome() for i in range(pop_size - 1)]
     pop.append(seed)
     return pop
@@ -78,6 +84,8 @@ def crossover(x, y):
     return g
 
 def mutate(g):
+    g = list(g)
+
     if random.random() > 0.5:
         gene = random.randrange(len(g))
         g[gene] *= random.random() + (random.randrange(4) - 2)
@@ -88,6 +96,13 @@ def mutate(g):
         g[x], g[y] = g[y], g[x]
 
     return g
+
+def tweak(g):
+    g = list(g)
+    gene = random.randrange(len(g))
+    g[gene] *= random.random() + 0.5
+    return g
+
 
 def evolve(pop):
     split = len(pop) / 2
@@ -100,6 +115,10 @@ def evolve(pop):
         x = random.randrange(split)
         y = random.randrange(split)
         newPop.append(crossover(pop[x], pop[y]))
+
+    # Apply tweaks to the top 50%
+    for i in range(1, split):
+        newPop[i] = tweak(newPop[i])
 
     # Mutate about 2 genes for each of newly generated genomes.
     for i in range(split * 2):
@@ -132,12 +151,13 @@ def gen_battles():
 
     for i in range(pop_size):
         for j in range(len(maps)):
-            battles.append({'id': i * len(maps) + j,
-                           'type': 'local',
-                           'bc.game.maps': maps[j],
-                           'bc.game.team-a': 'ga_%d' % i,
-                           'bc.game.team-b': oponent,
-                           'bc.server.save-file': "ga_%d.rms" % i})
+            for k in range(len(oponents)):
+                battles.append({'id': i * len(maps) + j,
+                                'type': 'local',
+                                'bc.game.maps': maps[j],
+                                'bc.game.team-a': 'ga_%d' % i,
+                                'bc.game.team-b': oponents[k],
+                                'bc.server.save-file': "ga_%d.rms" % i})
     return battles
 
 
@@ -155,7 +175,7 @@ def rank_pop(pop, results, generation = 0):
         assert winner == 'B' or winner == 'A'
 
         score = result['combatResult']['maxRound']
-        if winner == 'B': score = 3000
+        if winner == 'B': score = (2500 - score) + 2500
 
         if g in cumul: cumul[g] += score
         else: cumul[g] = score
@@ -187,7 +207,7 @@ pop = init_pop(seed)
 
 gen = 0
 while True:
-    print_pop(pop, gen)
+#    print_pop(pop, gen)
 
     write_pop(pop)
     config = gen_battles()

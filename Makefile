@@ -50,7 +50,7 @@ template: clean-template
 
 # Setup an agent folder for each member of the population.
 
-MAX_POP := 100
+MAX_POP := 30
 GA_DIR := ga_{0..$(MAX_POP)}
 
 clean-train:

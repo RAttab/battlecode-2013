@@ -133,6 +133,9 @@ public class Headquarter
 
 
         while (true) {
+            // Used to train using the GA
+            System.out.println("[TRAIN] Round " + Clock.getRoundNum());
+
             if (Clock.getRoundNum() > 198){
                 if (Storage.nukePanic())
                     rc.setIndicatorString(1, "PANIC!!!!");
