@@ -51,7 +51,7 @@ public class Headquarter
         throws GameActionException
     {
 
-        if (Storage.EST_RUSH_TIME < Weights.MAPSIZE_S) {
+        if (Storage.distanceBetweenHQs() < Weights.MAPSIZE_S) {
             if (!rc.hasUpgrade(Upgrade.VISION)) {
                 rc.researchUpgrade(Upgrade.VISION);
                 return true;
@@ -62,7 +62,7 @@ public class Headquarter
             }
         }
 
-        else if (Storage.EST_RUSH_TIME < Weights.MAPSIZE_M) {
+        else if (Storage.distanceBetweenHQs() < Weights.MAPSIZE_M) {
             if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
                 rc.researchUpgrade(Upgrade.DEFUSION);
                 return true;
@@ -110,7 +110,7 @@ public class Headquarter
 
         double mapSize = Storage.getRushTime(rc);
 
-        rc.setIndicatorString(0, "mapsize=" + mapSize);
+        rc.setIndicatorString(2, "MAPSIZE: " + mapSize);
 
         if (mapSize < Weights.MAPSIZE_S)
             RESEARCH_WINDOW = Weights.SHORT_WINDOW;

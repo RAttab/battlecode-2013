@@ -19,8 +19,8 @@ public class Weights
     public static final int MEDIUM_WINDOW   = 2;
     public static final int LONG_WINDOW     = 3;
 
-    public static final double MAPSIZE_S    = 150;
-    public static final double MAPSIZE_M    = 450;
+    public static final double MAPSIZE_S    = 50;
+    public static final double MAPSIZE_M    = 120;
     public static final double MAPSIZE_L    = 9999;
 
     public static final double DROPOFF      = 0.5;
