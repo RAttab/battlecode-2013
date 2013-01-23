@@ -18,17 +18,18 @@ public class Weights
     public static final int SHORT_WINDOW    = 1;
     public static final int MEDIUM_WINDOW   = 2;
     public static final int LONG_WINDOW     = 3;
-    public static final double MAPSIZE_S    = 30;
-    public static final double MAPSIZE_M    = 80;
-    public static final double MAPSIZE_L    = 999;
 
-    public static final double DROPOFF      = 0.4;
+    public static final double MAPSIZE_S    = 150;
+    public static final double MAPSIZE_M    = 450;
+    public static final double MAPSIZE_L    = 9999;
+
+    public static final double DROPOFF      = 0.5;
 
     public static final double BATTLE_MED   = 100;
     public static final double BATTLE_ARTIL = 120;
     public static final double BATTLE_SOLDI = 40;
 
-    public static final double ENEMY_HQ     = 20.0;
+    public static final double ENEMY_HQ     = 25.0;
     public static final double PANIC_HQ     = 100.0;
     public static final double ALLY_HQ      = -1.0;
 
