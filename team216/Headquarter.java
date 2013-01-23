@@ -110,7 +110,7 @@ public class Headquarter
 
         double mapSize = Storage.distanceBetweenHQs();
 
-        System.out.println("MAPSIZE: " + mapSize);
+        rc.setIndicatorString(2, "MAPSIZE: " + mapSize);
 
         if (mapSize < Weights.MAPSIZE_S)
             RESEARCH_WINDOW = Weights.SHORT_WINDOW;
