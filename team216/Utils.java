@@ -9,10 +9,10 @@ public class Utils
     public static final int dirOrdMask = (8 - 1);
 
     // These are just arbitrary values, feel free to change
-    private static final int CHANNEL_1 = 235;
-    private static final int CHANNEL_2 = 61234;
-    private static final int BACKUP_CHANNEL_1 = 9234;
-    private static final int BACKUP_CHANNEL_2 = 40129;
+    private static final int OFFSET_CHANNEL_1 = 235;
+    private static final int OFFSET_CHANNEL_2 = 61234;
+    private static final int OFFSET_BACKUP_CHANNEL_1 = 9234;
+    private static final int OFFSET_BACKUP_CHANNEL_2 = 40129;
 
     // We use this arbitrary seed to add entropy to messaging data
     private static final int SECRET_COMMUNICATION_SEED = 14212;
@@ -59,33 +59,36 @@ public class Utils
     		/ factor;
     }
 
-    public static void broadcastMessage(RobotController rc, int data) {
+    public static void broadcastMessage(RobotController rc, int channel, int data) {
         // We add a constant value (channel number times a seed) to every message and
         // broadcast the data on four distinct channels (two main and two for backup)
         // Note that the addition might cause integer overflow, but this is fine since
         // Java ints wrap around
 
         try {
-            rc.broadcast(CHANNEL_1, data + CHANNEL_1 * SECRET_COMMUNICATION_SEED);
-            rc.broadcast(CHANNEL_2, data + CHANNEL_2 * SECRET_COMMUNICATION_SEED);
+            // We send the data on a channel at an arbitrary offset of the passed channel
+            // This could potentially cause a collision with other messages, but we have a
+            // fallback on backup channels
+            rc.broadcast((channel + OFFSET_CHANNEL_1) % GameConstants.BROADCAST_MAX_CHANNELS, data + OFFSET_CHANNEL_1 * SECRET_COMMUNICATION_SEED);
+            rc.broadcast((channel + OFFSET_CHANNEL_2) % GameConstants.BROADCAST_MAX_CHANNELS, data + OFFSET_CHANNEL_2 * SECRET_COMMUNICATION_SEED);
 
-            // Backup broadcast, if we detect that the main channels are getting fudged
-            rc.broadcast(BACKUP_CHANNEL_1, data + BACKUP_CHANNEL_1 * SECRET_COMMUNICATION_SEED);
-            rc.broadcast(BACKUP_CHANNEL_2, data + BACKUP_CHANNEL_2 * SECRET_COMMUNICATION_SEED);
+            //// Backup broadcast, if we detect that the main channels are getting fudged
+            rc.broadcast((channel + OFFSET_BACKUP_CHANNEL_1) % GameConstants.BROADCAST_MAX_CHANNELS, data + OFFSET_BACKUP_CHANNEL_1 * SECRET_COMMUNICATION_SEED);
+            rc.broadcast((channel + OFFSET_BACKUP_CHANNEL_2) % GameConstants.BROADCAST_MAX_CHANNELS, data + OFFSET_BACKUP_CHANNEL_2 * SECRET_COMMUNICATION_SEED);
         } catch(GameActionException e) { e.printStackTrace(); }
     }
 
-    public static int readMessage(RobotController rc) {
+    public static int readMessage(RobotController rc, int channel) {
         try {
-            int data = rc.readBroadcast(CHANNEL_1) - CHANNEL_1 * SECRET_COMMUNICATION_SEED;
+            int data = rc.readBroadcast((channel + OFFSET_CHANNEL_1) % GameConstants.BROADCAST_MAX_CHANNELS) - OFFSET_CHANNEL_1 * SECRET_COMMUNICATION_SEED;
 
-            if (data == rc.readBroadcast(CHANNEL_2) - CHANNEL_2 * SECRET_COMMUNICATION_SEED)
+            if (data == rc.readBroadcast((channel + OFFSET_CHANNEL_2) % GameConstants.BROADCAST_MAX_CHANNELS) - OFFSET_CHANNEL_2 * SECRET_COMMUNICATION_SEED)
                 return data;
 
             // somebody's been fucking with our messages, try the backup channel
-            data = rc.readBroadcast(BACKUP_CHANNEL_1) - BACKUP_CHANNEL_1 * SECRET_COMMUNICATION_SEED;
+            data = rc.readBroadcast((channel + OFFSET_BACKUP_CHANNEL_1) % GameConstants.BROADCAST_MAX_CHANNELS) - OFFSET_BACKUP_CHANNEL_1 * SECRET_COMMUNICATION_SEED;
 
-            if (data == rc.readBroadcast(BACKUP_CHANNEL_2) - BACKUP_CHANNEL_2 * SECRET_COMMUNICATION_SEED)
+            if (data == rc.readBroadcast((channel + OFFSET_BACKUP_CHANNEL_2) % GameConstants.BROADCAST_MAX_CHANNELS) - OFFSET_BACKUP_CHANNEL_2 * SECRET_COMMUNICATION_SEED)
                 return data;
 
         } catch(GameActionException e) { e.printStackTrace(); }
