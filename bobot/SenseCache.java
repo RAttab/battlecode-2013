@@ -9,59 +9,46 @@ public class SenseCache
     SenseCache(RobotController rc)
     {
         this.rc = rc;
-
-        infoTs = new int[rc.getMapWidth()][rc.getMapHeight()];
-        infoCache = new RobotInfo[rc.getMapWidth()][rc.getMapHeight()];
     }
 
 
-    private int nearbyAlliesTs = Integer.MIN;
-    private MapLocation[] nearbyAlliesCache = null;
 
-    public MapLocation[] nearbyAllies(int tolerance)
+    private RobotInfo[] nearbyEnemiesCache = null;
+
+    public RobotInfo[] nearbyEnemies()
+        throws GameActionException
+    {
+        Robot[] enemies = rc.senseNearbyGameObjects(
+                Robot.class, sightRadius, rc.getTeam());
+
+        nearbyEnemiesCache = new RobotInfo[enemies.length];
+        for (int i = enemies.length; i-- >= 0;)
+            nearbyEnemiesCache[i] = rc.senseRobotInfo(enemies[i]);
+
+        return nearbyEnemiesCache;
+    }
+
+
+    private int nearbyAlliesTs = 0;
+    private RobotInfo[] nearbyAlliesCache = null;
+
+    public RobotInfo[] nearbyAllies(int tolerance)
         throws GameActionException
     {
         if (tolerance > 0 && ts - nearbyAlliesTs < tolerance)
             return nearbyAlliesCache;
 
         nearbyAlliesTs = ts;
-        nearbyAlliesCache = rc.senseNearbyGameObjects(
+
+        Robot[] allies = rc.senseNearbyGameObjects(
                 Robot.class, sightRadius, rc.getTeam());
+
+        nearbyAlliesCache = new RobotInfo[allies.length];
+        for (int i = allies.length; i-- >= 0;)
+            nearbyAlliesCache[i] = rc.senseRobotInfo(allies[i]);
 
         return nearbyAlliesCache;
     }
-
-
-    private int nearbyEnemiesTs = Integer.MIN;
-    private MapLocation[] nearbyEnemiesCache = null;
-
-    public MapLocation[] nearbyEnemies(int tolerance)
-        throws GameActionException
-    {
-        if (tolerance > 0 && ts - nearbyEnemiesTs < tolerance)
-            return nearbyEnemiesCache;
-
-        nearbyEnemiesTs = ts;
-        nearbyEnemiesCache = rc.senseNearbyGameObjects(
-                Robot.class, sightRadius, rc.getTeam().opponent());
-
-        return nearbyEnemiesCache;
-    }
-
-
-    private int[][] infoTs;
-    private RobotInfo[][] infoCache;
-
-    public RobotInfo info(MapLocation loc, int tolerance)
-        throws GameActionException
-    {
-        if (tolerance > 0 && ts - infoTs[loc.x][loc.y] < tolerance)
-            return infoCache[loc.x][loc.y];
-
-        infoTs[loc.x][loc.y] = ts;
-        return infoCache[loc.x][loc.y] = rc.senseRobotInfo(loc);
-    }
-
 
     private int ts;
     private boolean sightAdjusted = false;
@@ -71,14 +58,12 @@ public class SenseCache
     {
         ts = Clock.getRoundNum();
 
-        if (sightAdjust || rc.hasUpgrade(Upgrade.SIGHT))
-            continue;
+        if (!sightAdjusted && rc.hasUpgrade(Upgrade.VISION)) {
+            sightAdjusted = true;
+            sightRadius += GameConstants.VISION_UPGRADE_BONUS;
 
-        sightAdjusted = true;
-        sightRadius += GameConstants.VISION_UPGRADE_BONUS;
-
-        nearbyAlliesTs = Integer.MIN;
-        nearbyEnemiesTs = Integer.MIN;
+            nearbyAlliesTs = 0;
+        }
     }
 
 }

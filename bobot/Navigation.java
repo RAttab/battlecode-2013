@@ -6,7 +6,11 @@ public class Navigation
 {
     double directions[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
     double standStill = 0.0;
-    boolean canDefuse = true;
+
+    double defuse = 0.0;
+    MapLocation defuseLoc;
+
+    boolean autoDefuse = true;
 
     RobotController rc;
 
@@ -14,6 +18,21 @@ public class Navigation
     Navigation(RobotController rc)
     {
         this.rc = rc;
+    }
+
+
+    void boostDefuse(MapLocation loc, double force)
+    {
+        if (force <= defuse) return;
+
+        defuse = force;
+        defuseLoc = loc;
+    }
+
+    void resetDefuse()
+    {
+        defuse = 0.0;
+        defuseLoc = null;
     }
 
     void boost(Direction dir, double force)
@@ -40,32 +59,39 @@ public class Navigation
         directions[dir.ordinal()] = Double.NEGATIVE_INFINITY;
     }
 
-    bool move()
+    private boolean hasMine(MapLocation loc)
+        throws GameActionException
+    {
+        Team mine = rc.senseMine(defuseLoc);
+        return mine == Team.NEUTRAL || mine == rc.getTeam().opponent();
+    }
+
+    boolean move() throws GameActionException
     {
         if (standStill == Double.POSITIVE_INFINITY)
             return false;
 
         double max = standStill;
         Direction dir = null;
+        MapLocation myLoc = rc.getLocation();
 
         for (int i = 0; i < 8; ++i) {
             if (max > directions[i]) continue;
             if (!rc.canMove(Utils.dirByOrd[i])) continue;
+            if (!autoDefuse && hasMine(myLoc.add(dir))) continue;
 
             max = directions[i];
             dir = Utils.dirByOrd[i];
         }
 
-        if (dir == null) return false;
+        if (autoDefuse) {
+            defuseLoc = rc.getLocation().add(dir);
+            defuse = Double.POSITIVE_INFINITY;
+        }
 
-        if (canDefuse) {
-            MapLocation pos = rc.getLocation().add(dir);
-            Team team = rc.senseMine(pos);
-
-            if (team == Team.NEUTRAL || team == rc.getTeam()) {
-                rc.defuseMine(pos);
-                return false;
-            }
+        if (defuseLoc != null && defuse > max && hasMine(defuseLoc)) {
+            rc.defuseMine(defuseLoc);
+            return true;
         }
 
         rc.move(dir);
