@@ -23,7 +23,7 @@ BOTS := team216 \
 	rusher \
 	godotbot \
 	nuclear \
-	iter1
+	bobot
 
 install-bots: $(foreach bot,$(BOTS),$(INSTALL_DIR)/teams/$(bot))
 
