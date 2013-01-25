@@ -14,37 +14,21 @@ public class Soldier
     private static final double MAX_SHIELD = 40;
 
 
-    // THIS HAS A BYTECODE COST OF 133
     private static void strengthen(
             double[] strength, Direction dir, double force)
     {
-        // debug_checkBc(Storage.RC, "pre");
         if (dir == Direction.OMNI) return;
         int ord = dir.ordinal();
-        // final int mask = 8 - 1;
 
         strength[ord] += force;
-        // double dropoff = 1.0;
 
-        // System.err.println(ord);
         force *= Weights.DROPOFF;
         strength[((ord-1) & 7)] += force;
-        // System.err.println((ord-1) + "&7=" + (ord-1)%7);
         strength[((ord+1) & 7)] += force;
-        // System.err.println((ord+1) + "&7=" + (ord+1)%7);
         force *= Weights.DROPOFF;
         strength[((ord-2) & 7)] += force;
-        // System.err.println((ord-2) + "&7=" + (ord-2)%7);
         strength[((ord+2) & 7)] += force;
-        // System.err.println((ord+2) + "&7=" + (ord+2)%7);
 
-
-        // for (int i = 1; dropoff > 0.0; ++i) {
-        //     dropoff -= Weights.DROPOFF;
-        //     strength[(ord - i) & mask] += force * dropoff;
-        //     strength[(ord + i) & mask] += force * dropoff;s
-        // }
-        // debug_checkBc(Storage.RC, "post");
     }
 
     private static void strengthen(
@@ -60,14 +44,15 @@ public class Soldier
     {
         MapLocation mines[] = Storage.nearbyNonAlliedMines(radius);
         int steps = Math.max(1, Utils.ceilDiv(mines.length, MAX_MINES));
-        int count = 0;
-        // TODO: add up the strengths and call strengthen as few times as possible
-        for (int i = 0; i < mines.length; i += steps) {
+        double dirs[] = {0,0,0,0,0,0,0,0};
+        for (int i = mines.length; i > 0; i -= steps) {
             Direction dir = coord.directionTo(mines[i]);
-            strengthen(strength, dir, w, coord.distanceSquaredTo(mines[i]));
-            count++;
+            dirs[dir.ordinal()] += w/coord.distanceSquaredTo(mines[i]);
         }
-        // System.err.println("mines=" + count + "/" + mines.length);
+        for (int i=dirs.length()-1; --i >= 0;){
+            if dirs[i] != 0
+                strengthen(strength, Utils.dirByOrd[i], dirs[i]);
+        }
     }
 
     private static void battleFormation(
