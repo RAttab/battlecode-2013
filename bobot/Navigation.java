@@ -4,6 +4,10 @@ import battlecode.common.*;
 
 public class Navigation
 {
+    // Currently only used for mine logic. Could expand to a vector for more
+    // long term info.
+    static MapLocation prevLoc = null;
+
     double directions[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
     double standStill = 0.0;
 
@@ -37,9 +41,20 @@ public class Navigation
         defuseLoc = null;
     }
 
+    void boost(double force)
+    {
+        // System.out.println("boost: force=" + force);
+        standStill += force;
+    }
+
     void boost(Direction dir, double force, boolean spread)
     {
-        if (dir == Direction.OMNI) {
+        // System.out.println(
+        //         "boost: dir=" + dir
+        //         + ", force=" + force
+        //         + ", spread=" + spread);
+
+        if (dir == null) {
             standStill += force;
             return;
         }
@@ -83,7 +98,7 @@ public class Navigation
             dir = dest;
         }
 
-        if (autoDefuse) {
+        if (autoDefuse && dir != null && defuseLoc == null) {
             defuseLoc = rc.getLocation().add(dir);
             defuse = Double.POSITIVE_INFINITY;
         }
@@ -93,15 +108,21 @@ public class Navigation
             return true;
         }
 
-        if (dir != null) rc.move(dir);
+        if (dir == null) return false;
+
+        rc.move(dir);
+        prevLoc = rc.getLocation();
         return true;
     }
 
     String debug_print() {
-        String str = "{ ";
+        String str = "stand=" + standStill;
+        str += ", dir={ ";
         for (int i = 0; i < directions.length; ++i)
             str += directions[i] + ", ";
-        str += "} stand=" + standStill;
+        str += "}";
+        str += ", defuse={" + defuse + ", " + defuseLoc + "}";
+        str += ", auto=" + autoDefuse;
         return str;
     }
 

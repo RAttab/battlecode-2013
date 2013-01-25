@@ -49,9 +49,9 @@ public class Soldier
 
         // Calculate numeric advantage of every movable positions.
         // Note that buildings are included because they reduce your dps
-        // Reserved BC: 3*100 + 2*25 + 25 < 500 * 9 < 4500
+        // Reserved BC: (3*100 + 2*25 + 25) < (500 * 9) < 4500
         for (int i = 9; --i >= 0;) {
-            Direction dir = i == 8 ? Direction.OMNI : Utils.dirByOrd[i];
+            Direction dir = i == 8 ? null : Utils.dirByOrd[i];
             if (i < 8 && !rc.canMove(dir)) continue;
 
             MapLocation loc = i == 8 ? myLoc : myLoc.add(dir);
@@ -60,7 +60,7 @@ public class Soldier
             int enemies = sense.adjacentRobots(loc, me.opponent()).length;
             if (enemies == 0) {
                 // Penalty for breaking an engagement
-                System.out.println("break: " + dir);
+                // System.out.println("break: " + dir);
                 nav.boost(dir, Weights.MICRO_COMBAT_BREAK, false);
                 continue;
             }
@@ -78,8 +78,8 @@ public class Soldier
 
             diff *= Weights.MICRO_COMBAT_MUL;
 
-            System.out.println("combat: " + dir + "={"
-                    + enemies + ", " + strike + ", " + allies + "} -> " + diff);
+            // System.out.println("combat: " + dir + "={"
+            //         + enemies + ", " + strike + ", " + allies + "} -> " + diff);
             nav.boost(dir, diff, false);
         }
 
@@ -97,30 +97,29 @@ public class Soldier
             if (!isBattleBot(enemies[i].type)) continue;
 
             MapLocation loc = enemies[i].location;
-            Direction dir = myLoc.directionTo(loc);
+            Direction charge = myLoc.directionTo(loc);
+            Direction retreat = charge.opposite();
             double dist = loc.distanceSquaredTo(myLoc);
 
             // We get first hit
             if (dist < 9) {
-                // System.out.println(
-                //         "first-to-hit: me=" + myLoc
-                //     + ", him=" + loc + ", dist=" + dist);
-                nav.boost(dir, Weights.MICRO_ENEMIES_FAR, true);
+                // System.out.println("first-to-hit: charge=" + charge);
+                nav.boost(charge,   Weights.MICRO_FL_FIRST_STRIKE, true);
+                nav.boost(retreat, -Weights.MICRO_FL_FIRST_STRIKE, true);
             }
 
             // They get first hit
             else if (dist < 16 || dist == 18) {
-                // System.out.println(
-                //         "second-to-hit: me=" + myLoc
-                //     + ", him=" + loc + ", dist=" + dist);
-                nav.boost(dir, -Weights.MICRO_ENEMIES_FAR, true);
-                nav.boost(Direction.OMNI, Weights.MICRO_ENEMIES_FAR, true);
+                // System.out.println("second-to-hit: charge=" + charge);
+                nav.boost(Weights.MICRO_FL_SECOND_STRIKE);
+                nav.boost(retreat, Weights.MICRO_FL_RETREAT, true);
+                nav.boost(charge, -Weights.MICRO_FL_SECOND_STRIKE, true);
             }
 
             // no risk, close in.
             else {
-                // System.out.println("close-in");
-                nav.boost(dir, Weights.MICRO_ENEMIES_FAR, true);
+                // System.out.println("close-in: charge=" + charge);
+                nav.boost(charge, Weights.MICRO_FL_CLOSE_IN, true);
             }
         }
     }
@@ -146,6 +145,7 @@ public class Soldier
         return isDefusing;
     }
 
+
     public static void run(RobotController rc)
         throws GameActionException
     {
@@ -157,10 +157,24 @@ public class Soldier
         while (true) {
             if (!rc.isActive()) { rc.yield(); continue; }
 
-            System.out.println("startLoc=" + rc.getLocation());
-
             Navigation nav = new Navigation(rc, sense);
             sense.reset();
+
+            // System.out.println(
+            //         "startLoc=" + rc.getLocation()
+            //         + ", prevLoc=" + Navigation.prevLoc);
+
+            // Uh Oh. Standing on a mine! GTFO!
+            if (sense.nonAlliedMine(rc.getLocation()) && rc.getShields() <= 0) {
+                nav.boost(Double.NEGATIVE_INFINITY);
+
+                if (Navigation.prevLoc != null) {
+                    Direction backoff =
+                        rc.getLocation().directionTo(Navigation.prevLoc);
+                    nav.boost(backoff, Weights.MINE_GTFO, true);
+                }
+            }
+
 
             if (isMicro(rc, sense)) {
                 nav.autoDefuse = false;
@@ -173,7 +187,7 @@ public class Soldier
             }
 
 
-            nav.debug_dump();
+            rc.setIndicatorString(0, nav.debug_print());
             nav.move();
             rc.yield();
         }
