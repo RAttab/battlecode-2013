@@ -11,18 +11,37 @@ public class SenseCache
         this.rc = rc;
     }
 
+    boolean nonAlliedMine(MapLocation loc)
+        throws GameActionException
+    {
+        Team mine = rc.senseMine(loc);
+        return mine == Team.NEUTRAL || mine == rc.getTeam().opponent();
+    }
 
+    public Robot[] adjacentRobots(MapLocation loc, Team team)
+        throws GameActionException
+    {
+        return rc.senseNearbyGameObjects(Robot.class, loc, 2, team);
+    }
+
+    // Robots of the team x that are within striking distance.
+    public Robot[] strikeRobots(MapLocation loc, Team team)
+        throws GameActionException
+    {
+        return rc.senseNearbyGameObjects(Robot.class, loc, 8, team);
+    }
 
     private RobotInfo[] nearbyEnemiesCache = null;
-
     public RobotInfo[] nearbyEnemies()
         throws GameActionException
     {
+        if (nearbyEnemiesCache != null) return nearbyEnemiesCache;
+
         Robot[] enemies = rc.senseNearbyGameObjects(
-                Robot.class, sightRadius, rc.getTeam());
+                Robot.class, sightRadius, rc.getTeam().opponent());
 
         nearbyEnemiesCache = new RobotInfo[enemies.length];
-        for (int i = enemies.length; i-- >= 0;)
+        for (int i = enemies.length; --i >= 0;)
             nearbyEnemiesCache[i] = rc.senseRobotInfo(enemies[i]);
 
         return nearbyEnemiesCache;
@@ -44,7 +63,7 @@ public class SenseCache
                 Robot.class, sightRadius, rc.getTeam());
 
         nearbyAlliesCache = new RobotInfo[allies.length];
-        for (int i = allies.length; i-- >= 0;)
+        for (int i = allies.length; --i >= 0;)
             nearbyAlliesCache[i] = rc.senseRobotInfo(allies[i]);
 
         return nearbyAlliesCache;
@@ -57,6 +76,7 @@ public class SenseCache
     public void reset()
     {
         ts = Clock.getRoundNum();
+        nearbyEnemiesCache = null;
 
         if (!sightAdjusted && rc.hasUpgrade(Upgrade.VISION)) {
             sightAdjusted = true;
