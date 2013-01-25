@@ -49,8 +49,8 @@ public class Soldier
             Direction dir = coord.directionTo(mines[i]);
             dirs[dir.ordinal()] += w/coord.distanceSquaredTo(mines[i]);
         }
-        for (int i=dirs.length()-1; --i >= 0;){
-            if dirs[i] != 0
+        for (int i=dirs.length-1; --i >= 0;){
+            if (dirs[i] != 0)
                 strengthen(strength, Utils.dirByOrd[i], dirs[i]);
         }
     }
