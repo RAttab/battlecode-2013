@@ -9,6 +9,19 @@ public class Storage {
         // already this turn (and if so, just return the cache). Otherwise, even if
         // we're on a round % 3 (for example), we still risk doing the calculation many times.
 
+    // Finals
+    public static final int[] roundsBySuppliers = {10, 9, 8, 8, 7, 7, 6, 6, 6, 5, 5, 5, 5, 
+                                                    4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 
+                                                    3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 
+                                                    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
+                                                    2, 2, 2, 2, 2, 1};
+
+    public static final int[] suppliersUntilJump = {1, 1, 2, 1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 
+                                                    6, 5, 4, 3, 2, 1, 12, 11, 10, 9, 8, 7, 6, 
+                                                    5, 4, 3, 2, 1, 26, 25, 24, 23, 22, 21, 20, 19, 
+                                                    18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 
+                                                    5, 4, 3, 2, 1, 1};
+
     // Constants
 
     public static Team MY_TEAM;
@@ -24,7 +37,9 @@ public class Storage {
     public static RobotInfo MY_INFO;
     public static Robot ME;
     public static RobotController RC;
-    public static double EST_RUSH_TIME;
+
+    public static double EST_RUSH_TIME=-1;
+    public static int RUSH_TIME_CALCS=0;
 
     private static final int LC_RADIUS = 63;
 
@@ -48,6 +63,7 @@ public class Storage {
     private static MapLocation[] alliedEncampments = null;
     private static int campRadius;
     public static MapLocation[] localEncampments = null;
+    public static MapLocation[] neutralEncampments = null;
 
     public static boolean nukePanic = false;
 
@@ -69,33 +85,57 @@ public class Storage {
 
     // Variables
 
-    public static double getRushTime(RobotController rc) {
+    public static double getRushTime() {
         //calculate estimated turns for rush
-        // System.err.println(Clock.getBytecodeNum());
+        if (RUSH_TIME_CALCS == 0){
+            System.err.println(Clock.getBytecodeNum());
+            double x_dif = ENEMY_HQ.x - MY_HQ.x;
+            double y_dif = ENEMY_HQ.y - MY_HQ.y;
+            double x;
+            double y;
+            double offset;
+            double time = 0.0;
+            String s = "";
+            //rc.setIndicatorString(0, "c=" + CENTER + ", m=" + MY_HQ + ", e=" + ENEMY_HQ + ", xdif=" + x_dif + ", ydif" + y_dif + ", slope=" + SLOPE);
+            for (int i=20; --i>0;) {
+                offset = 6 * Math.random() - 3;
+                x = Math.random() * x_dif + MY_HQ.x;
+                y = SLOPE * x + ENEMY_HQ.y;
+                s += " (" + (int)x + ", " + (int)y + ")";
+                s += 1;
+                if (Team.NEUTRAL.equals(RC.senseMine(new MapLocation((int)x, (int)y)))){
+                    time += 12;
+                    s += "!";
+                }
+            }
+            System.err.println(s);
+            time *= (distanceBetweenHQs()/20.0);
+            time += distanceBetweenHQs();
+            EST_RUSH_TIME = time;
+            RUSH_TIME_CALCS = 2;
+            System.err.println(Clock.getBytecodeNum());
+        }
+        return EST_RUSH_TIME;
+    }
+    public static void updateRushTime() {
         double x_dif = ENEMY_HQ.x - MY_HQ.x;
         double y_dif = ENEMY_HQ.y - MY_HQ.y;
         double x;
         double y;
         double offset;
         double time = 0.0;
-        String s = "";
-        //rc.setIndicatorString(0, "c=" + CENTER + ", m=" + MY_HQ + ", e=" + ENEMY_HQ + ", xdif=" + x_dif + ", ydif" + y_dif + ", slope=" + SLOPE);
-        for (int i=0; i<20; i++) {
+        for (int i=10; --i>0;) {
             offset = 6 * Math.random() - 3;
             x = Math.random() * x_dif + MY_HQ.x;
             y = SLOPE * x + ENEMY_HQ.y;
-            s += " (" + (int)x + ", " + (int)y + ")";
-            s += 1;
-            if (Team.NEUTRAL.equals(rc.senseMine(new MapLocation((int)x, (int)y)))){
+            if (Team.NEUTRAL.equals(RC.senseMine(new MapLocation((int)x, (int)y)))){
                 time += 12;
-                s += "!";
             }
         }
-        System.err.println(s);
-        time *= (distanceBetweenHQs()/20.0);
+        time *= (distanceBetweenHQs()/10.0);
         time += distanceBetweenHQs();
-        EST_RUSH_TIME = time;
-        return time;
+        EST_RUSH_TIME = (EST_RUSH_TIME*RUSH_TIME_CALCS + time)/(RUSH_TIME_CALCS+1);
+        RUSH_TIME_CALCS++;
     }
 
     public static double distanceBetweenHQs() {
@@ -129,13 +169,13 @@ public class Storage {
 
     public static double defensiveRelevance() {
         if (defensive_relevance == 0.0 || Clock.getRoundNum() % 3 == 2)
-            defensive_relevance = Utils.defensiveRelevance(RC.getLocation(), MY_HQ, ENEMY_HQ, distanceBetweenHQs(), Weights.DEF_RATIO);
+            defensive_relevance = Utils.defensiveRelevance(RC.getLocation());
         return defensive_relevance;
     }
 
     public static double strategicRelevance() {
         if (strategic_relevance == 0.0 || Clock.getRoundNum() % 3 == 2)
-            strategic_relevance = Utils.strategicRelevance(RC.getLocation(), MY_HQ, ENEMY_HQ, distanceBetweenHQs(), Weights.STRAT_RATIO);
+            strategic_relevance = Utils.strategicRelevance(RC.getLocation());
         return strategic_relevance;
     }
 
@@ -241,6 +281,11 @@ public class Storage {
             }
         }
     }
+    public static MapLocation[] neutralEncampments() {
+        if (allEncampments == null)
+            allEncampments = RC.senseAllEncampmentSquares();
+        return allEncampments;
+    }
 
     public static MapLocation[] allEncampments() {
         if (allEncampments == null)
@@ -256,12 +301,69 @@ public class Storage {
 
     public static MapLocation[] localEncampments() 
     throws GameActionException{
-        localEncampments = RC.senseEncampmentSquares(MY_INFO.location, LC_RADIUS, Team.NEUTRAL);
-        campRadius = LC_RADIUS;
-        while (localEncampments.length < 1 && campRadius < 490) {
-            campRadius *= 2;
-            localEncampments = RC.senseEncampmentSquares(MY_INFO.location, campRadius, Team.NEUTRAL);
+        if (localEncampments == null) {
+            localEncampments = RC.senseEncampmentSquares(MY_INFO.location, LC_RADIUS, Team.NEUTRAL);
+            campRadius = LC_RADIUS;
+            while (localEncampments.length < 1 && campRadius < 490) {
+                campRadius *= 2;
+                localEncampments = RC.senseEncampmentSquares(MY_INFO.location, campRadius, Team.NEUTRAL);
+            }
         }
         return localEncampments;
+    }
+
+    public static void resetTurn(){
+        allEncampments = null;
+        alliedEncampments = null;
+        localEncampments = null;
+        neutralEncampments = null;
+    }
+
+    public static int militaryEncampments(){
+        return 0; // TODO: military encampments should broadcast themselves so we can keep track
+                    // this method should read the channel and report the number
+    }
+
+    public static int numShields(){
+        return 0; // TODO: same as above
+    }
+
+    // Estimated payoff (as # of soldiers) within a given number of turns
+    public static double supplierValue(MapLocation camp, MapLocation coord, double turns){
+        int currentSuppliers = alliedEncampments().length - militaryEncampments();
+        int untilJump = suppliersUntilJump[currentSuppliers - 1];
+        int spawnRate = roundsBySuppliers[currentSuppliers - 1];
+
+        // If it'll be impossible for this supplier to have any benefit, it's worthless.
+        if (untilJump > neutralEncampments().length)
+            return Double.NEGATIVE_INFINITY;
+
+        double turnsAway = Utils.distTwoPoints(camp, coord);
+        double turnCost = (untilJump * (spawnRate + turnsAway));
+
+        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) - 
+                (turns - turnCost) / spawnRate;
+    }
+    public static double supplierValue(double turns){
+        int currentSuppliers = alliedEncampments().length - militaryEncampments();
+        int untilJump = suppliersUntilJump[currentSuppliers];
+        int spawnRate = roundsBySuppliers[currentSuppliers];
+
+        // If it'll be impossible for this supplier to have any benefit, it's worthless.
+        if (untilJump > neutralEncampments().length)
+            return Double.NEGATIVE_INFINITY;
+
+        double turnCost = (untilJump * spawnRate);
+
+        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) - 
+                (turns - turnCost) / spawnRate;
+    }
+
+    // Estimated worth of a military encampment
+    public static double militaryValue(MapLocation camp){
+        double dropOff = Weights.MILITARY_DROP * militaryEncampments();
+        return Utils.strategicRelevance(camp) * Weights.MIL_CAMP_VAL - 
+                dropOff - EST_RUSH_TIME*Weights.MIL_MAPSIZE;
+    // TODO : distance to last enemy seen should affect this value
     }
 }

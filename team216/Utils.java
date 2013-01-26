@@ -45,17 +45,15 @@ public class Utils
     	return Math.sqrt((p_x - q_x)*(p_x-q_x) + (p_y-q_y)*(p_y-q_y));
     }
 
-    public static double strategicRelevance(
-    MapLocation p, MapLocation hq, MapLocation evilHq, double hqDist, double ratio) {
-    	double factor = hqDist / ratio;
-    	return (factor - distToLineBetween(p, hq, evilHq)) / factor;
+    public static double strategicRelevance(MapLocation p) {
+        double factor = Storage.distanceBetweenHQs() / Weights.STRAT_RATIO;
+    	return (factor - distToLineBetween(p, Storage.MY_HQ, Storage.ENEMY_HQ)) / factor;
     }
-    public static double defensiveRelevance(
-    MapLocation p, MapLocation hq, MapLocation evilHq, double hqDist, double ratio) {
-    	double factor = hqDist / ratio;
+    public static double defensiveRelevance(MapLocation p) {
+    	double factor = Storage.distanceBetweenHQs() / Weights.DEF_RATIO;
     	return 
-    		( 0.8 * (factor - distTwoPoints(p, hq)) + 
-    		0.2 * (factor - distToLineBetween(p, hq, evilHq)) )
+    		( 0.8 * (factor - distTwoPoints(p, Storage.MY_HQ)) + 
+    		0.2 * (factor - distToLineBetween(p, Storage.MY_HQ, Storage.ENEMY_HQ)) )
     		/ factor;
     }
 

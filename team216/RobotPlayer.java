@@ -22,7 +22,7 @@ public class RobotPlayer
                     Bases.run(rc);
                 rc.yield();
             }
-            catch(Exception e) { e.printStackTrace(); }
+            catch(Exception e) { e.printStackTrace(); rc.breakpoint();}
         }
     }
 

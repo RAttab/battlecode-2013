@@ -45,12 +45,20 @@ public class Soldier
         MapLocation mines[] = Storage.nearbyNonAlliedMines(radius);
         int steps = Math.max(1, Utils.ceilDiv(mines.length, MAX_MINES));
         double dirs[] = {0,0,0,0,0,0,0,0};
-        for (int i = mines.length; i > 0; i -= steps) {
-            Direction dir = coord.directionTo(mines[i]);
-            dirs[dir.ordinal()] += w/coord.distanceSquaredTo(mines[i]);
+        for (int i = mines.length-1; i >= 0; i -= steps) {
+                Direction dir = coord.directionTo(mines[i]);
+                double weight = w/coord.distanceSquaredTo(mines[i]);
+
+            try{
+                dirs[dir.ordinal()] += weight;
+            } catch (Exception e) {System.err.println("mines[i]=" + mines[i]);
+                                    System.err.println("dir=" + dir);
+                                    System.err.println("ordinal=" + dir.ordinal());
+                                    rc.breakpoint();
+            }
         }
-        for (int i=dirs.length()-1; --i >= 0;){
-            if dirs[i] != 0
+        for (int i=dirs.length-1; --i >= 0;){
+            if (dirs[i] != 0)
                 strengthen(strength, Utils.dirByOrd[i], dirs[i]);
         }
     }
@@ -224,6 +232,7 @@ public class Soldier
         return true;
     }
 
+    // TODO : update this method with the new capture logic
     private static void neutralBases(
             RobotController rc, MapLocation coord, double strength[])
         throws GameActionException
@@ -331,61 +340,37 @@ public class Soldier
         return n;
     }
 
-    // TODO: vastly improve the capture logic
+    // TODO : add shields logic
     public static boolean capture(
-            RobotController rc, MapLocation coord, double stratLoc, double defLoc)
+            RobotController rc, MapLocation coord)
         throws GameActionException
     {
         if (!rc.senseEncampmentSquare(coord)) return false;
-        if (encampmentHack(rc, coord)) return false;
-
-        MapLocation ourBases[] = rc.senseAlliedEncampmentSquares();
-        MapLocation neutBases[] = rc.senseEncampmentSquares(coord, GL_RADIUS, Team.NEUTRAL);
-        double maxPower = Weights.MAX_POWER + ourBases.length * Weights.OURBASE_MULT;
-        maxPower += (neutBases.length - ourBases.length) * Weights.NEUTBASE_MULT;
-
+        if (encampmentHack(rc, coord)) return false; // TODO : improve this
+        double power = rc.getTeamPower();
         double cost = rc.senseCaptureCost();
-        if (cost <= 0.0) return false;
-        if (cost >= rc.getTeamPower()) return false;
+        if (cost >= power) return false;
 
-        double rnd = Math.random();
+        MapLocation neutBases[] = Storage.neutralEncampments();
+        double supplierValue = Storage.supplierValue(Storage.EST_RUSH_TIME);
+        double militaryValue = Storage.militaryValue(rc.getLocation());
 
-        // prioritize artillery on the path between the HQs, and closer to enemy HQ
-        double militaryWeight = Weights.MILITARY *
-            (Weights.STRAT_CAMP * stratLoc + Weights.DEF_CAMP * defLoc);
-
-        if (rnd < militaryWeight) {
-            rnd = Math.random();
-            if (rnd < Weights.MEDBAY_SUM)
+        if (supplierValue > militaryValue)
+            rc.captureEncampment(RobotType.SUPPLIER);
+        else {
+            double distHome = Utils.distTwoPoints(coord, Storage.MY_HQ);
+            double distThem = Storage.DISTANCE_BETWEEN_HQ - distHome;
+            if (distHome * Weights.MEDBAY > distThem * Weights.ARTILLERY)
                 rc.captureEncampment(RobotType.MEDBAY);
-            else if (rnd < Weights.SHIELDS_SUM)
-                rc.captureEncampment(RobotType.SHIELDS);
             else
                 rc.captureEncampment(RobotType.ARTILLERY);
-        } else {
-            // TODO: improve supplier/generator decision
-            if (Clock.getRoundNum() < Weights.MIN_ROUND)
-                rc.captureEncampment(RobotType.SUPPLIER);
-            else if (rc.getTeamPower() < Weights.MIN_POWER)
-                rc.captureEncampment(RobotType.GENERATOR);
-            else if (rc.getTeamPower() > maxPower)
-                rc.captureEncampment(RobotType.SUPPLIER);
-            else {
-                rnd = Math.random();
-                double ratio =
-                    (rc.getTeamPower() - Weights.MIN_POWER) /
-                    (maxPower - Weights.MIN_POWER);
-                if (rnd < ratio)
-                    rc.captureEncampment(RobotType.GENERATOR);
-                else
-                    rc.captureEncampment(RobotType.SUPPLIER);
-            }
         }
+        
 
         return true;
     }
 
-    // another communication thing
+    // TODO : another communication thing
     public static void evilArtillery(RobotController rc, int[] strength, double weight) {
 
     }
@@ -426,13 +411,14 @@ public class Soldier
     {
 
         // first things first.
-        rc.wearHat();
+        // rc.wearHat();
 
         while (true) {
 
             // This is an extremely ugly hack to get around the fact that every
             // agents start with the same seed.
             Math.random();
+            Storage.resetTurn();
 
             if (!rc.isActive()) {
                 rc.yield();
@@ -511,7 +497,7 @@ public class Soldier
 
             // TODO: incorporate threat level instead of boolean enemiesNearby
             // PS remi I hate you for your confusing tricks
-            if (enemiesNearby || !capture(rc, coord, strat, defense)) {
+            if (enemiesNearby || !capture(rc, coord)) {
                 debug_checkBc(rc, "capture");
                 if (!enemiesNearby && rc.senseMine(coord) == null) {
                     // see if we should lay a mine here

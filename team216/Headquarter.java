@@ -108,7 +108,7 @@ public class Headquarter
     {
         MapLocation coord = rc.getLocation();
 
-        double mapSize = Storage.distanceBetweenHQs();
+        double mapSize = Storage.getRushTime();
 
         rc.setIndicatorString(2, "MAPSIZE: " + mapSize);
 

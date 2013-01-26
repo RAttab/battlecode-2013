@@ -43,39 +43,26 @@ public class Weights
     public static final double EXPLORE_MINE = -0.3;
     public static final double BATTLE_MINE  = -0.5;
     public static final double CAPTURE      = 25.0;
-    public static final double HEAL         = 10.0;
-    public static final double SHIELD       = 10.0;
+    public static final double HEAL         = 10.0; // TODO: change heal & shield logic
+    public static final double SHIELD       = 10.0; 
 
     public static final double MIN_CAPT_POW = 15.0;
 
     public static final double GROUP_ATTACK = 2.0;
     public static final double GROUP_UP     = 2.0;
 
-    public static final double STRAT_CAMP   = 0.7;
-    public static final double DEF_CAMP     = 1 - STRAT_CAMP;
-
-    public static final double MILITARY     = 0.8;
-    public static final double STRUCTURAL   = 1 - MILITARY;
-
-    public static final double MEDBAY       = 0.1;
-    public static final double SHIELDS      = 0.1;
-    public static final double ARTILLERY    = 0.8;
-
-    public static final double MIN_POWER    = 16;
-    public static final double MAX_POWER    = 60;
-    public static final double OURBASE_MULT = 10;
-    public static final double NEUTBASE_MULT= 2;
-    public static final double MIN_ROUND    = 20;
-
-    public static final double MEDBAY_SUM    = MEDBAY;
-    public static final double SHIELDS_SUM   = SHIELDS   + MEDBAY_SUM;
-    public static final double ARTILLERY_SUM = ARTILLERY + SHIELDS_SUM;
+    public static final double SOLDIER_VAL  = 1.05;
+    public static final double MIL_CAMP_VAL = 2.5;
+    public static final double MILITARY_DROP= 0.45;
+    public static final double MIL_MAPSIZE  = 0.006;
+    public static final double ARTILLERY    = 1;
+    public static final double MEDBAY       = 1;
 
     public static final double LAY_MINE     = 0.002;
     public static final double NEARBY_MINE  = 0.0007;
 
-    public static final double DEF_RATIO    = 3;
-    public static final double STRAT_RATIO  = 2;
+    public static final double DEF_RATIO    = 4;
+    public static final double STRAT_RATIO  = 3;
 
     // public static final double SUPPLIER_SUM  = SUPPLIER;
     // public static final double GENERATOR_SUM = GENERATOR + SUPPLIER_SUM;
