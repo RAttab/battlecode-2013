@@ -19,6 +19,8 @@ endif
 TEAM_DIR := $(INSTALL_DIR)/teams
 BIN_DIR := $(INSTALL_DIR)/bin
 
+all: install-bots install-maps
+
 BOTS := team216 \
 	rusher \
 	godotbot \
@@ -26,9 +28,13 @@ BOTS := team216 \
 	bobot
 
 install-bots: $(foreach bot,$(BOTS),$(INSTALL_DIR)/teams/$(bot))
-
 $(INSTALL_DIR)/teams/%:
 	 ln -s $(CURDIR)/$* $@
+
+install-maps: $(foreach map,$(wildcard maps/*.xml),$(INSTALL_DIR)/$(map))
+$(INSTALL_DIR)/maps/%:
+	ln -s $(CURDIR)/maps/$* $@
+
 
 #------------------------------------------------------------------------------#
 # TRAINING SETUP

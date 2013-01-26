@@ -6,7 +6,7 @@ import battlecode.common.*;
 public class RobotPlayer
 {
 
-    private static void doSoldier(RobotController rc)
+    private static void experiment(RobotController rc)
         throws GameActionException
     {
 
@@ -46,7 +46,7 @@ public class RobotPlayer
     {
         while (true) {
             try {
-                if (rc.getType() == RobotType.SOLDIER) doSoldier(rc);
+                if (rc.getType() == RobotType.SOLDIER) Soldier.run(rc);
                 if (rc.getType() == RobotType.HQ) {
 
                     if (!rc.hasUpgrade(Upgrade.DEFUSION))
