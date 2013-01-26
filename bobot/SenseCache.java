@@ -29,6 +29,14 @@ public class SenseCache
         return info != null ? isBusy(info) : null;
     }
 
+    boolean battleBot(RobotInfo info)
+    {
+        return
+            info.type == RobotType.SOLDIER ||
+            info.type == RobotType.ARTILLERY ||
+            info.type == RobotType.MEDBAY;
+    }
+
     RobotInfo robotInfo(MapLocation loc, Team team)
     {
         Robot r = (Robot) rc.senseObjectAtLocation(loc);
