@@ -128,7 +128,7 @@ public class Soldier
         }
 
         // Try to stay near or provide cover for our allies.
-        RobotInfo[] allies = sense.adjacentRobots(myLoc, rc.getTeam());
+        Robot[] allies = sense.adjacentRobots(myLoc, rc.getTeam());
 
         for (int i = allies.length; --i >= 0;) {
             if (!isBattleBot(allies[i].type)) continue;
@@ -143,6 +143,28 @@ public class Soldier
             RobotController rc, Navigation nav, SenseCache sense)
         throws GameActionException
     {
+        if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
+
+        }
+
+        // Let's make use of our telekinesis powers
+
+
+
+
+    }
+
+
+    public static boolean macroMines(
+            RobotController rc, Navigation nav, SenseCache sense)
+        throws GameActionException
+    {
+        if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
+
+        }
+
+        // Let's make use of our telekinesis powers
+
 
     }
 
