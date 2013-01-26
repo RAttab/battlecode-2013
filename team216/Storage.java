@@ -9,6 +9,12 @@ public class Storage {
         // already this turn (and if so, just return the cache). Otherwise, even if
         // we're on a round % 3 (for example), we still risk doing the calculation many times.
 
+    // TODO (MAJOR PRIORITY)
+        // The method of calling Clock.roundNum() % 3 is no good, because if a method isn't called
+        // for many turns (if a soldier is diffusing a few mines in a row, for example) the info
+        // will be completely out-of-date, and this causes some problems.
+        // Also, check out Utils.
+
     // Finals
     public static final int[] roundsBySuppliers = {10, 9, 8, 8, 7, 7, 6, 6, 6, 5, 5, 5, 5, 
                                                     4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 
@@ -41,7 +47,7 @@ public class Storage {
     public static double EST_RUSH_TIME=-1;
     public static int RUSH_TIME_CALCS=0;
 
-    private static final int LC_RADIUS = 63;
+    public static final int LC_RADIUS = 63;
 
     private static double defensive_relevance; 
     private static double strategic_relevance;
@@ -250,7 +256,6 @@ public class Storage {
             nearby_nonallied_mines[i] = RC.senseNonAlliedMineLocations(RC.getLocation(), radiusSquared);
 
         Soldier.debug_checkBc(RC, "Storage.nearbyNonAlliedMines()");
-
         return nearby_nonallied_mines[i];
     }
 
