@@ -131,9 +131,10 @@ public class Soldier
         Robot[] allies = sense.adjacentRobots(myLoc, rc.getTeam());
 
         for (int i = allies.length; --i >= 0;) {
-            if (!isBattleBot(allies[i].type)) continue;
+            RobotInfo info = rc.senseRobotInfo(allies[i]);
+            if (!isBattleBot(info.type)) continue;
 
-            Direction dir = myLoc.directionTo(allies[i].location);
+            Direction dir = myLoc.directionTo(info.location);
             nav.boost(dir, Weights.MICRO_FL_ALLIES, true);
         }
 
@@ -151,7 +152,7 @@ public class Soldier
 
 
 
-
+        return true;
     }
 
 
@@ -165,7 +166,7 @@ public class Soldier
 
         // Let's make use of our telekinesis powers
 
-
+        return true;
     }
 
 
