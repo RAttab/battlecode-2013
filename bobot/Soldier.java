@@ -87,6 +87,8 @@ public class Soldier
             type == RobotType.MEDBAY;
     }
 
+    // \todo could incorporate SenseCache.isMining for enemy checks to get some
+    // free damage.
     public static void frontline(
             RobotController rc, Navigation nav, SenseCache sense)
         throws GameActionException
@@ -140,35 +142,6 @@ public class Soldier
 
     }
 
-    public static boolean microMines(
-            RobotController rc, Navigation nav, SenseCache sense)
-        throws GameActionException
-    {
-        if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
-
-        }
-
-        // Let's make use of our telekinesis powers
-
-
-
-        return true;
-    }
-
-
-    public static boolean macroMines(
-            RobotController rc, Navigation nav, SenseCache sense)
-        throws GameActionException
-    {
-        if (!rc.hasUpgrade(Upgrade.DEFUSION)) {
-
-        }
-
-        // Let's make use of our telekinesis powers
-
-        return true;
-    }
-
 
     public static void run(RobotController rc)
         throws GameActionException
@@ -182,37 +155,27 @@ public class Soldier
             if (!rc.isActive()) { rc.yield(); continue; }
 
             Navigation nav = new Navigation(rc, sense);
+            Defuse defuse = new Defuse(rc, nav, sense);
             sense.reset();
 
             // System.out.println(
             //         "startLoc=" + rc.getLocation()
             //         + ", prevLoc=" + Navigation.prevLoc);
 
-            // Uh Oh. Standing on a mine! GTFO!
-            if (sense.nonAlliedMine(rc.getLocation()) && rc.getShields() <= 0) {
-                nav.boost(Double.NEGATIVE_INFINITY);
-
-                if (Navigation.prevLoc != null) {
-                    Direction backoff =
-                        rc.getLocation().directionTo(Navigation.prevLoc);
-                    nav.boost(backoff, Weights.MINE_GTFO, true);
-                }
-            }
+            defuse.onMine();
 
             // Time to fight!
             if (isMicro(rc, sense)) {
-                nav.autoDefuse = false;
-
                 if (!combat(rc, nav, sense)) {
                     frontline(rc, nav, sense);
-                    microMines(rc, nav, sense);
+                    defuse.micro();
                 }
 
             }
 
             // It's like herding cats...
             else {
-                nav.autoDefuse = true;
+                defuse.macro();
             }
 
 

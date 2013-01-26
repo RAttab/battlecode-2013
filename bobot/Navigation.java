@@ -11,10 +11,9 @@ public class Navigation
     double directions[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
     double standStill = 0.0;
 
-    double defuse = 0.0;
-    MapLocation defuseLoc;
-
     boolean autoDefuse = true;
+    boolean noDefuse = false;
+    MapLocation defuseLoc = null;
 
     RobotController rc;
     SenseCache sense;
@@ -27,18 +26,10 @@ public class Navigation
     }
 
 
-    void boostDefuse(MapLocation loc, double force)
+    void defuse(MapLocation loc)
     {
-        if (force <= defuse) return;
-
-        defuse = force;
+        // System.out.println("defuseboost: loc=" + loc);
         defuseLoc = loc;
-    }
-
-    void resetDefuse()
-    {
-        defuse = 0.0;
-        defuseLoc = null;
     }
 
     void boost(double force)
@@ -78,6 +69,20 @@ public class Navigation
         directions[dir.ordinal()] = Double.NEGATIVE_INFINITY;
     }
 
+    Direction currentMoveDir()
+    {
+        double max = standStill;
+        Direction dir = null;
+
+        for (int i = 0; i < 8; ++i) {
+            if (max > directions[i]) continue;
+            max = directions[i];
+            dir = Utils.dirByOrd[i];
+        }
+
+        return dir;
+    }
+
     boolean move() throws GameActionException
     {
         if (standStill == Double.POSITIVE_INFINITY)
@@ -92,18 +97,17 @@ public class Navigation
 
             Direction dest = Utils.dirByOrd[i];
             if (!rc.canMove(dest)) continue;
-            if (!autoDefuse && sense.nonAlliedMine(myLoc.add(dest))) continue;
+            if ((noDefuse || !autoDefuse) && sense.nonAlliedMine(myLoc.add(dest)))
+                continue;
 
             max = directions[i];
             dir = dest;
         }
 
-        if (autoDefuse && dir != null && defuseLoc == null) {
-            defuseLoc = rc.getLocation().add(dir);
-            defuse = Double.POSITIVE_INFINITY;
-        }
+        if (!noDefuse && autoDefuse && dir != null)
+            defuse(myLoc.add(dir));
 
-        if (defuseLoc != null && defuse > max && sense.nonAlliedMine(defuseLoc)) {
+        if (!noDefuse && defuseLoc != null && sense.nonAlliedMine(defuseLoc)) {
             rc.defuseMine(defuseLoc);
             return true;
         }

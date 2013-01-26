@@ -18,6 +18,26 @@ public class SenseCache
         return mine == Team.NEUTRAL || mine == rc.getTeam().opponent();
     }
 
+    boolean busy(RobotInfo info)
+    {
+        return info.roundsUntilMovementIdle > 0;
+    }
+
+    boolean robotBusy(MapLocation loc, Team team)
+    {
+        RobotInfo info = robotInfo(loc, team);
+        return info != null ? isBusy(info) : null;
+    }
+
+    RobotInfo robotInfo(MapLocation loc, Team team)
+    {
+        Robot r = (Robot) rc.senseObjectAtLocation(loc);
+        if (r == null) return null;
+
+        RobotInfo info = rc.senseRobotInfo(r);
+        return info.team == team ? info : null;
+    }
+
     // Includes the diagonals!
     public Robot[] adjacentRobots(MapLocation loc, Team team)
         throws GameActionException
