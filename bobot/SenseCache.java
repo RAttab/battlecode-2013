@@ -18,6 +18,7 @@ public class SenseCache
         return mine == Team.NEUTRAL || mine == rc.getTeam().opponent();
     }
 
+    // Includes the diagonals!
     public Robot[] adjacentRobots(MapLocation loc, Team team)
         throws GameActionException
     {

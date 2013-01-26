@@ -24,13 +24,6 @@ public class Soldier
 
     }
 
-    public static boolean isBattleBot(RobotType type)
-    {
-        return type == RobotType.SOLDIER ||
-            type == RobotType.ARTILLERY ||
-            type == RobotType.MEDBAY;
-    }
-
     public static boolean isMicro(RobotController rc, SenseCache sense)
         throws GameActionException
     {
@@ -66,14 +59,15 @@ public class Soldier
             }
 
             // are we moving into the range of other robots?
-            // The extra diff - is to remove the adjacent robots.
+            // The enemy sub is to remove the adjacent robots.
             int strike = sense.strikeRobots(loc, me.opponent()).length - enemies;
 
-            // Staying near allies ups our chance of survival.
+            // Staying near allies ups our chance of survival by allowing us to
+            // kill baddies faster.
             int allies = sense.adjacentRobots(loc, me).length;
 
-            double diff = allies - enemies
-                - (strike * Weights.MICRO_COMBAT_STRIKE)
+            double diff =
+                allies - enemies - (strike * Weights.MICRO_COMBAT_STRIKE)
                 + Weights.MICRO_COMBAT_OFFSET;
 
             diff *= Weights.MICRO_COMBAT_MUL;
@@ -84,6 +78,13 @@ public class Soldier
         }
 
         return true;
+    }
+
+    public static boolean isBattleBot(RobotType type)
+    {
+        return type == RobotType.SOLDIER ||
+            type == RobotType.ARTILLERY ||
+            type == RobotType.MEDBAY;
     }
 
     public static void frontline(
@@ -102,6 +103,7 @@ public class Soldier
             double dist = loc.distanceSquaredTo(myLoc);
 
             // We get first hit
+            // \todo Could allow retreat if we have mines or if we have allies.
             if (dist < 9) {
                 // System.out.println("first-to-hit: charge=" + charge);
                 nav.boost(charge,   Weights.MICRO_FL_FIRST_STRIKE, true);
@@ -109,6 +111,7 @@ public class Soldier
             }
 
             // They get first hit
+            // \todo retreat-stand choice should be based on number of allies.
             else if (dist < 16 || dist == 18) {
                 // System.out.println("second-to-hit: charge=" + charge);
                 nav.boost(Weights.MICRO_FL_SECOND_STRIKE);
@@ -116,33 +119,31 @@ public class Soldier
                 nav.boost(charge, -Weights.MICRO_FL_SECOND_STRIKE, true);
             }
 
-            // no risk, close in.
+            // no risk, close in. Is only invoked when vision is researched.
+            // \todo charge-stand choice should be based on number of allies.
             else {
                 // System.out.println("close-in: charge=" + charge);
                 nav.boost(charge, Weights.MICRO_FL_CLOSE_IN, true);
             }
         }
+
+        // Try to stay near or provide cover for our allies.
+        RobotInfo[] allies = sense.adjacentRobots(myLoc, rc.getTeam());
+
+        for (int i = allies.length; --i >= 0;) {
+            if (!isBattleBot(allies[i].type)) continue;
+
+            Direction dir = myLoc.directionTo(allies[i].location);
+            nav.boost(dir, Weights.MICRO_FL_ALLIES, true);
+        }
+
     }
-
-    public static void microAllies(
-            RobotController rc,
-            Navigation nav,
-            SenseCache sense,
-            boolean isEngaged)
-        throws GameActionException
-    {
-
-    }
-
 
     public static boolean microMines(
             RobotController rc, Navigation nav, SenseCache sense)
         throws GameActionException
     {
-        boolean isDefusing = false;
 
-
-        return isDefusing;
     }
 
 
@@ -175,13 +176,18 @@ public class Soldier
                 }
             }
 
-
+            // Time to fight!
             if (isMicro(rc, sense)) {
                 nav.autoDefuse = false;
 
-                boolean isEngaged = combat(rc, nav, sense);
-                if (!isEngaged) frontline(rc, nav, sense);
+                if (!combat(rc, nav, sense)) {
+                    frontline(rc, nav, sense);
+                    microMines(rc, nav, sense);
+                }
+
             }
+
+            // It's like herding cats...
             else {
                 nav.autoDefuse = true;
             }
