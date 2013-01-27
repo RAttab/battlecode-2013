@@ -15,6 +15,8 @@ public class Soldier
         while (true) {
             if (!rc.isActive()) { rc.yield(); continue; }
 
+            ByteCode.Check bcCheck = new ByteCode.Check(rc);
+
             Navigation nav = new Navigation(rc, sense);
             Defuse defuse = new Defuse(rc, nav, sense);
             sense.reset();
@@ -31,21 +33,18 @@ public class Soldier
 
             // It's like herding cats...
             else {
+                MapLocation loc = rc.senseEnemyHQLocation();
+                Direction dir = rc.getLocation().directionTo(loc);
+                nav.boost(dir, 40.0, true);
+
                 defuse.macro();
             }
 
-
             rc.setIndicatorString(0, nav.debug_print());
             boolean hasMoved = nav.move();
+            if (!hasMoved) Hat.wearHat(rc);
 
-            if (!hasMoved && isHatless) {
-                if (Clock.getBytecodeNum() < 4500 && rc.getTeamPower() > 500) {
-                    System.err.println("I have a hat. I've already won.");
-                    rc.wearHat();
-                    isHatless = false;
-                }
-            }
-
+            bcCheck.debug_check("Soldier.end");
             rc.yield();
         }
     }
