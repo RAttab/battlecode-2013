@@ -27,7 +27,10 @@ public class SoldierMicro
 
     void fight() throws GameActionException
     {
-        if (combat()) return;
+        if (combat()) {
+            nav.autoDefuse = false;
+            return;
+        }
 
         frontline();
         defuse.micro();

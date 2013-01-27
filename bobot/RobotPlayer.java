@@ -89,7 +89,11 @@ public class RobotPlayer
     {
         while (true) {
             try {
-                if (rc.getType() == RobotType.SOLDIER) experiment(rc); // Soldier.run(rc);
+                if (rc.getType() == RobotType.SOLDIER) {
+                    //experiment(rc);
+                    Soldier.run(rc);
+                }
+
                 if (rc.getType() == RobotType.HQ) {
 
                     if (!rc.hasUpgrade(Upgrade.DEFUSION))

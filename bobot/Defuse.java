@@ -32,11 +32,6 @@ public class Defuse
         nav.boost(backoff, Weights.MINE_GTFO, true);
     }
 
-    boolean engaged()
-    {
-
-    }
-
 
     /** Note that while we may be in micro mode, we aren't in contact with the
         enemy.
@@ -66,7 +61,7 @@ public class Defuse
         // Try to form a pattern where every other robot is mining.
         // Allows us to make forward progress without dying horribly.
         MapLocation left = myLoc.add(dir.rotateLeft().rotateLeft());
-        if (sense.robotMining(left, me)) return false;
+        if (sense.robotBusy(left, me)) return false;
 
         nav.defuse(inFront);
         return true;
@@ -86,7 +81,7 @@ public class Defuse
         // If you're in front of the mine field, wait for the telekinesis
         // support to defuse the mine.
         if (sense.nonAlliedMine(inFront)) {
-            if (sense.robotInfo(behind, me)) return false;
+            if (sense.robotInfo(behind, me) != null) return false;
 
             // We have no telekinesis support so revert to default behaviour.
             return micro(dir);
@@ -99,11 +94,11 @@ public class Defuse
         if (ally == null) ally = sense.robotInfo(twoAway, me);
 
         // No mines and no-one to help out...
-        if (ally == null) return false
+        if (ally == null) return false;
 
 
         // If our ally is mining then our heuristic says he's mining twoAway.
-        if (sense.isBusy(ally)) {
+        if (sense.busy(ally)) {
             // This prevents the introduction of a bad defusion cycle where your
             // ally finishes to defuse before you, moves on, notices that nobody
             // is backing him up and starts defusing again.
@@ -142,7 +137,7 @@ public class Defuse
         MapLocation myLoc = rc.getLocation();
 
         MapLocation behind = myLoc.add(dir.opposite());
-        MapLocation twoBehind = behind.add(dir.oposite());
+        MapLocation twoBehind = behind.add(dir.opposite());
 
         MapLocation inFront = myLoc.add(dir);
         MapLocation twoAway = inFront.add(dir);

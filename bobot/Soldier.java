@@ -28,7 +28,7 @@ public class Soldier
             defuse.onMine();
 
             // Time to fight!
-            if (SoldierMicro.isMicro(rc, sense))
+            if (SoldierMicro.isMicro(sense))
                 new SoldierMicro(rc, nav, sense, defuse).fight();
 
             // It's like herding cats...

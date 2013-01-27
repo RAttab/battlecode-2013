@@ -125,8 +125,13 @@ public class Navigation
         for (int i = 0; i < directions.length; ++i)
             str += directions[i] + ", ";
         str += "}";
-        str += ", defuse={" + defuse + ", " + defuseLoc + "}";
-        str += ", auto=" + autoDefuse;
+
+        str += ", defuse=";
+        if (noDefuse) str += "banned";
+        else if (defuseLoc != null) str += defuseLoc;
+        else if (autoDefuse) str += "auto";
+        else str += "nil";
+
         return str;
     }
 

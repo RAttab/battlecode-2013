@@ -18,15 +18,22 @@ public class SenseCache
         return mine == Team.NEUTRAL || mine == rc.getTeam().opponent();
     }
 
+    MapLocation[] adjacentNonAlliedMines(MapLocation loc)
+        throws GameActionException
+    {
+        return rc.senseNonAlliedMineLocations(loc, 2);
+    }
+
     boolean busy(RobotInfo info)
     {
         return info.roundsUntilMovementIdle > 0;
     }
 
     boolean robotBusy(MapLocation loc, Team team)
+        throws GameActionException
     {
         RobotInfo info = robotInfo(loc, team);
-        return info != null ? isBusy(info) : null;
+        return info != null ? busy(info) : false;
     }
 
     boolean battleBot(RobotInfo info)
@@ -38,6 +45,7 @@ public class SenseCache
     }
 
     RobotInfo robotInfo(MapLocation loc, Team team)
+        throws GameActionException
     {
         Robot r = (Robot) rc.senseObjectAtLocation(loc);
         if (r == null) return null;
