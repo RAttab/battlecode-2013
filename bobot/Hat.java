@@ -2,14 +2,15 @@ package bobot;
 
 import battlecode.common.*;
 
-/** Controls the all important hat wearing logic.
+/** Controls all the important hat wearing logistics.
 
     Wearing hat sure is hard work now though...
  */
 public class Hat
 {
     // I know this sounds like heresy but we can't afford 40 in the early game.
-    private static double HAT_POWER_THRESHOLD = 500.0;
+    private static double POWER_THRESHOLD = 500.0;
+    private static int BYTECODE_THRESHOLD = 4500;
 
     private static boolean hatless = true;
 
@@ -17,13 +18,12 @@ public class Hat
         throws GameActionException
     {
         if (!hatless) return;
-        if (Clock.getBytecodeNum() >= 4500) return;
-        if (rc.getTeamPower() < HAT_POWER_THRESHOLD) return;
+        if (Clock.getBytecodeNum() >= BYTECODE_THRESHOLD) return;
+        if (rc.getTeamPower() < POWER_THRESHOLD) return;
 
-        System.err.println("I have a hat. Your victory is meaningless.");
+        System.err.println("I have a hat. This battle is now meaningless.");
         rc.wearHat();
         hatless = false;
-
     }
 
 }
