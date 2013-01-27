@@ -15,6 +15,8 @@ public class Soldier
         while (true) {
             if (!rc.isActive()) { rc.yield(); continue; }
 
+            ByteCode.Check bcCheck = new ByteCode.Check(rc);
+
             Navigation nav = new Navigation(rc, sense);
             Defuse defuse = new Defuse(rc, nav, sense);
             sense.reset();
@@ -38,10 +40,11 @@ public class Soldier
                 defuse.macro();
             }
 
-
             rc.setIndicatorString(0, nav.debug_print());
             boolean hasMoved = nav.move();
             if (!hasMoved) Hat.wearHat(rc);
+
+            bcCheck.debug_check("Soldier.end");
             rc.yield();
         }
     }
