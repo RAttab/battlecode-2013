@@ -85,6 +85,25 @@ public class SenseCache
         return rc.senseNearbyGameObjects(Robot.class, loc, 8, team);
     }
 
+
+    public RobotInfo[] allEnemies()
+        throws GameActionException
+    {
+        final int SAMPLE_SIZE = 10;
+
+        Robot[] enemies = rc.senseNearbyGameObjects(
+                Robot.class, Integer.MAX_VALUE, rc.getTeam().opponent());
+
+        int steps = Utils.ceilDiv(enemies.length, SAMPLE_SIZE);
+        int length = enemies.length / steps;
+
+        RobotInfo[] info = new RobotInfo[length];
+        for (int i = info.length; --i >= 0;)
+            info[i] = rc.senseRobotInfo(enemies[i*steps]);
+
+        return info;
+    }
+
     private RobotInfo[] nearbyEnemiesCache = null;
     public RobotInfo[] nearbyEnemies()
         throws GameActionException
@@ -102,16 +121,11 @@ public class SenseCache
     }
 
 
-    private int nearbyAlliesTs = 0;
     private RobotInfo[] nearbyAlliesCache = null;
-
-    public RobotInfo[] nearbyAllies(int tolerance)
+    public RobotInfo[] nearbyAllies()
         throws GameActionException
     {
-        if (tolerance > 0 && ts - nearbyAlliesTs < tolerance)
-            return nearbyAlliesCache;
-
-        nearbyAlliesTs = ts;
+        if (nearbyAlliesCache != null) return nearbyAlliesCache;
 
         Robot[] allies = rc.senseNearbyGameObjects(
                 Robot.class, sightRadius, rc.getTeam());
@@ -130,13 +144,12 @@ public class SenseCache
     public void reset()
     {
         ts = Clock.getRoundNum();
+        nearbyAlliesCache = null;
         nearbyEnemiesCache = null;
 
         if (!sightAdjusted && rc.hasUpgrade(Upgrade.VISION)) {
             sightAdjusted = true;
             sightRadius += GameConstants.VISION_UPGRADE_BONUS;
-
-            nearbyAlliesTs = 0;
         }
     }
 
