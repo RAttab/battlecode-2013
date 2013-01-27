@@ -9,6 +9,13 @@ public class Utils
     public static final int dirOrdMask = (8 - 1);
 
     // These are just arbitrary values, feel free to change
+
+    // TODO : four channels per message is way overkill. I've thought about it, and
+        // I'm not even sure two channels is right. We want to minimize our exposure
+        // to minimize the odds of our messages being messed with. If, for example, I
+        // want to use a hash system of four digits followed by a 7 to say something about
+        // a certain maplocation, and end up putting up 20 messages, we're taking up 80 channels
+        // already.
     private static final int OFFSET_CHANNEL_1 = 235;
     private static final int OFFSET_CHANNEL_2 = 61234;
     private static final int OFFSET_BACKUP_CHANNEL_1 = 9234;

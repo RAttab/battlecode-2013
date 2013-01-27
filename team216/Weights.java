@@ -64,6 +64,9 @@ public class Weights
     public static final double DEF_RATIO    = 4;
     public static final double STRAT_RATIO  = 3;
 
+    public static final double ATTACK_CAMP  = 10.0;
+    public static final double MAX_DPS      = 10.0;
+
     // public static final double SUPPLIER_SUM  = SUPPLIER;
     // public static final double GENERATOR_SUM = GENERATOR + SUPPLIER_SUM;
 
