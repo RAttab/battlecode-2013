@@ -23,11 +23,19 @@ bin_dir = install_dir + "/bin"
 team_dir = install_dir + "/teams"
 ga_path = team_dir + "/ga_%d/Weights.java"
 
-pop_size = 30
+populations = 3
+pop_size = 20
+
 # optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'CAPTURE']
-maps = ['maze1', 'lilforts', 'jacket', 'smiles']
-oponents = ['team216', 'nuclear', 'rusher']
-workers = 2
+maps = ['maze1', 'lilforts', 'jacket', 'smiles', 'Cairo', 'Chicago', 'caves',\
+    'questionable', 'spiral', 'zigzag', 'zugzwang', 'simple', 'backdooor', \
+    'choices', 'smiley', 'boxes', 'lol', 'five', 'map-20-20-empty', 'map-20-20-mountain'\
+    'map-25-23-encamp_or_direct', 'map-20-20-square-o-doom', 'map-35-35-sneaky', 'SpecialMarc']
+
+control_oponents = ['team216', 'nuclear', 'rusher']
+control_maps = ['Chicago', 'Wellington', 'map-20-20-empty']
+
+workers = 15
 
 template = ""
 with open("../weights.tpl", 'r') as f:
@@ -149,36 +157,61 @@ def write_pop(pop):
 def gen_battles():
     battles = []
 
-    for i in range(pop_size):
-        for j in range(len(maps)):
-            for k in range(len(oponents)):
-                battles.append({'id': i * len(maps) + j,
+    for i in range(populations):
+        for j in range(pop_size-1):
+            for k in range(j+1, pop_size):
+                x = i*pop_size+j
+                y = i*pop_size+k
+                m = random.randrange(len(maps))
+                battles.append({'id': (x+1)*1000 + y,
                                 'type': 'local',
-                                'bc.game.maps': maps[j],
-                                'bc.game.team-a': 'ga_%d' % i,
-                                'bc.game.team-b': oponents[k],
-                                'bc.server.save-file': "ga_%d.rms" % i})
+                                'bc.game.maps': maps[m],
+                                'bc.game.team-a': 'ga_{}'.format(x),
+                                'bc.game.team-b': 'ga_{}'.format(y),
+                                'bc.server.save-file': "ga_{}_vs_ga{}.rms".format(x,y)})
+    for i in range(populations*pop_size):
+        for j in range(control_oponents):
+                battles.append({'id': (i+1)*1000 + j + populations*pop_size,
+                                'type': 'local',
+                                'bc.game.maps': control_maps[j],
+                                'bc.game.team-a': 'ga_{}'.format(i),
+                                'bc.game.team-b': '{}'.format(control_oponents[j]),
+                                'bc.server.save-file': "ga_{}_vs_{}.rms".format(i, control_oponents[j])})
+
     return battles
 
 
 def bot_index(name):
     return int(name[3:]) if name.startswith('ga_') else -1
 
+def parse_result(i):
+    b = i % 1000
+    a = (i-b) / 1000
+    a = "ga_{}".format(a)
+    if b > populations * pop_size:
+        b = control_oponents[b - populations*pop_size]
+    else:
+        b = "ga_{}".format(b)
 
 def rank_pop(pop, results, generation = 0):
     cumul = {}
 
     for result in results:
-        g = result['id'] / len(maps)
+        a, b = parse_result(result['id'])
 
         winner = result['combatResult']['winnerTeam']
+        rounds = result['combatResult']['maxRound']
+        s = 100 + (2500. - rounds)/rounds # round number just used for tiebreaks
+        if winner == 'A':
+            if a[:2] == 'ga':
+                a in cumul ? cumul[a] = s : cumul[a] += s
+        else
+            if b[:2] == 'ga':
+                b in cumul ? cumul[b] = s : cumul[b] += s
+
+        g = result['id'] / len(maps)
+
         assert winner == 'B' or winner == 'A'
-
-        score = result['combatResult']['maxRound']
-        if winner == 'B': score = (2500 - score) + 2500
-
-        if g in cumul: cumul[g] += score
-        else: cumul[g] = score
 
 
     ranks = [(index, cumul[index]) for index in cumul.keys()]
