@@ -37,15 +37,7 @@ public class Soldier
 
             rc.setIndicatorString(0, nav.debug_print());
             boolean hasMoved = nav.move();
-
-            if (!hasMoved && isHatless) {
-                if (Clock.getBytecodeNum() < 4500 && rc.getTeamPower() > 500) {
-                    System.err.println("I have a hat. I've already won.");
-                    rc.wearHat();
-                    isHatless = false;
-                }
-            }
-
+            if (!hasMoved) Hat.wearHat(rc);
             rc.yield();
         }
     }
