@@ -60,7 +60,7 @@ public class Headquarter
         // This one is just for you Max <3
         return
             research(rc, Upgrade.DEFUSION) ||
-            research(rc, Upgrade.VISION) ||
+            // research(rc, Upgrade.VISION) ||
             (allowNuke && research(rc, Upgrade.NUKE));
     }
 
