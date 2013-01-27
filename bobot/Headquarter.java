@@ -27,6 +27,8 @@ public class Headquarter
             RobotController rc, SenseCache sense, boolean ignoreMines)
         throws GameActionException
     {
+        if (rc.getTeamPower() < 2.0) return false;
+
         MapLocation myLoc = rc.getLocation();
         Direction dir = myLoc.directionTo(rc.senseEnemyHQLocation());
         int dirOrd = dir.ordinal();
@@ -52,13 +54,14 @@ public class Headquarter
         return true;
     }
 
-    private static boolean research(RobotController rc)
+    private static boolean research(RobotController rc, boolean allowNuke)
         throws GameActionException
     {
         // This one is just for you Max <3
         return
             research(rc, Upgrade.DEFUSION) ||
-            research(rc, Upgrade.VISION);
+            research(rc, Upgrade.VISION) ||
+            (allowNuke && research(rc, Upgrade.NUKE));
     }
 
 
@@ -78,11 +81,9 @@ public class Headquarter
 
             if (nextSpawn < 0) nextSpawn = round + 5;
 
-            if (nextSpawn <= round || !research(rc)) {
+            if (nextSpawn <= round || !research(rc, false)) {
                 if (!spawn(rc, sense, false) && !spawn(rc, sense, true)) {
-                    System.out.println(
-                            "Got trolled again... Nuke-bot all the way!");
-                    rc.researchUpgrade(Upgrade.NUKE);
+                    research(rc, true);
                 }
             }
 
