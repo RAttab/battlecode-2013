@@ -28,7 +28,6 @@ public class Navigation
 
     void defuse(MapLocation loc)
     {
-        // System.out.println("defuseboost: loc=" + loc);
         defuseLoc = loc;
     }
 
@@ -104,7 +103,7 @@ public class Navigation
             dir = dest;
         }
 
-        if (!noDefuse && autoDefuse && dir != null)
+        if (!noDefuse && autoDefuse && defuseLoc == null && dir != null)
             defuse(myLoc.add(dir));
 
         if (!noDefuse && defuseLoc != null && sense.nonAlliedMine(defuseLoc)) {
