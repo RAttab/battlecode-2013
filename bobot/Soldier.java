@@ -27,18 +27,10 @@ public class Soldier
 
             defuse.onMine();
 
-            // Time to fight!
             if (SoldierMicro.isMicro(sense))
                 new SoldierMicro(rc, nav, sense, defuse).fight();
-
-            // It's like herding cats...
-            else {
-                MapLocation loc = rc.senseEnemyHQLocation();
-                Direction dir = rc.getLocation().directionTo(loc);
-                nav.boost(dir, 40.0, true);
-
-                defuse.macro();
-            }
+            else
+                new SoldierMacro(rc, nav, sense, defuse).formup();
 
             rc.setIndicatorString(0, nav.debug_print());
             boolean hasMoved = nav.move();
