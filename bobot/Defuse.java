@@ -33,7 +33,7 @@ public class Defuse
         if (!sense.nonAlliedMine(rc.getLocation()) || rc.getShields() > 0)
             return;
 
-        debug_string(false, "onMine");
+        debug_string(false, "onMine, prevLoc=" + Navigation.prevLoc);
 
         // Uh Oh. Standing on a mine! GTFO!
         nav.noDefuse = true; // I feel safer having this flag in nav.
@@ -117,7 +117,8 @@ public class Defuse
 
         // This allows us to defuse a mine that our ally just stepped on while
         // still allowing him to retreat.
-        if (ally == null) ally = sense.robotInfo(twoAway, me);
+        if (ally == null && sense.nonAlliedMine(twoAway))
+            ally = sense.robotInfo(twoAway, me);
 
         // No mines and no-one to help out...
         if (ally == null) {
@@ -194,11 +195,20 @@ public class Defuse
 
             // If there's an ally behind us then the heuristic says he's
             // defusing the mine in front of us.
-            if (sense.busy(ally) && sense.nonAlliedMine(twoAway)) {
+            if (sense.nonAlliedMine(twoAway) && sense.busy(ally)) {
                 nav.defuse(twoAway);
                 debug_string(false,
                         "mine-2 " + dir + ", ally-busy " + ally.robot.getID());
                 return true;
+            }
+
+            // If our ally is busy then the heuristic says he's mining our mine
+            // so disable auto-defuse to avoid double-defusion.
+            if (sense.busy(ally)) {
+                debug_string(false,
+                        "mine-1 " + dir + ", ally-busy " + ally.robot.getID());
+                nav.autoDefuse = false;
+                return false;
             }
 
             debug_string(false,
@@ -210,7 +220,8 @@ public class Defuse
 
         // This allows us to defuse a mine that our ally just stepped on while
         // still allowing him to retreat.
-        if (ally == null) ally = sense.robotInfo(twoAway, me);
+        if (ally == null && sense.nonAlliedMine(twoAway))
+            ally = sense.robotInfo(twoAway, me);
 
         // No mines and no-one to help out...
         if (ally == null) {
@@ -231,6 +242,7 @@ public class Defuse
             return true;
         }
 
+        debug_string(false, "noop");
         return false;
     }
 

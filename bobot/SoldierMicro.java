@@ -140,6 +140,7 @@ public class SoldierMicro
         MapLocation[] mines = sense.adjacentNonAlliedMines(myLoc);
         for (int i = mines.length; --i >= 0;) {
             Direction dir = myLoc.directionTo(mines[i]);
+            if (dir == Direction.OMNI) continue;
             nav.boost(dir, Weights.MICRO_FL_MINES, false);
         }
 
