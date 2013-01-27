@@ -25,12 +25,12 @@ public class Weights
     static final double MACRO_RALLY_POINT = 3.0;
     static final double MACRO_RALLY_MY_GROUP = 1.0;
     static final double MACRO_RALLY_OTHER_GROUP = -1.0;
-    static final double MACRO_RALLY_HQ = -200.0;
+    static final double MACRO_RALLY_HQ = -20.0;
     static final double MACRO_CHARGE_GROUP_SIZE = 2.0;
-    static final double MACRO_CHARGE_HQ = 400.0;
+    static final double MACRO_CHARGE_HQ = 40.0;
     static final double MACRO_CHARGE_ENEMIES = 5.0;
-    static final double MACRO_CHARGE_MY_GROUP = 0.3;
-    static final double MACRO_CHARGE_OTHER_GROUP = -1.0;
-    static final double MACRO_CHARGE_MINES = -0.1;
+    static final double MACRO_CHARGE_MY_GROUP = 0.5;
+    static final double MACRO_CHARGE_OTHER_GROUP = -0.3;
+    static final double MACRO_CHARGE_MINES = -0.3;
     
 }

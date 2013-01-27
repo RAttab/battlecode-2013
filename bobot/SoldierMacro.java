@@ -24,7 +24,7 @@ public class SoldierMacro
     private void boost(MapLocation loc, double weights)
     {
         MapLocation myLoc = rc.getLocation();
-        double force = (1.0 / myLoc.distanceSquaredTo(loc)) * weights;
+        double force = (1.0 / Math.sqrt(myLoc.distanceSquaredTo(loc))) * weights;
         nav.boost(myLoc.directionTo(loc), force, true);
     }
 
