@@ -31,6 +31,10 @@ public class Soldier
 
             // It's like herding cats...
             else {
+                MapLocation loc = rc.senseEnemyHQLocation();
+                Direction dir = rc.getLocation().directionTo(loc);
+                nav.boost(dir, 40.0, true);
+
                 defuse.macro();
             }
 
