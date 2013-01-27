@@ -18,6 +18,43 @@ public class SenseCache
         return mine == Team.NEUTRAL || mine == rc.getTeam().opponent();
     }
 
+    MapLocation[] adjacentNonAlliedMines(MapLocation loc)
+        throws GameActionException
+    {
+        return rc.senseNonAlliedMineLocations(loc, 2);
+    }
+
+    boolean busy(RobotInfo info)
+    {
+        return info.roundsUntilMovementIdle > 0;
+    }
+
+    boolean robotBusy(MapLocation loc, Team team)
+        throws GameActionException
+    {
+        RobotInfo info = robotInfo(loc, team);
+        return info != null ? busy(info) : false;
+    }
+
+    boolean battleBot(RobotInfo info)
+    {
+        return
+            info.type == RobotType.SOLDIER ||
+            info.type == RobotType.ARTILLERY ||
+            info.type == RobotType.MEDBAY;
+    }
+
+    RobotInfo robotInfo(MapLocation loc, Team team)
+        throws GameActionException
+    {
+        Robot r = (Robot) rc.senseObjectAtLocation(loc);
+        if (r == null) return null;
+
+        RobotInfo info = rc.senseRobotInfo(r);
+        return info.team == team ? info : null;
+    }
+
+    // Includes the diagonals!
     public Robot[] adjacentRobots(MapLocation loc, Team team)
         throws GameActionException
     {
