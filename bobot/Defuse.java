@@ -75,8 +75,6 @@ public class Defuse
         MapLocation myLoc = rc.getLocation();
         MapLocation behind = myLoc.add(dir.opposite());
         MapLocation inFront = myLoc.add(dir);
-        MapLocation twoAway = inFront.add(dir);
-        MapLocation threeAway = twoAway.add(dir);
 
         // If you're in front of the mine field, wait for the telekinesis
         // support to defuse the mine.
@@ -86,6 +84,9 @@ public class Defuse
             // We have no telekinesis support so revert to default behaviour.
             return micro(dir);
         }
+
+        MapLocation twoAway = inFront.add(dir);
+        MapLocation threeAway = twoAway.add(dir);
 
         RobotInfo ally = sense.robotInfo(inFront, me);
 
