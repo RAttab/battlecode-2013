@@ -25,7 +25,7 @@ ga_path = team_dir + "/ga_%d/Weights.java"
 
 pop_size = 30
 # optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'CAPTURE']
-maps = ['maze1', 'lilforts', 'jacket', 'smiles']
+maps = ['maze1', 'lilforts', 'jacket', 'smiley']
 oponents = ['team216', 'nuclear', 'rusher']
 workers = 2
 
