@@ -5,13 +5,11 @@ import battlecode.common.*;
 
 public class Soldier
 {
+    static boolean isHatless = true;
 
     public static void run(RobotController rc)
         throws GameActionException
     {
-        // Never leave home without it!
-        rc.wearHat();
-
         SenseCache sense = new SenseCache(rc);
 
         while (true) {
@@ -38,7 +36,16 @@ public class Soldier
 
 
             rc.setIndicatorString(0, nav.debug_print());
-            nav.move();
+            boolean hasMoved = nav.move();
+
+            if (!hasMoved && isHatless) {
+                if (Clock.getBytecodeNum() < 4500 && rc.getTeamPower() > 500) {
+                    System.err.println("I have a hat. I've already won.");
+                    rc.wearHat();
+                    isHatless = false;
+                }
+            }
+
             rc.yield();
         }
     }
