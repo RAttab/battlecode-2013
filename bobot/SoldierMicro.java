@@ -136,6 +136,13 @@ public class SoldierMicro
             nav.boost(dir, Weights.MICRO_FL_ALLIES, true);
         }
 
+        // Avoid stepping on mines unless necessary.
+        MapLocation[] mines = sense.adjacentNonAlliedMines(myLoc);
+        for (int i = mines.length; --i >= 0;) {
+            Direction dir = myLoc.directionTo(mines[i]);
+            nav.boost(dir, Weights.MICRO_FL_MINES, false);
+        }
+
     }
 
 }
