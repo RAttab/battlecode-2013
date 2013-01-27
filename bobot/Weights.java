@@ -15,8 +15,9 @@ public class Weights
     public static double MICRO_FL_SECOND_STRIKE = 2.0;
     public static double MICRO_FL_RETREAT       = 0.5;
     public static double MICRO_FL_CLOSE_IN      = 1.0;
-    public static double MICRO_FL_ALLIES        = 1.0;
+    public static double MICRO_FL_ALLIES        = 0.5;
     public static double MICRO_FL_MINES         = -2.0;
+    public static double MICRO_FL_ENEMY_HQ      = 2.0;
 
-    public static double MINE_GTFO = 1.0;
+    public static double MINE_GTFO = 3.0;
 }

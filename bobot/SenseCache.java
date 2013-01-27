@@ -2,6 +2,18 @@ package bobot;
 
 import battlecode.common.*;
 
+/** Note that while this started as a caching mechanism for the sense call it
+    doesn't do much of that right now. Right now it provides a nice and clean
+    interface to the RobotController's sense interface and hides away some of
+    the uglyness.
+
+    While it can still do caching just fine, make sure its really worth it
+    before adding it. Cache invalidation isn't free and if it's never actually
+    reused then it's wasted. I recommend only doing caching when it was tested
+    (use the ByteCode class) and confirmed that there's a saving to be had.
+
+    Feel free to abstract any other ugly interfacs using this class.
+ */
 public class SenseCache
 {
     RobotController rc;
@@ -9,6 +21,11 @@ public class SenseCache
     SenseCache(RobotController rc)
     {
         this.rc = rc;
+    }
+
+    double sight()
+    {
+        return sightRadius;
     }
 
     boolean nonAlliedMine(MapLocation loc)

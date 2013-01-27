@@ -35,7 +35,7 @@ public class Soldier
             else {
                 MapLocation loc = rc.senseEnemyHQLocation();
                 Direction dir = rc.getLocation().directionTo(loc);
-                nav.boost(dir, 40.0, true);
+                nav.boost(dir, 1.0, true);
 
                 defuse.macro();
             }
