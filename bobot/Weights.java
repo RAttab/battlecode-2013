@@ -32,5 +32,17 @@ public class Weights
     static final double MACRO_CHARGE_MY_GROUP = 0.5;
     static final double MACRO_CHARGE_OTHER_GROUP = -0.3;
     static final double MACRO_CHARGE_MINES = -0.3;
+
+    static final double MACRO_GET_CAMPS = 25;
+
+    //capture stuff
+    static final double ARTILLERY = 0.5;
+    static final double MEDBAY = 0.5;
+    public static final double SOLDIER_VAL = 1.05;
+    public static final double MIL_CAMP_VAL = 1.5;
+    public static final double MILITARY_DROP = 0.3;
+    public static final double MIL_MAPSIZE = 0.01;
+    public static final double STRAT_RATIO = 0.8;
+    public static final double DEF_RATIO = 1-STRAT_RATIO;
     
 }
