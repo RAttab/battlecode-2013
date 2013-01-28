@@ -97,6 +97,20 @@ public class SoldierMicro
             nav.boost(dir, Weights.MICRO_FL_ENEMY_HQ, true);
         }
 
+        // Try to stay near or provide cover for our allies.
+        Robot[] allies = sense.adjacentRobots(myLoc, rc.getTeam());
+        double force = Weights.MICRO_FL_ALLIES / allies.length;
+        int numAllies = 0;
+        for (int i = allies.length; --i >= 0;) {
+            RobotInfo info = rc.senseRobotInfo(allies[i]);
+            if (!sense.battleBot(info)) continue;
+
+            Direction dir = myLoc.directionTo(info.location);
+            nav.boost(dir, force, true);
+
+            numAllies++;
+        }
+
         RobotInfo[] enemies = sense.nearbyEnemies();
         for (int i = enemies.length; --i >= 0;) {
             if (!sense.battleBot(enemies[i])) continue;
@@ -120,7 +134,16 @@ public class SoldierMicro
                 // System.out.println("second-to-hit: charge=" + charge);
                 nav.boost(Weights.MICRO_FL_SECOND_STRIKE);
                 nav.boost(retreat, Weights.MICRO_FL_RETREAT, true);
-                nav.boost(charge, -Weights.MICRO_FL_SECOND_STRIKE, true);
+
+                if (enemies[i].type != RobotType.SOLDIER)
+                    nav.boost(charge, Weights.MICRO_FL_CHARGE_BASES, true);
+
+                else if (numAllies >= Weights.MICRO_FL_CHARGE_THRESH)
+                    nav.boost(charge, Weights.MICRO_FL_SECOND_STRIKE, true);
+
+                else
+                    nav.boost(charge, -Weights.MICRO_FL_SECOND_STRIKE, true);
+
             }
 
             // no risk, close in. Is only invoked when vision is researched.
@@ -129,18 +152,6 @@ public class SoldierMicro
                 // System.out.println("close-in: charge=" + charge);
                 nav.boost(charge, Weights.MICRO_FL_CLOSE_IN, true);
             }
-        }
-
-        // Try to stay near or provide cover for our allies.
-        Robot[] allies = sense.adjacentRobots(myLoc, rc.getTeam());
-        double force = Weights.MICRO_FL_ALLIES / allies.length;
-
-        for (int i = allies.length; --i >= 0;) {
-            RobotInfo info = rc.senseRobotInfo(allies[i]);
-            if (!sense.battleBot(info)) continue;
-
-            Direction dir = myLoc.directionTo(info.location);
-            nav.boost(dir, force, true);
         }
 
         // Avoid stepping on mines unless necessary.
