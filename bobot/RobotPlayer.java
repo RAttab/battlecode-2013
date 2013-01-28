@@ -95,12 +95,7 @@ public class RobotPlayer
                 }
 
                 if (rc.getType() == RobotType.HQ) {
-
-                    if (!rc.hasUpgrade(Upgrade.DEFUSION))
-                        rc.researchUpgrade(Upgrade.DEFUSION);
-
-                    else if (!rc.hasUpgrade(Upgrade.VISION))
-                        rc.researchUpgrade(Upgrade.VISION);
+                    Headquarter.run(rc);
                 }
             }
             catch(Exception e) { e.printStackTrace(); }

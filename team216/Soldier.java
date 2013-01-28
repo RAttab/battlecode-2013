@@ -48,14 +48,17 @@ public class Soldier
         for (int i = mines.length-1; i >= 0; i -= steps) {
                 Direction dir = coord.directionTo(mines[i]);
                 double weight = w/coord.distanceSquaredTo(mines[i]);
-
-            try{
-                dirs[dir.ordinal()] += weight;
-            } catch (Exception e) {System.err.println("mines[i]=" + mines[i]);
-                                    System.err.println("dir=" + dir);
-                                    System.err.println("ordinal=" + dir.ordinal());
-                                    rc.breakpoint();
-            }
+            // try{
+                if (dir.ordinal() < 8) // TODO : THIS IS BECAUSE OF A BUG IN STORAGE
+                    dirs[dir.ordinal()] += weight;
+            // } catch (Exception e) {
+            //     for (int j=mines.length-1; --j>=0;)
+            //         System.err.println(j + ": " + mines[j] + " " + rc.senseMine(mines[j]));
+            //                         System.err.println("mines[" + i + "]=" + mines[i]);
+            //                         System.err.println("dir=" + dir);
+            //                         System.err.println("ordinal=" + dir.ordinal());
+            //                         rc.breakpoint();
+            // }
         }
         for (int i=dirs.length-1; --i >= 0;){
             if (dirs[i] != 0)
@@ -371,7 +374,7 @@ public class Soldier
     }
 
     // TODO : another communication thing
-    public static void evilArtillery(RobotController rc, int[] strength, double weight) {
+    public static void evilArtillery(RobotController rc, double[] strength, double weight) {
 
     }
 
@@ -404,6 +407,32 @@ public class Soldier
         // }
         double minesNearbyFactor = Weights.NEARBY_MINE * ((LC_RADIUS/2)-(minesNearby));
         return mineStr + minesNearbyFactor;
+    }
+
+    public static void tactics(RobotController rc, MapLocation coord, double[] strength) 
+            throws GameActionException {
+        Team evil = rc.getTeam().opponent();
+
+        // TODO : prioritize encampments?
+            // line below won't work, you can't pass it the enemy team unfortunately
+        // MapLocation[] badCamps = rc.senseEncampmentSquares(coord, LC_RADIUS, evil);
+        // if (badCamps.length > 0) {
+        //     int steps = Utils.ceilDiv(badCamps.length, MAX_BASES);
+        //     for (int i=0; i<badCamps.length; ++i){
+        //         strengthen(strength, coord.directionTo(badCamps[i]), 
+        //             Weights.ATTACK_CAMP/Utils.distTwoPoints(badCamps[i], coord));
+        //     }
+        // }
+
+        // TODO : optimize DPS
+        // for (int i=7; --i>=0;){
+        //     MapLocation p = coord.add(Utils.dirByOrd[i]);
+        //     if (rc.canMove(p) {
+        //         Robot[] enemies = (Robot) senseNearbyGameObjects(Robot.class, 1, evil);
+        //         double dmgDealt = 
+        //     }
+        // }
+        
     }
 
 
@@ -459,17 +488,19 @@ public class Soldier
                 globalRobots(rc, coord, strength, Weights.GL_ENEMY_SD);
                 debug_checkBc(rc, "global-robot");
 
-                //TODO: defensiveMines(rc, coord, strength);
             }
             else {
                 mines(rc, coord, strength, Weights.BATTLE_MINE, LC_RADIUS);
                 debug_checkBc(rc, "battle-mine");
 
                 allyBases(rc, coord, strength);
-                debug_checkBc(rc, "ally-base");
+                debug_checkBc(rc, "ally-base"); // TODO : fix this method, and make it non-combat
 
                 battleFormation(rc, coord, strength, Storage.MY_TEAM);
                 debug_checkBc(rc, "battle-formation");
+
+                // tactics(rc, coord, strength);
+                // debug_checkBc(rc, "tactics");
             }
 
             // Compute the final direction.

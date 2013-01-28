@@ -90,8 +90,14 @@ public class SoldierMicro
     private void frontline() throws GameActionException
     {
         MapLocation myLoc = rc.getLocation();
-        RobotInfo[] enemies = sense.nearbyEnemies();
 
+        MapLocation enemyHq = rc.senseEnemyHQLocation();
+        if (enemyHq.distanceSquaredTo(myLoc) <= sense.sight()) {
+            Direction dir = myLoc.directionTo(enemyHq);
+            nav.boost(dir, Weights.MICRO_FL_ENEMY_HQ, true);
+        }
+
+        RobotInfo[] enemies = sense.nearbyEnemies();
         for (int i = enemies.length; --i >= 0;) {
             if (!sense.battleBot(enemies[i])) continue;
 
@@ -127,19 +133,21 @@ public class SoldierMicro
 
         // Try to stay near or provide cover for our allies.
         Robot[] allies = sense.adjacentRobots(myLoc, rc.getTeam());
+        double force = Weights.MICRO_FL_ALLIES / allies.length;
 
         for (int i = allies.length; --i >= 0;) {
             RobotInfo info = rc.senseRobotInfo(allies[i]);
             if (!sense.battleBot(info)) continue;
 
             Direction dir = myLoc.directionTo(info.location);
-            nav.boost(dir, Weights.MICRO_FL_ALLIES, true);
+            nav.boost(dir, force, true);
         }
 
         // Avoid stepping on mines unless necessary.
         MapLocation[] mines = sense.adjacentNonAlliedMines(myLoc);
         for (int i = mines.length; --i >= 0;) {
             Direction dir = myLoc.directionTo(mines[i]);
+            if (dir == Direction.OMNI) continue;
             nav.boost(dir, Weights.MICRO_FL_MINES, false);
         }
 

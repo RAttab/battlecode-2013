@@ -2,6 +2,18 @@ package bobot;
 
 import battlecode.common.*;
 
+/** Note that while this started as a caching mechanism for the sense call it
+    doesn't do much of that right now. Right now it provides a nice and clean
+    interface to the RobotController's sense interface and hides away some of
+    the uglyness.
+
+    While it can still do caching just fine, make sure its really worth it
+    before adding it. Cache invalidation isn't free and if it's never actually
+    reused then it's wasted. I recommend only doing caching when it was tested
+    (use the ByteCode class) and confirmed that there's a saving to be had.
+
+    Feel free to abstract any other ugly interfacs using this class.
+ */
 public class SenseCache
 {
     RobotController rc;
@@ -9,6 +21,11 @@ public class SenseCache
     SenseCache(RobotController rc)
     {
         this.rc = rc;
+    }
+
+    double sight()
+    {
+        return sightRadius;
     }
 
     boolean nonAlliedMine(MapLocation loc)
@@ -68,6 +85,25 @@ public class SenseCache
         return rc.senseNearbyGameObjects(Robot.class, loc, 8, team);
     }
 
+
+    public RobotInfo[] allEnemies()
+        throws GameActionException
+    {
+        final int SAMPLE_SIZE = 10;
+
+        Robot[] enemies = rc.senseNearbyGameObjects(
+                Robot.class, Integer.MAX_VALUE, rc.getTeam().opponent());
+
+        int steps = Utils.ceilDiv(enemies.length, SAMPLE_SIZE);
+        int length = enemies.length / steps;
+
+        RobotInfo[] info = new RobotInfo[length];
+        for (int i = info.length; --i >= 0;)
+            info[i] = rc.senseRobotInfo(enemies[i*steps]);
+
+        return info;
+    }
+
     private RobotInfo[] nearbyEnemiesCache = null;
     public RobotInfo[] nearbyEnemies()
         throws GameActionException
@@ -85,16 +121,11 @@ public class SenseCache
     }
 
 
-    private int nearbyAlliesTs = 0;
     private RobotInfo[] nearbyAlliesCache = null;
-
-    public RobotInfo[] nearbyAllies(int tolerance)
+    public RobotInfo[] nearbyAllies()
         throws GameActionException
     {
-        if (tolerance > 0 && ts - nearbyAlliesTs < tolerance)
-            return nearbyAlliesCache;
-
-        nearbyAlliesTs = ts;
+        if (nearbyAlliesCache != null) return nearbyAlliesCache;
 
         Robot[] allies = rc.senseNearbyGameObjects(
                 Robot.class, sightRadius, rc.getTeam());
@@ -113,13 +144,12 @@ public class SenseCache
     public void reset()
     {
         ts = Clock.getRoundNum();
+        nearbyAlliesCache = null;
         nearbyEnemiesCache = null;
 
         if (!sightAdjusted && rc.hasUpgrade(Upgrade.VISION)) {
             sightAdjusted = true;
             sightRadius += GameConstants.VISION_UPGRADE_BONUS;
-
-            nearbyAlliesTs = 0;
         }
     }
 

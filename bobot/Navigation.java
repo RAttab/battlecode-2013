@@ -28,7 +28,6 @@ public class Navigation
 
     void defuse(MapLocation loc)
     {
-        // System.out.println("defuseboost: loc=" + loc);
         defuseLoc = loc;
     }
 
@@ -75,7 +74,7 @@ public class Navigation
         Direction dir = null;
 
         for (int i = 0; i < 8; ++i) {
-            if (max > directions[i]) continue;
+            if (max >= directions[i]) continue;
             max = directions[i];
             dir = Utils.dirByOrd[i];
         }
@@ -93,7 +92,7 @@ public class Navigation
         MapLocation myLoc = rc.getLocation();
 
         for (int i = 0; i < 8; ++i) {
-            if (max > directions[i]) continue;
+            if (max >= directions[i]) continue;
 
             Direction dest = Utils.dirByOrd[i];
             if (!rc.canMove(dest)) continue;
@@ -104,7 +103,7 @@ public class Navigation
             dir = dest;
         }
 
-        if (!noDefuse && autoDefuse && dir != null)
+        if (!noDefuse && autoDefuse && defuseLoc == null && dir != null)
             defuse(myLoc.add(dir));
 
         if (!noDefuse && defuseLoc != null && sense.nonAlliedMine(defuseLoc)) {
