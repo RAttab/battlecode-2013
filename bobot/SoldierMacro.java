@@ -180,7 +180,9 @@ public class SoldierMacro
         int step = Utils.ceilDiv(camps.length, 5);
         for (int i=0; i<camps.length; i+=step){
             if (!encampmentHack(camps[i])) {
-                boost(camps[i], Weights.MACRO_GET_CAMPS);
+                if (!rc.canSenseSquare(camps[i]) ||
+                        rc.senseObjectAtLocation(camps[i]) == null)
+                    boost(camps[i], Weights.MACRO_GET_CAMPS);
             }
         }
     }
@@ -199,9 +201,9 @@ public class SoldierMacro
         double supplierValue = supplierValue(sense.est_rush_time);
         double militaryValue = militaryValue(rc.getLocation());
 
-        if (supplierValue > militaryValue)
+        if (supplierValue > militaryValue) {
             rc.captureEncampment(RobotType.SUPPLIER);
-        else {
+        } else {
             double distHome = Utils.distTwoPoints(coord, sense.MY_HQ);
             double distThem = sense.DISTANCE_BETWEEN_HQS - distHome;
             if (distHome * Weights.MEDBAY > distThem * Weights.ARTILLERY)
