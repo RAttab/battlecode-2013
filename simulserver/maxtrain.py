@@ -24,7 +24,7 @@ team_dir = install_dir + "/teams"
 ga_path = team_dir + "/ga_%d/Weights.java"
 
 populations = 2
-pop_size = 4
+pop_size = 20
 
 # optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'CAPTURE']
 maps = ['maze1', 'lilforts', 'jacket', 'smiley', 'Cairo', 'Chicago', 'caves',\
