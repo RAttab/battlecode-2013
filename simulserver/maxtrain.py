@@ -24,7 +24,7 @@ team_dir = install_dir + "/teams"
 ga_path = team_dir + "/ga_%d/Weights.java"
 
 populations = 2
-pop_size = 20
+pop_size = 16
 
 # optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'CAPTURE']
 maps = ['maze1', 'lilforts', 'jacket', 'smiley', 'Cairo', 'Chicago', 'caves',\
@@ -224,7 +224,7 @@ def rank_pop(pop, results, generation = 0):
 
         winner = result['combatResult']['winnerTeam']
         rounds = result['combatResult']['maxRound']
-        s = 100 + (2500. - rounds)/2500 # round number just used for tiebreaks
+        s = 5000 - rounds
         if winner == 'A':
             # print "adding result of {} to {}'s score".format(s, a)
             if type(a) != str:

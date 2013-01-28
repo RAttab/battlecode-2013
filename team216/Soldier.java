@@ -451,12 +451,6 @@ public class Soldier
                 rc.yield();
                 continue;
             }
-
-            // first things first.
-            if (Hat.wearHat(rc)){
-                rc.yield();
-                continue;
-            }
             
             debug_resetBc();
 
