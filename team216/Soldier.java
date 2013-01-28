@@ -282,6 +282,7 @@ public class Soldier
             if ((camp.x + camp.y) % 2 == 0)
                 return true;
         }
+        // TODO : add adjacent(hq) stuff
         return false;
     }
 
@@ -439,9 +440,6 @@ public class Soldier
     public static void run(RobotController rc) throws GameActionException
     {
 
-        // first things first.
-        // rc.wearHat();
-
         while (true) {
 
             // This is an extremely ugly hack to get around the fact that every
@@ -454,6 +452,12 @@ public class Soldier
                 continue;
             }
 
+            // first things first.
+            if (Hat.wearHat(rc)){
+                rc.yield();
+                continue;
+            }
+            
             debug_resetBc();
 
             MapLocation coord = rc.getLocation();

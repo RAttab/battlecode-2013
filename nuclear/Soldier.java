@@ -360,14 +360,14 @@ public class Soldier
      */
     public static void run(RobotController rc) throws GameActionException
     {
-
-
-        // first things first.
-        rc.wearHat();
-
         Team team = rc.getTeam();
 
         while (true) {
+            // first things first.
+            if (Hat.wearHat(rc)){
+                rc.yield();
+                continue;
+            }
 
             // This is an extremely ugly hack to get around the fact that every
             // agents start with the same seed.

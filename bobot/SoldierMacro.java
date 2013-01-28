@@ -32,11 +32,12 @@ public class SoldierMacro
         throws GameActionException
     {
         detectNuke();
-
-        if (readyToCharge()) charge();
-        else rally();
-
-        defuse.macro();
+        if (!capture()) {
+            if (readyToCharge()) charge();
+            else rally();
+            encamp();
+            defuse.macro();
+        }
     }
 
     private static boolean nukeDetected = false;
@@ -168,5 +169,116 @@ public class SoldierMacro
                 + ", myGroup=" + myGroupCount
                 + ", otherGroup=" + otherGroupCount);
 
+    }
+
+
+    public void encamp() throws GameActionException {
+        double cost = rc.senseCaptureCost();
+        if (cost >= rc.getTeamPower()) return;
+
+        MapLocation[] camps = sense.localEncampments(Team.NEUTRAL);
+        int step = Utils.ceilDiv(camps.length, 5);
+        for (int i=0; i<camps.length; i+=step){
+            if (!encampmentHack(camps[i])) {
+                if (!rc.canSenseSquare(camps[i]) ||
+                        rc.senseObjectAtLocation(camps[i]) == null)
+                    boost(camps[i], Weights.MACRO_GET_CAMPS);
+            }
+        }
+    }
+
+    // TODO : add shields logic
+    public boolean capture() throws GameActionException {
+        MapLocation coord = rc.getLocation();
+        if (!rc.senseEncampmentSquare(coord)) return false;
+        if (encampmentHack(coord)) return false;
+
+        double power = rc.getTeamPower();
+        double cost = rc.senseCaptureCost();
+        if (cost >= power) return false;
+
+        MapLocation neutBases[] = sense.neutralEncampments();
+        double supplierValue = supplierValue(sense.est_rush_time);
+        double militaryValue = militaryValue(rc.getLocation());
+
+        if (supplierValue > militaryValue) {
+            rc.captureEncampment(RobotType.SUPPLIER);
+        } else {
+            double distHome = Utils.distTwoPoints(coord, sense.MY_HQ);
+            double distThem = sense.DISTANCE_BETWEEN_HQS - distHome;
+            if (distHome * Weights.MEDBAY > distThem * Weights.ARTILLERY)
+                rc.captureEncampment(RobotType.MEDBAY);
+            else
+                rc.captureEncampment(RobotType.ARTILLERY);
+        }
+        return true;
+    }
+
+    private boolean encampmentHack(MapLocation camp)
+        throws GameActionException{
+        if (rc.senseEncampmentSquares(camp, 4, null).length > 4){
+            if ((camp.x + camp.y) % 2 == 0)
+                return true;
+        }
+        // TODO : add adjacent(hq) stuff
+        return false;
+    }
+
+    // Estimated payoff (as # of soldiers) within a given number of turns
+    public double supplierValue(
+        MapLocation camp, MapLocation coord, double turns){
+
+        int currentSuppliers = sense.alliedEncampments().length - 
+                sense.militaryEncampments();
+        int untilJump = sense.suppliersUntilJump[currentSuppliers - 1];
+        int spawnRate = sense.roundsBySuppliers[currentSuppliers - 1];
+
+        // Check if supplier benefit is out of reach
+        if (untilJump > sense.neutralEncampments().length)
+            return Double.NEGATIVE_INFINITY;
+
+        double turnsAway = Utils.distTwoPoints(camp, coord);
+        double turnCost = (untilJump * (spawnRate + turnsAway));
+
+        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) - 
+                (turns - turnCost) / spawnRate;
+    }
+
+    public double supplierValue(double turns){
+        int currentSuppliers = sense.alliedEncampments().length - 
+                sense.militaryEncampments();
+        int untilJump = sense.suppliersUntilJump[currentSuppliers];
+        int spawnRate = sense.roundsBySuppliers[currentSuppliers];
+
+        // Check if supplier benefit is out of reach
+        if (untilJump > sense.neutralEncampments().length)
+            return Double.NEGATIVE_INFINITY;
+
+        double turnCost = (untilJump * spawnRate);
+
+        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) - 
+                (turns - turnCost) / spawnRate;
+    }
+
+    // Estimated worth of a military encampment
+    public double militaryValue(MapLocation camp){
+        double dropOff = Weights.MILITARY_DROP * sense.militaryEncampments();
+        return strategicRelevance(camp) * Weights.MIL_CAMP_VAL - 
+                dropOff - sense.est_rush_time*Weights.MIL_MAPSIZE;
+    // TODO : distance to last enemy seen should affect this value
+    }
+
+    public double strategicRelevance(MapLocation p) {
+        double factor = sense.DISTANCE_BETWEEN_HQS / Weights.STRAT_RATIO;
+        return (factor - Utils.distToLineBetween(p, sense.MY_HQ, sense.ENEMY_HQ)) 
+                / factor;
+    }
+
+    public double defensiveRelevance(MapLocation p) {
+        double factor = sense.DISTANCE_BETWEEN_HQS / Weights.DEF_RATIO;
+        return 
+            ( 0.8 * (factor - Utils.distTwoPoints(p, sense.MY_HQ)) + 
+            0.2 * (factor - Utils.distToLineBetween(p, sense.MY_HQ, sense.ENEMY_HQ)) )
+                / factor;
     }
 }

@@ -336,8 +336,8 @@ public class Storage {
     // Estimated payoff (as # of soldiers) within a given number of turns
     public static double supplierValue(MapLocation camp, MapLocation coord, double turns){
         int currentSuppliers = alliedEncampments().length - militaryEncampments();
-        int untilJump = suppliersUntilJump[currentSuppliers - 1];
-        int spawnRate = roundsBySuppliers[currentSuppliers - 1];
+        int untilJump = suppliersUntilJump[currentSuppliers];
+        int spawnRate = roundsBySuppliers[currentSuppliers];
 
         // If it'll be impossible for this supplier to have any benefit, it's worthless.
         if (untilJump > neutralEncampments().length)
