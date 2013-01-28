@@ -37,6 +37,8 @@ public class Weights
 
     static final double MACRO_GET_CAMPS = 25;
 
+    static final double LAY_MINES = 0.5;
+
     //capture stuff
     static final double ARTILLERY = 0.5;
     static final double MEDBAY = 0.5;
