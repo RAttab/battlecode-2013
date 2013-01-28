@@ -198,7 +198,12 @@ public class SoldierMacro
         double militaryValue = militaryValue(rc.getLocation());
 
         if (supplierValue > militaryValue) {
-            rc.captureEncampment(RobotType.SUPPLIER);
+            int currentSuppliers = sense.alliedEncampments().length -
+                sense.militaryEncampments();
+            if (currentSuppliers == 4 || currentSuppliers == 9)
+                rc.captureEncampment(RobotType.GENERATOR);
+            else
+                rc.captureEncampment(RobotType.SUPPLIER);
         } else {
             double distHome = Utils.distTwoPoints(coord, sense.MY_HQ);
             double distThem = sense.DISTANCE_BETWEEN_HQS - distHome;
