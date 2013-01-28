@@ -6,7 +6,7 @@ import battlecode.common.*;
 public class Mines
 {
     public static double getMineStr(
-        RobotController rc, Sense sense)
+        RobotController rc, SenseCache sense)
     {
         // TODO :
         // if (Storage.nukePanic)
@@ -35,7 +35,8 @@ public class Mines
         // if (rc.senseEncampmentSquare(coord)){
         //     mineStr += Weights.LAY_MINE;
         // }
-        double minesNearbyFactor = Weights.NEARBY_MINE * (30-minesNearby);
+        double minesNearby = rc.senseMineLocations(coord, 63, rc.getTeam()).length;
+        double minesNearbyFactor = Weights.NEARBY_MINES * (30-minesNearby);
         return mineStr + minesNearbyFactor;
     }
 }
