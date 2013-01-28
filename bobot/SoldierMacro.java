@@ -64,14 +64,10 @@ public class SoldierMacro
 
     private MapLocation rallyPoint()
     {
-        MapLocation myHq = rc.senseHQLocation();
-        MapLocation enemyHq = rc.senseEnemyHQLocation();
+        Direction hqDir = sense.MY_HQ.directionTo(sense.ENEMY_HQ);
 
-        double hqDist = Math.sqrt(myHq.distanceSquaredTo(enemyHq));
-        Direction hqDir = myHq.directionTo(enemyHq);
-
-        double rallyDist = Math.max(hqDist * 0.05, 2.0);
-        return myHq.add(hqDir, (int)rallyDist);
+        double rallyDist = Math.max(sense.DISTANCE_BETWEEN_HQS * 0.1, 4.0);
+        return sense.MY_HQ.add(hqDir, (int)rallyDist);
     }
 
     private int groupId(Robot robot)
