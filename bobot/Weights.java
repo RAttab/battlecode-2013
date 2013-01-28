@@ -13,6 +13,8 @@ public class Weights
 
     static final double MICRO_FL_FIRST_STRIKE  = 3.0;
     static final double MICRO_FL_SECOND_STRIKE = 2.0;
+    static final double MICRO_FL_CHARGE_THRESH = 2.0;
+    static final double MICRO_FL_CHARGE_BASES  = 10.0;
     static final double MICRO_FL_RETREAT       = 0.5;
     static final double MICRO_FL_CLOSE_IN      = 1.0;
     static final double MICRO_FL_ALLIES        = 0.5;
