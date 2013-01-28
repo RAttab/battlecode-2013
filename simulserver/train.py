@@ -187,11 +187,9 @@ def bot_index(name):
 def parse_result(i):
     b = i % 1000
     a = (i-b) / 1000
-    a = "ga_{}".format(a)
     if b > populations * pop_size:
         b = control_oponents[b - populations*pop_size]
-    else:
-        b = "ga_{}".format(b)
+    return (a, b)
 
 def rank_pop(pop, results, generation = 0):
     cumul = {}
