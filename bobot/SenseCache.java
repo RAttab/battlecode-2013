@@ -19,15 +19,16 @@ public class SenseCache
     RobotController rc;
     double est_rush_time;
     int rush_calcs;
-    double SLOPE;
-    MapLocation MY_HQ;
-    MapLocation ENEMY_HQ;
-    double DISTANCE_BETWEEN_HQS;
+
     MapLocation[] allEncampments = null;
     MapLocation[] alliedEncampments = null;
     MapLocation[] localEncampments = null;
     MapLocation[] neutralEncampments = null;
 
+    double SLOPE;
+    MapLocation MY_HQ;
+    MapLocation ENEMY_HQ;
+    double DISTANCE_BETWEEN_HQS;
 
     SenseCache(RobotController rc)
     {
@@ -39,25 +40,30 @@ public class SenseCache
         DISTANCE_BETWEEN_HQS = Utils.distTwoPoints(MY_HQ, ENEMY_HQ);
     }
 
-    public void updateRushTime(){
+    public void updateRushTime()
+    {
         double x_dif = ENEMY_HQ.x - MY_HQ.x;
         double y_dif = ENEMY_HQ.y - MY_HQ.y;
         double x, y, offset;
         double time = 10.0;
-        for (int i=10; --i>0;) {
+
+        for (int i = 10; --i > 0;) {
             offset = 6 * Math.random() - 3;
             x = Math.random() * x_dif + MY_HQ.x;
             y = SLOPE * x + ENEMY_HQ.y;
-            if (Team.NEUTRAL.equals(rc.senseMine(new MapLocation((int)x, (int)y)))){
-                time += 12;
-            }
+
+            Team mine = rc.senseMine(new MapLocation((int)x, (int)y));
+            if (mine == Team.NEUTRAL) time += 12;
         }
+
         time *= (DISTANCE_BETWEEN_HQS/10.0);
         time += DISTANCE_BETWEEN_HQS;
-        if (est_rush_time == 0){
+
+        if (est_rush_time == 0) {
             est_rush_time = time;
             rush_calcs = 1;
-        } else {
+        }
+        else {
             est_rush_time = ((est_rush_time * rush_calcs) + time) / (rush_calcs+1);
             ++rush_calcs;
         }
@@ -200,36 +206,43 @@ public class SenseCache
         }
     }
 
-    public MapLocation[] neutralEncampments() {
+    public MapLocation[] neutralEncampments()
+    {
         if (allEncampments == null)
             allEncampments = rc.senseAllEncampmentSquares();
         return allEncampments;
     }
 
-    public MapLocation[] allEncampments() {
+    public MapLocation[] allEncampments()
+    {
         if (allEncampments == null)
             allEncampments = rc.senseAllEncampmentSquares();
         return allEncampments;
     }
 
-    public MapLocation[] alliedEncampments() {
+    public MapLocation[] alliedEncampments()
+    {
         if (alliedEncampments == null)
             alliedEncampments = rc.senseAlliedEncampmentSquares();
         return alliedEncampments;
     }
 
-    public MapLocation[] localEncampments(Team team) 
-    throws GameActionException{
-        if (localEncampments == null) {
+    public MapLocation[] localEncampments(Team team)
+        throws GameActionException
+    {
+        if (localEncampments != null) return localEncampments;
+
+        localEncampments = rc.senseEncampmentSquares(
+                rc.getLocation(), 63, team);
+
+        int campRadius = 63;
+        while (localEncampments.length < 1 && campRadius < DISTANCE_BETWEEN_HQS)
+        {
+            campRadius *= 2;
             localEncampments = rc.senseEncampmentSquares(
-                    rc.getLocation(), 63, team);
-            int campRadius = 63;
-            while (localEncampments.length < 1 && campRadius < DISTANCE_BETWEEN_HQS) {
-                campRadius *= 2;
-                localEncampments = rc.senseEncampmentSquares(
-                        rc.getLocation(), campRadius, team);
-            }
+                    rc.getLocation(), campRadius, team);
         }
+
         return localEncampments;
     }
 
@@ -238,17 +251,19 @@ public class SenseCache
         return 0;
     }
 
-    public static final int[] 
-    roundsBySuppliers = {10, 9, 8, 8, 7, 7, 6, 6, 6, 5, 5, 5, 5, 
-                        4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 
-                        3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 
-                        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
-                        2, 2, 2, 2, 2, 1};
+    public static final int[] roundsBySuppliers = {
+        10, 9, 8, 8, 7, 7, 6, 6, 6, 5, 5, 5, 5,
+        4,  4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3,
+        3,  3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2,
+        2,  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2,  2, 2, 2, 2, 1
+    };
 
-    public static final int[] 
-    suppliersUntilJump = {1, 1, 2, 1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 
-                        6, 5, 4, 3, 2, 1, 12, 11, 10, 9, 8, 7, 6, 
-                        5, 4, 3, 2, 1, 26, 25, 24, 23, 22, 21, 20, 19, 
-                        18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 
-                        5, 4, 3, 2, 1, 1};
+    public static final int[] suppliersUntilJump = {
+        1, 1, 2, 1, 2, 1, 3, 2, 1, 4, 3, 2, 1,
+        6, 5, 4, 3, 2, 1, 12, 11, 10, 9, 8, 7, 6,
+        5, 4, 3, 2, 1, 26, 25, 24, 23, 22, 21, 20, 19,
+        18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6,
+        5, 4, 3, 2, 1, 1
+    };
 }

@@ -44,5 +44,5 @@ public class Weights
     public static final double MIL_MAPSIZE = 0.01;
     public static final double STRAT_RATIO = 0.8;
     public static final double DEF_RATIO = 1-STRAT_RATIO;
-    
+
 }

@@ -211,8 +211,9 @@ public class SoldierMacro
     }
 
     private boolean encampmentHack(MapLocation camp)
-        throws GameActionException{
-        if (rc.senseEncampmentSquares(camp, 4, null).length > 4){
+        throws GameActionException
+    {
+        if (rc.senseEncampmentSquares(camp, 4, null).length > 4) {
             if ((camp.x + camp.y) % 2 == 0)
                 return true;
         }
@@ -222,9 +223,9 @@ public class SoldierMacro
 
     // Estimated payoff (as # of soldiers) within a given number of turns
     public double supplierValue(
-        MapLocation camp, MapLocation coord, double turns){
-
-        int currentSuppliers = sense.alliedEncampments().length - 
+        MapLocation camp, MapLocation coord, double turns)
+    {
+        int currentSuppliers = sense.alliedEncampments().length -
                 sense.militaryEncampments();
         int untilJump = sense.suppliersUntilJump[currentSuppliers - 1];
         int spawnRate = sense.roundsBySuppliers[currentSuppliers - 1];
@@ -236,12 +237,13 @@ public class SoldierMacro
         double turnsAway = Utils.distTwoPoints(camp, coord);
         double turnCost = (untilJump * (spawnRate + turnsAway));
 
-        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) - 
+        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) -
                 (turns - turnCost) / spawnRate;
     }
 
-    public double supplierValue(double turns){
-        int currentSuppliers = sense.alliedEncampments().length - 
+    public double supplierValue(double turns)
+    {
+        int currentSuppliers = sense.alliedEncampments().length -
                 sense.militaryEncampments();
         int untilJump = sense.suppliersUntilJump[currentSuppliers];
         int spawnRate = sense.roundsBySuppliers[currentSuppliers];
@@ -252,28 +254,31 @@ public class SoldierMacro
 
         double turnCost = (untilJump * spawnRate);
 
-        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) - 
+        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) -
                 (turns - turnCost) / spawnRate;
     }
 
     // Estimated worth of a military encampment
-    public double militaryValue(MapLocation camp){
+    public double militaryValue(MapLocation camp)
+    {
         double dropOff = Weights.MILITARY_DROP * sense.militaryEncampments();
-        return strategicRelevance(camp) * Weights.MIL_CAMP_VAL - 
+        return strategicRelevance(camp) * Weights.MIL_CAMP_VAL -
                 dropOff - sense.est_rush_time*Weights.MIL_MAPSIZE;
-    // TODO : distance to last enemy seen should affect this value
+        // TODO : distance to last enemy seen should affect this value
     }
 
-    public double strategicRelevance(MapLocation p) {
+    public double strategicRelevance(MapLocation p)
+    {
         double factor = sense.DISTANCE_BETWEEN_HQS / Weights.STRAT_RATIO;
-        return (factor - Utils.distToLineBetween(p, sense.MY_HQ, sense.ENEMY_HQ)) 
+        return (factor - Utils.distToLineBetween(p, sense.MY_HQ, sense.ENEMY_HQ))
                 / factor;
     }
 
-    public double defensiveRelevance(MapLocation p) {
+    public double defensiveRelevance(MapLocation p)
+    {
         double factor = sense.DISTANCE_BETWEEN_HQS / Weights.DEF_RATIO;
-        return 
-            ( 0.8 * (factor - Utils.distTwoPoints(p, sense.MY_HQ)) + 
+        return
+            ( 0.8 * (factor - Utils.distTwoPoints(p, sense.MY_HQ)) +
             0.2 * (factor - Utils.distToLineBetween(p, sense.MY_HQ, sense.ENEMY_HQ)) )
                 / factor;
     }
