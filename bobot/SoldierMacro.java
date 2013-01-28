@@ -262,24 +262,8 @@ public class SoldierMacro
     public double militaryValue(MapLocation camp)
     {
         double dropOff = Weights.MILITARY_DROP * sense.militaryEncampments();
-        return strategicRelevance(camp) * Weights.MIL_CAMP_VAL -
+        return sense.strategicRelevance(camp) * Weights.MIL_CAMP_VAL -
                 dropOff - sense.est_rush_time*Weights.MIL_MAPSIZE;
         // TODO : distance to last enemy seen should affect this value
-    }
-
-    public double strategicRelevance(MapLocation p)
-    {
-        double factor = sense.DISTANCE_BETWEEN_HQS / Weights.STRAT_RATIO;
-        return (factor - Utils.distToLineBetween(p, sense.MY_HQ, sense.ENEMY_HQ))
-                / factor;
-    }
-
-    public double defensiveRelevance(MapLocation p)
-    {
-        double factor = sense.DISTANCE_BETWEEN_HQS / Weights.DEF_RATIO;
-        return
-            ( 0.8 * (factor - Utils.distTwoPoints(p, sense.MY_HQ)) +
-            0.2 * (factor - Utils.distToLineBetween(p, sense.MY_HQ, sense.ENEMY_HQ)) )
-                / factor;
     }
 }

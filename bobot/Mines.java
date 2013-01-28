@@ -5,16 +5,20 @@ import battlecode.common.*;
 
 public class Mines
 {
-    public static double getMineStr(RobotController rc)
+    public static double getMineStr(
+        RobotController rc, Sense sense)
     {
-        if (Storage.nukePanic)
+        // TODO :
+        // if (Storage.nukePanic)
+        //     return Double.NEGATIVE_INFINITY;
+
+        MapLocation coord = rc.getLocation();
+
+        if (rc.senseMine(coord) != null)
             return Double.NEGATIVE_INFINITY;
 
-        if (rc.senseMine(rc.getLocation()) != null)
-            return Double.NEGATIVE_INFINITY;
+        double mineStr = sense.defensiveRelevance(coord) * Weights.LAY_MINE;
 
-        double mineStr = defense * Weights.LAY_MINE;
-        
         if (rc.hasUpgrade(Upgrade.PICKAXE)) {
             int orthogonalMines = 0;
             if (rc.senseMine(coord.add(Direction.NORTH)) != null)
@@ -31,7 +35,7 @@ public class Mines
         // if (rc.senseEncampmentSquare(coord)){
         //     mineStr += Weights.LAY_MINE;
         // }
-        double minesNearbyFactor = Weights.NEARBY_MINE * ((LC_RADIUS/2)-(minesNearby));
+        double minesNearbyFactor = Weights.NEARBY_MINE * (30-minesNearby);
         return mineStr + minesNearbyFactor;
     }
 }

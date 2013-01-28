@@ -246,6 +246,22 @@ public class SenseCache
         return localEncampments;
     }
 
+    public double strategicRelevance(MapLocation p)
+    {
+        double factor = DISTANCE_BETWEEN_HQS / Weights.STRAT_RATIO;
+        return (factor - Utils.distToLineBetween(p, MY_HQ, ENEMY_HQ))
+                / factor;
+    }
+
+    public double defensiveRelevance(MapLocation p)
+    {
+        double factor = DISTANCE_BETWEEN_HQS / Weights.DEF_RATIO;
+        return
+            ( 0.8 * (factor - Utils.distTwoPoints(p, MY_HQ)) +
+            0.2 * (factor - Utils.distToLineBetween(p, MY_HQ, ENEMY_HQ)) )
+                / factor;
+    }
+
     public int militaryEncampments() {
         // TODO
         return 0;

@@ -111,8 +111,15 @@ public class Navigation
             return true;
         }
 
-        if (dir == null) return false;
+        if (rc.senseMine(myLoc) == null && rc.senseNearbyGameObjects(Robot.class, 490, 
+                rc.getTeam().opponent()).length == 0) {
+            if (Mines.getMineStr(rc, sense) > max){
+                rc.layMine();
+                return true;
+            }
+        }
 
+        if (dir == null) return false;
         rc.move(dir);
         prevLoc = rc.getLocation();
         return true;
