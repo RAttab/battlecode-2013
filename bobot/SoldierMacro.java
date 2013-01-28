@@ -70,7 +70,7 @@ public class SoldierMacro
         double hqDist = Math.sqrt(myHq.distanceSquaredTo(enemyHq));
         Direction hqDir = myHq.directionTo(enemyHq);
 
-        double rallyDist = Math.max(hqDist * 0.2, 3.0);
+        double rallyDist = Math.max(hqDist * 0.05, 2.0);
         return myHq.add(hqDir, (int)rallyDist);
     }
 

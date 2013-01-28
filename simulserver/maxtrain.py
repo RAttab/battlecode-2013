@@ -23,17 +23,33 @@ bin_dir = install_dir + "/bin"
 team_dir = install_dir + "/teams"
 ga_path = team_dir + "/ga_%d/Weights.java"
 
-populations = 3
-pop_size = 20
+populations = 2
+pop_size = 4
 
 # optimize = ['EXPLORE_MINE', 'ENEMY_HQ', 'CAPTURE']
-maps = ['maze1', 'lilforts', 'jacket', 'smiles', 'Cairo', 'Chicago', 'caves',\
-    'questionable', 'spiral', 'zigzag', 'zugzwang', 'simple', 'backdooor', \
-    'choices', 'smiley', 'boxes', 'lol', 'five', 'map-20-20-empty', 'map-20-20-mountain'\
-    'map-25-23-encamp_or_direct', 'map-20-20-square-o-doom', 'map-35-35-sneaky', 'SpecialMarc']
+maps = ['maze1', 'lilforts', 'jacket', 'smiley', 'Cairo', 'Chicago', 'caves',\
+    'questionable', 'spiral', 'zigzag', 'zugzwang', 'simple', 'kleenex', \
+    'choices', 'boxes', 'lol', 'five', 'map-20-20-empty', 'map-20-20-mountain', \
+    'map-25-23-encamp_or_direct', 'map-20-20-square-o-doom', 'map-35-35-sneaky', \
+    'SpecialMarc']
 
-control_oponents = ['team216', 'nuclear', 'rusher']
-control_maps = ['Chicago', 'Wellington', 'map-20-20-empty']
+control_oponents = ['team216', 'nuclear', 'rusher', 'bobot']
+control_maps = ['Chicago', 'Wellington', 'map-20-20-empty', 'map-20-20-empty']
+
+assert(len(control_maps) == len(control_oponents))
+bad_maps = set()
+for m in (control_maps + maps):
+    f = os.path.expanduser("~/Battlecode2013/maps/{}.xml".format(m))
+    if os.path.exists(f):
+            pass
+    else:
+        bad_maps.add(m)
+
+if len(bad_maps) != 0:
+    print "The following maps don't seem to exist:"
+    for m in bad_maps:
+        print m
+    sys.exit(1)
 
 workers = 15
 
@@ -75,7 +91,7 @@ def init_pop(seed):
     # pop = [tweak(seed) for i in range(split - 1) ]
     # pop.extend([random_genome() for i in range(split)])
 
-    pop = [random_genome() for i in range(pop_size - 1)]
+    pop = [random_genome() for i in range(pop_size*populations - 1)]
     pop.append(seed)
     return pop
 
@@ -149,6 +165,15 @@ def write_pop(pop):
     for i in range(len(pop)):
         write_weights('ga_%d' % i, pop[i], ga_path % i)
 
+def migrations(pop):
+    for i in range(populations):
+        x = random.randrange(len(pop))
+        y = random.randrange(len(pop))
+        temp = pop[x]
+        pop[x] = pop[y]
+        pop[y] = temp
+    return pop
+
 
 #------------------------------------------------------------------------------#
 # TRAIN                                                                        #
@@ -170,12 +195,12 @@ def gen_battles():
                                 'bc.game.team-b': 'ga_{}'.format(y),
                                 'bc.server.save-file': "ga_{}_vs_ga{}.rms".format(x,y)})
     for i in range(populations*pop_size):
-        for j in range(control_oponents):
+        for j in range(len(control_oponents)):
                 battles.append({'id': (i+1)*1000 + j + populations*pop_size,
                                 'type': 'local',
                                 'bc.game.maps': control_maps[j],
-                                'bc.game.team-a': 'ga_{}'.format(i),
-                                'bc.game.team-b': '{}'.format(control_oponents[j]),
+                                'bc.game.team-a': '{}'.format(control_oponents[j]),
+                                'bc.game.team-b': 'ga_{}'.format(i),
                                 'bc.server.save-file': "ga_{}_vs_{}.rms".format(i, control_oponents[j])})
 
     return battles
@@ -186,7 +211,7 @@ def bot_index(name):
 
 def parse_result(i):
     b = i % 1000
-    a = (i-b) / 1000
+    a = ((i-b) / 1000)-1
     if b > populations * pop_size:
         b = control_oponents[b - populations*pop_size]
     return (a, b)
@@ -199,32 +224,46 @@ def rank_pop(pop, results, generation = 0):
 
         winner = result['combatResult']['winnerTeam']
         rounds = result['combatResult']['maxRound']
-        s = 100 + (2500. - rounds)/rounds # round number just used for tiebreaks
+        s = 100 + (2500. - rounds)/2500 # round number just used for tiebreaks
         if winner == 'A':
-            if a[:2] == 'ga':
-                a in cumul ? cumul[a] = s : cumul[a] += s
-        else
-            if b[:2] == 'ga':
-                b in cumul ? cumul[b] = s : cumul[b] += s
-
-        g = result['id'] / len(maps)
+            # print "adding result of {} to {}'s score".format(s, a)
+            if type(a) != str:
+                if not a in cumul: 
+                    cumul[a] = s
+                else:
+                    cumul[a] += s
+        else:
+            # print "adding result of {} to {}'s score".format(s, b)
+            if type(b) != str:
+                if not b in cumul:
+                    cumul[b] = s
+                else:
+                    cumul[b] += s
 
         assert winner == 'B' or winner == 'A'
 
 
     ranks = [(index, cumul[index]) for index in cumul.keys()]
-    ranks.sort(key = lambda (index, count): count)
+    ranks.sort(key = lambda (index, score): index)
 
-    print "\nRANKS:"
+    print "\nRESULTS:"
     for i in range(len(ranks)):
-        print "  %d: %s" % (i, ranks[i])
+        print "  %d: %s" % (i % pop_size, ranks[i])
     print ""
 
-    mean = ranks[len(ranks) / 2][1]
-    print "generation %d: [%d, %d, %d]" % \
-        (generation, ranks[0][1], mean, ranks[len(ranks)-1][1])
+    for subranks in ranks[i*pop_size:(i+1)*pop_size]:
+        median = subranks[len(subranks) / 2][1]
+        print "generation %d: [%d, %d, %d]" % \
+            (generation, subranks[0][1], median, subranks[len(subranks)-1][1])
 
-    return [pop[index] for (index, count) in ranks]
+    sub_pops = []
+    for i in range(populations):
+        sub_pops.append(ranks[i*pop_size:(i+1)*pop_size])
+        sub_pops[i].sort(key = lambda (index, score): score)
+        sub_pops[i] = [pop[index] for (index, score) in sub_pops[i]]
+            
+
+    return sub_pops
 
 
 #------------------------------------------------------------------------------#
@@ -238,14 +277,22 @@ pop = init_pop(seed)
 
 gen = 0
 while True:
-#    print_pop(pop, gen)
+    print_pop(pop, gen)
 
     write_pop(pop)
     config = gen_battles()
     shutil.rmtree(bin_dir)
 
-    pop = rank_pop(pop, simulator.QueueBattles(workers, config), gen)
+    sub_pops = rank_pop(pop, simulator.QueueBattles(workers, config), gen)
     write_weights("team216", pop[0], "../weights/Weights_%d.java" % gen)
 
+    for sub_pop in sub_pops:
+        sub_pop = evolve(sub_pop)
+
+    pop = []
+    for sub_pop in sub_pops:
+        pop += sub_pop
+
+    pop = migrations(pop)
+
     gen += 1
-    pop = evolve(pop)
