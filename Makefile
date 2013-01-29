@@ -71,4 +71,3 @@ install-train: install-bots template clean-train
 # bash -c 'rm $(TEAM_DIR)/$(GA_DIR)/Weights.java'
 
 clean: clean-template clean-train
-

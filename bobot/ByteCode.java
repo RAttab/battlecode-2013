@@ -23,7 +23,7 @@ public class ByteCode
             if (Clock.getRoundNum() == round) return;
 
             int stop = Clock.getBytecodeNum();
-            System.err.println("bytecode overflow(" + str + "): "
+            System.out.println("bytecode overflow(" + str + "): "
                     + "(" + start + ", " + round + ") -> "
                     + "(" + stop + ", " + Clock.getRoundNum() + ")");
             rc.breakpoint();
@@ -33,18 +33,24 @@ public class ByteCode
     static class Profiler
     {
         int start = 0;
+        int round = 0;
 
         static final int OVERHEAD = 5;
 
         Profiler()
         {
+            round = Clock.getRoundNum();
             start = Clock.getBytecodeNum();
         }
 
         void debug_dump(String str)
         {
-            int len = Clock.getBytecodeNum() - start - OVERHEAD;
-            System.err.println("profiler(" + str + "): " + len);
+            int stop = Clock.getBytecodeNum();
+            int len;
+            if (Clock.getRoundNum() > round)
+                len = 10000 - start + stop;
+            else len = stop - start;
+            System.out.println("profiler(" + str + "): " + len + " / " + stop);
         }
     }
 }

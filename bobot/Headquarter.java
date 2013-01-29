@@ -7,6 +7,7 @@ public class Headquarter
 
     private static int nextSpawn = 0;
     private static int nextResearch = 0;
+    private static int shieldsBroadcastTurns = -1;
 
     private static boolean trySpawn(
             RobotController rc, SenseCache sense, int ord, boolean ignoreMines)
@@ -64,6 +65,20 @@ public class Headquarter
             (allowNuke && research(rc, Upgrade.NUKE));
     }
 
+    public static void checkShieldsBroadcast(RobotController rc)
+        throws GameActionException
+    {
+        if (shieldsBroadcastTurns > 0)
+            Communication.broadcast(SenseCache.NUM_SHIELDS, 1);
+        else {
+            int turns = Communication.readBroadcast(SenseCache.NUM_SHIELDS, true);
+            if (turns == 20){
+                shieldsBroadcastTurns = turns;
+                Communication.broadcast(SenseCache.NUM_SHIELDS, 1);
+            }
+        }
+    }
+
 
     public static void run(RobotController rc)
         throws GameActionException
@@ -71,6 +86,11 @@ public class Headquarter
         SenseCache sense = new SenseCache(rc);
 
         while (true) {
+            checkShieldsBroadcast(rc); // TODO: do this for all military encampments
+
+            if (rc.senseEnemyNukeHalfDone())
+                Communication.broadcast(0, 1);
+
             if (!rc.isActive()) { rc.yield(); continue; }
 
             Navigation nav = new Navigation(rc, sense);
@@ -86,6 +106,8 @@ public class Headquarter
                     research(rc, true);
                 }
             }
+
+            Communication.spam();
 
             rc.yield();
         }

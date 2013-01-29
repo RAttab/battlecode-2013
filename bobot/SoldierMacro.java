@@ -9,6 +9,7 @@ public class SoldierMacro
     Navigation nav;
     SenseCache sense;
     Defuse defuse;
+    MapLocation rallyPoint;
 
 
     SoldierMacro(
@@ -18,6 +19,9 @@ public class SoldierMacro
         this.nav = nav;
         this.sense = sense;
         this.defuse = defuse;
+        Direction hqDir = sense.MY_HQ.directionTo(sense.ENEMY_HQ);
+        double rallyDist = Math.max(sense.DISTANCE_BETWEEN_HQS * 0.1, 4.0);
+        this.rallyPoint = sense.MY_HQ.add(hqDir, (int)rallyDist);
     }
 
 
@@ -32,19 +36,26 @@ public class SoldierMacro
         throws GameActionException
     {
         detectNuke();
-        if (!capture()) {
-            if (readyToCharge()) charge();
-            else rally();
+
+        if (capture()) return;
+
+        if (readyToCharge()) charge();
+        else rally();
+
+        if (!nukeDetected) {
             encamp();
-            defuse.macro();
+            layMine();
         }
+        defuse.macro();
     }
 
     private static boolean nukeDetected = false;
+
     private void detectNuke()
+        throws GameActionException
     {
         if (nukeDetected) return;
-        // \todo Look at comm to see if HQ detected a nuke.
+        nukeDetected = Communication.readBroadcast(0, false) > 0;
     }
 
     private static boolean charging = false;
@@ -62,22 +73,20 @@ public class SoldierMacro
         return charging;
     }
 
-    private MapLocation rallyPoint()
+    private MapLocation rallyPoint() throws GameActionException
     {
-        Direction hqDir = sense.MY_HQ.directionTo(sense.ENEMY_HQ);
-
-        double rallyDist = Math.max(sense.DISTANCE_BETWEEN_HQS * 0.1, 4.0);
-        return sense.MY_HQ.add(hqDir, (int)rallyDist);
-    }
-
-    private int groupId(Robot robot)
-    {
-        return robot.getID() % 2;
+        MapLocation castLoc = sense.rallyBroadcast();
+        if (castLoc != null)
+            return castLoc;
+        return rallyPoint;
     }
 
     // The idea is that we want to form multiple groups in order to create a
     // concave. so we rally both groups to the same point and yet have them push
     // away from each other. Should hopefully lead to 2-3 soldier splits.
+
+    // TODO : there seems to be a bug somewhere that's causing weird behaviour.
+        // try a match on the map rorscharch
     private void rally()
         throws GameActionException
     {
@@ -88,22 +97,10 @@ public class SoldierMacro
             !myLoc.equals(rallyLoc) ?  myLoc.directionTo(rallyPoint()) : null;
         nav.boost(rallyDir, Weights.MACRO_RALLY_POINT, true);
 
-        int myGroup = groupId(rc.getRobot());
-
         // Stick to your group and shun the other group.
         RobotInfo[] allies = sense.nearbyAllies();
-        int myGroupCount = 0, otherGroupCount = 0;
-        for (int i = allies.length; --i >= 0;) {
-
-            if (groupId(allies[i].robot) == myGroup) {
-                boost(allies[i].location, Weights.MACRO_RALLY_MY_GROUP);
-                myGroupCount++;
-            }
-            else {
-                boost(allies[i].location, Weights.MACRO_RALLY_OTHER_GROUP);
-                otherGroupCount++;
-            }
-        }
+        for (int i = allies.length; --i >= 0;)
+            boost(allies[i].location, Weights.MACRO_RALLY_MY_GROUP);
 
         // This should allow our group to roughly arange themselves orthogonally
         // to the enemy hq.
@@ -111,11 +108,9 @@ public class SoldierMacro
         boost(hqLoc, Weights.MACRO_RALLY_HQ);
 
         rc.setIndicatorString(2,
-                "rally(" + myGroup + ")"
+                "rally"
                 + ": point=" + rallyLoc
-                + ", allies=" + allies.length
-                + ", myGroup=" + myGroupCount
-                + ", otherGroup=" + otherGroupCount);
+                + ", allies=" + allies.length);
     }
 
     private void charge()
@@ -133,20 +128,9 @@ public class SoldierMacro
             boost(enemies[i].location, Weights.MACRO_CHARGE_ENEMIES);
 
         // Stay in group formation.
-        int myGroup = groupId(rc.getRobot());
         RobotInfo[] allies = sense.nearbyAllies();
-        int myGroupCount = 0, otherGroupCount = 0;
-        for (int i = allies.length; --i >= 0;) {
-
-            if (groupId(allies[i].robot) == myGroup) {
-                boost(allies[i].location, Weights.MACRO_CHARGE_MY_GROUP);
-                myGroupCount++;
-            }
-            else {
-                boost(allies[i].location, Weights.MACRO_CHARGE_OTHER_GROUP);
-                otherGroupCount++;
-            }
-        }
+        for (int i = allies.length; --i >= 0;)
+            boost(allies[i].location, Weights.MACRO_CHARGE_MY_GROUP);
 
         // Avoid mines
         MapLocation[] mines = sense.adjacentNonAlliedMines(myLoc);
@@ -156,17 +140,52 @@ public class SoldierMacro
             nav.boost(dir, Weights.MACRO_CHARGE_MINES, false);
         }
 
-
         rc.setIndicatorString(2,
-                "charge(" + myGroup + ")"
+                "charge"
                 + ": allies=" + allies.length
                 + ", enemies=" + enemies.length
-                + ", mines=" + mines.length
-                + ", myGroup=" + myGroupCount
-                + ", otherGroup=" + otherGroupCount);
+                + ", mines=" + mines.length);
 
     }
 
+    public void layMine() throws GameActionException
+    {
+        MapLocation coord = rc.getLocation();
+
+        if (rc.senseMine(coord) != null || Clock.getRoundNum() > 2000) {
+            nav.layMine = Double.NEGATIVE_INFINITY;
+            return;
+        }
+
+        Robot[] enemies = rc.senseNearbyGameObjects(
+                Robot.class, 490, rc.getTeam().opponent());
+        if (enemies.length > 0) {
+            nav.layMine = Double.NEGATIVE_INFINITY;
+            return;
+        }
+
+        double mineStr = sense.defensiveRelevance(coord) * Weights.LAY_MINE;
+
+        if (rc.hasUpgrade(Upgrade.PICKAXE)) {
+            int orthogonalMines = 0;
+            if (rc.senseMine(coord.add(Direction.NORTH)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.SOUTH)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.EAST)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.WEST)) != null)
+                orthogonalMines++;
+            mineStr *= 5-orthogonalMines;
+        }
+        // TODO : make areas with encampments more enticing
+        // if (rc.senseEncampmentSquare(coord)){
+        //     mineStr += Weights.LAY_MINE;
+        // }
+        double minesNearby = rc.senseMineLocations(coord, 63, rc.getTeam()).length;
+        double minesNearbyFactor = Weights.NEARBY_MINES * (30-minesNearby);
+        nav.layMine =  mineStr + minesNearbyFactor;
+    }
 
     public void encamp() throws GameActionException {
         double cost = rc.senseCaptureCost();
@@ -184,7 +203,8 @@ public class SoldierMacro
     }
 
     // TODO : add shields logic
-    public boolean capture() throws GameActionException {
+    public boolean capture() throws GameActionException
+    {
         MapLocation coord = rc.getLocation();
         if (!rc.senseEncampmentSquare(coord)) return false;
         if (encampmentHack(coord)) return false;
@@ -193,26 +213,61 @@ public class SoldierMacro
         double cost = rc.senseCaptureCost();
         if (cost >= power) return false;
 
-        MapLocation neutBases[] = sense.neutralEncampments();
-        double supplierValue = supplierValue(sense.est_rush_time);
-        double militaryValue = militaryValue(rc.getLocation());
+        rc.setIndicatorString(0, "haveShields=" + sense.haveShields() +
+            ", rushtime=" + sense.est_rush_time);
+        rc.setIndicatorString(1, "toRallyPt=" + Utils.distTwoPoints(rallyPoint, coord) +
+            ", rushtime/5=" + sense.est_rush_time / 5);
 
-        if (supplierValue > militaryValue) {
-            rc.captureEncampment(RobotType.SUPPLIER);
+        if (getShields())
+        {
+            nav.capture = RobotType.SHIELDS;
+            nav.captureStrength = Weights.SHIELDS_IMPORTANCE;
+            Communication.broadcast(SenseCache.NUM_SHIELDS, 20);
         } else {
-            double distHome = Utils.distTwoPoints(coord, sense.MY_HQ);
-            double distThem = sense.DISTANCE_BETWEEN_HQS - distHome;
-            if (distHome * Weights.MEDBAY > distThem * Weights.ARTILLERY)
-                rc.captureEncampment(RobotType.MEDBAY);
-            else
-                rc.captureEncampment(RobotType.ARTILLERY);
+
+            MapLocation neutBases[] = sense.neutralEncampments();
+            double supplierValue = supplierValue(sense.est_rush_time);
+            double militaryValue = militaryValue(rc.getLocation());
+
+            if (supplierValue > militaryValue) {
+                nav.captureStrength = supplierValue;
+
+                int currentSuppliers =
+                    sense.alliedEncampments().length -
+                    sense.militaryEncampments();
+
+                if (currentSuppliers % 4 == 3)
+                    nav.capture = RobotType.GENERATOR;
+                else
+                    nav.capture = RobotType.SUPPLIER;
+            }
+
+            else {
+                nav.captureStrength = militaryValue;
+                double distHome = Utils.distTwoPoints(coord, sense.MY_HQ);
+                double distThem = sense.DISTANCE_BETWEEN_HQS - distHome;
+
+                if (distHome * Weights.MEDBAY > distThem * Weights.ARTILLERY)
+                    nav.capture = RobotType.MEDBAY;
+                else
+                    nav.capture = RobotType.ARTILLERY;
+            }
         }
         return true;
     }
 
+    private boolean getShields() throws GameActionException {
+        return !sense.haveShields() && 
+            (sense.est_rush_time > Weights.MIN_SHIELD_MAPSIZE || 
+                rc.senseEncampmentSquares(rc.getLocation(), 63, null).length > 3)
+            && 
+            Utils.distTwoPoints(rallyPoint, rc.getLocation()) < sense.est_rush_time / 5;
+    }
+
     private boolean encampmentHack(MapLocation camp)
-        throws GameActionException{
-        if (rc.senseEncampmentSquares(camp, 4, null).length > 4){
+        throws GameActionException
+    {
+        if (rc.senseEncampmentSquares(camp, 4, null).length > 4) {
             if ((camp.x + camp.y) % 2 == 0)
                 return true;
         }
@@ -221,10 +276,9 @@ public class SoldierMacro
     }
 
     // Estimated payoff (as # of soldiers) within a given number of turns
-    public double supplierValue(
-        MapLocation camp, MapLocation coord, double turns){
-
-        int currentSuppliers = sense.alliedEncampments().length - 
+    public double supplierValue(MapLocation camp, MapLocation coord, double turns)
+             throws GameActionException{
+        int currentSuppliers = sense.alliedEncampments().length -
                 sense.militaryEncampments();
         int untilJump = sense.suppliersUntilJump[currentSuppliers - 1];
         int spawnRate = sense.roundsBySuppliers[currentSuppliers - 1];
@@ -236,12 +290,13 @@ public class SoldierMacro
         double turnsAway = Utils.distTwoPoints(camp, coord);
         double turnCost = (untilJump * (spawnRate + turnsAway));
 
-        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) - 
+        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) -
                 (turns - turnCost) / spawnRate;
     }
 
-    public double supplierValue(double turns){
-        int currentSuppliers = sense.alliedEncampments().length - 
+    public double supplierValue(double turns) throws GameActionException
+    {
+        int currentSuppliers = sense.alliedEncampments().length -
                 sense.militaryEncampments();
         int untilJump = sense.suppliersUntilJump[currentSuppliers];
         int spawnRate = sense.roundsBySuppliers[currentSuppliers];
@@ -252,29 +307,16 @@ public class SoldierMacro
 
         double turnCost = (untilJump * spawnRate);
 
-        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) - 
+        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) -
                 (turns - turnCost) / spawnRate;
     }
 
     // Estimated worth of a military encampment
-    public double militaryValue(MapLocation camp){
+    public double militaryValue(MapLocation camp)
+             throws GameActionException{
         double dropOff = Weights.MILITARY_DROP * sense.militaryEncampments();
-        return strategicRelevance(camp) * Weights.MIL_CAMP_VAL - 
+        return sense.strategicRelevance(camp) * Weights.MIL_CAMP_VAL -
                 dropOff - sense.est_rush_time*Weights.MIL_MAPSIZE;
-    // TODO : distance to last enemy seen should affect this value
-    }
-
-    public double strategicRelevance(MapLocation p) {
-        double factor = sense.DISTANCE_BETWEEN_HQS / Weights.STRAT_RATIO;
-        return (factor - Utils.distToLineBetween(p, sense.MY_HQ, sense.ENEMY_HQ)) 
-                / factor;
-    }
-
-    public double defensiveRelevance(MapLocation p) {
-        double factor = sense.DISTANCE_BETWEEN_HQS / Weights.DEF_RATIO;
-        return 
-            ( 0.8 * (factor - Utils.distTwoPoints(p, sense.MY_HQ)) + 
-            0.2 * (factor - Utils.distToLineBetween(p, sense.MY_HQ, sense.ENEMY_HQ)) )
-                / factor;
+        // TODO : distance to last enemy seen should affect this value
     }
 }

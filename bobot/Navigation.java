@@ -15,6 +15,11 @@ public class Navigation
     boolean noDefuse = false;
     MapLocation defuseLoc = null;
 
+    RobotType capture = null;
+    double captureStrength = 0.0;
+
+    double layMine = 0.0;
+
     RobotController rc;
     SenseCache sense;
 
@@ -103,6 +108,11 @@ public class Navigation
             dir = dest;
         }
 
+        if (capture != null && max < captureStrength) {
+            rc.captureEncampment(capture);
+            return true;
+        }
+
         if (!noDefuse && autoDefuse && defuseLoc == null && dir != null)
             defuse(myLoc.add(dir));
 
@@ -111,8 +121,12 @@ public class Navigation
             return true;
         }
 
-        if (dir == null) return false;
+        if (layMine > max && rc.senseMine(myLoc) == null) {
+            rc.layMine();
+            return true;
+        }
 
+        if (dir == null) return false;
         rc.move(dir);
         prevLoc = rc.getLocation();
         return true;
