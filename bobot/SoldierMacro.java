@@ -200,7 +200,7 @@ public class SoldierMacro
         if (supplierValue > militaryValue) {
             int currentSuppliers = sense.alliedEncampments().length -
                 sense.militaryEncampments();
-            if (currentSuppliers == 4 || currentSuppliers == 9)
+            if (currentSuppliers % 4 == 3)
                 rc.captureEncampment(RobotType.GENERATOR);
             else
                 rc.captureEncampment(RobotType.SUPPLIER);
