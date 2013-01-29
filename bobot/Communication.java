@@ -86,25 +86,23 @@ public class Communication
             rc.getType() == RobotType.SOLDIER && Hat.hatless ? 4500 : 7000;
 
         while(Clock.getBytecodeNum() < bcThreshold) {
-            for (int i = 2; --i >= 0;) {
-                switch(spamPattern) {
+            switch(spamPattern) {
 
                 // Linear scans.
-                case 0: trySpam(spamIndex++); break;
-                case 1: trySpam(--spamIndex); break;
+            case 0: trySpam(spamIndex++); break;
+            case 1: trySpam(--spamIndex); break;
 
                 // Spiral out from the center.
-                case 2:
-                    spamIndex = (spamIndex * -1) + 1;
-                    trySpam(GameConstants.BROADCAST_MAX_CHANNELS/2 + spamIndex);
-                    break;
+            case 2:
+                spamIndex = (spamIndex * -1) + 1;
+                trySpam(GameConstants.BROADCAST_MAX_CHANNELS/2 + spamIndex);
+                break;
 
-                case 3:
-                    trySpam((int)(GameConstants.BROADCAST_MAX_CHANNELS
-                                    * Math.random()));
-                    break;
+            case 3:
+                trySpam((int)(GameConstants.BROADCAST_MAX_CHANNELS
+                                * Math.random()));
+                break;
 
-                }
             }
         }
     }

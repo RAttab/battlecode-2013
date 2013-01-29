@@ -31,13 +31,13 @@ public class Soldier
                 new SoldierMacro(rc, nav, sense, defuse).formup();
 
             rc.setIndicatorString(0, nav.debug_print());
+
             boolean hasMoved = nav.move();
             if (!hasMoved) Hat.wearHat(rc);
+            Communication.spam();
 
             bcCheck.debug_check("Soldier.end");
 
-            Communication.spam();
-            bcCheck.debug_check("Soldier.spam");
             rc.yield();
         }
     }

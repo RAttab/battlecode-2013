@@ -47,7 +47,7 @@ public class SenseCache
         double x, y, offset;
         double time = 10.0;
 
-        for (int i = 10; --i > 0;) {
+        for (int i = 5; --i > 0;) {
             offset = 6 * Math.random() - 3;
             x = Math.random() * x_dif + MY_HQ.x;
             y = SLOPE * x + ENEMY_HQ.y;
@@ -176,8 +176,8 @@ public class SenseCache
         Robot[] allies = rc.senseNearbyGameObjects(
                 Robot.class, sightRadius, rc.getTeam());
 
-        nearbyAlliesCache = new RobotInfo[allies.length];
-        for (int i = allies.length; --i >= 0;)
+        nearbyAlliesCache = new RobotInfo[Math.min(20, allies.length)];
+        for (int i = nearbyAlliesCache.length; --i >= 0;)
             nearbyAlliesCache[i] = rc.senseRobotInfo(allies[i]);
 
         return nearbyAlliesCache;

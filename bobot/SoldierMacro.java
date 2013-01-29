@@ -32,7 +32,9 @@ public class SoldierMacro
         throws GameActionException
     {
         detectNuke();
+
         if (capture()) return;
+
         if (readyToCharge()) charge();
         else rally();
 
@@ -75,11 +77,6 @@ public class SoldierMacro
         return sense.MY_HQ.add(hqDir, (int)rallyDist);
     }
 
-    private int groupId(Robot robot)
-    {
-        return robot.getID() % 2;
-    }
-
     // The idea is that we want to form multiple groups in order to create a
     // concave. so we rally both groups to the same point and yet have them push
     // away from each other. Should hopefully lead to 2-3 soldier splits.
@@ -93,22 +90,10 @@ public class SoldierMacro
             !myLoc.equals(rallyLoc) ?  myLoc.directionTo(rallyPoint()) : null;
         nav.boost(rallyDir, Weights.MACRO_RALLY_POINT, true);
 
-        int myGroup = groupId(rc.getRobot());
-
         // Stick to your group and shun the other group.
         RobotInfo[] allies = sense.nearbyAllies();
-        int myGroupCount = 0, otherGroupCount = 0;
-        for (int i = allies.length; --i >= 0;) {
-
-            if (groupId(allies[i].robot) == myGroup) {
-                boost(allies[i].location, Weights.MACRO_RALLY_MY_GROUP);
-                myGroupCount++;
-            }
-            else {
-                boost(allies[i].location, Weights.MACRO_RALLY_OTHER_GROUP);
-                otherGroupCount++;
-            }
-        }
+        for (int i = allies.length; --i >= 0;)
+            boost(allies[i].location, Weights.MACRO_RALLY_MY_GROUP);
 
         // This should allow our group to roughly arange themselves orthogonally
         // to the enemy hq.
@@ -116,11 +101,9 @@ public class SoldierMacro
         boost(hqLoc, Weights.MACRO_RALLY_HQ);
 
         rc.setIndicatorString(2,
-                "rally(" + myGroup + ")"
+                "rally"
                 + ": point=" + rallyLoc
-                + ", allies=" + allies.length
-                + ", myGroup=" + myGroupCount
-                + ", otherGroup=" + otherGroupCount);
+                + ", allies=" + allies.length);
     }
 
     private void charge()
@@ -138,20 +121,9 @@ public class SoldierMacro
             boost(enemies[i].location, Weights.MACRO_CHARGE_ENEMIES);
 
         // Stay in group formation.
-        int myGroup = groupId(rc.getRobot());
         RobotInfo[] allies = sense.nearbyAllies();
-        int myGroupCount = 0, otherGroupCount = 0;
-        for (int i = allies.length; --i >= 0;) {
-
-            if (groupId(allies[i].robot) == myGroup) {
-                boost(allies[i].location, Weights.MACRO_CHARGE_MY_GROUP);
-                myGroupCount++;
-            }
-            else {
-                boost(allies[i].location, Weights.MACRO_CHARGE_OTHER_GROUP);
-                otherGroupCount++;
-            }
-        }
+        for (int i = allies.length; --i >= 0;)
+            boost(allies[i].location, Weights.MACRO_CHARGE_MY_GROUP);
 
         // Avoid mines
         MapLocation[] mines = sense.adjacentNonAlliedMines(myLoc);
@@ -161,14 +133,11 @@ public class SoldierMacro
             nav.boost(dir, Weights.MACRO_CHARGE_MINES, false);
         }
 
-
         rc.setIndicatorString(2,
-                "charge(" + myGroup + ")"
+                "charge"
                 + ": allies=" + allies.length
                 + ", enemies=" + enemies.length
-                + ", mines=" + mines.length
-                + ", myGroup=" + myGroupCount
-                + ", otherGroup=" + otherGroupCount);
+                + ", mines=" + mines.length);
 
     }
 
