@@ -30,7 +30,7 @@ public class Soldier
             else
                 new SoldierMacro(rc, nav, sense, defuse).formup();
 
-            rc.setIndicatorString(0, nav.debug_print());
+            // rc.setIndicatorString(0, nav.debug_print());
 
             boolean hasMoved = nav.move();
             if (!hasMoved) Hat.wearHat(rc);

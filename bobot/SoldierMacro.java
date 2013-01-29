@@ -9,6 +9,7 @@ public class SoldierMacro
     Navigation nav;
     SenseCache sense;
     Defuse defuse;
+    MapLocation rallyPoint;
 
 
     SoldierMacro(
@@ -18,6 +19,9 @@ public class SoldierMacro
         this.nav = nav;
         this.sense = sense;
         this.defuse = defuse;
+        Direction hqDir = sense.MY_HQ.directionTo(sense.ENEMY_HQ);
+        double rallyDist = Math.max(sense.DISTANCE_BETWEEN_HQS * 0.1, 4.0);
+        this.rallyPoint = sense.MY_HQ.add(hqDir, (int)rallyDist);
     }
 
 
@@ -51,7 +55,7 @@ public class SoldierMacro
         throws GameActionException
     {
         if (nukeDetected) return;
-        nukeDetected = Communication.readBroadcast(0) > 0;
+        nukeDetected = Communication.readBroadcast(0, false) > 0;
     }
 
     private static boolean charging = false;
@@ -74,14 +78,15 @@ public class SoldierMacro
         MapLocation castLoc = sense.rallyBroadcast();
         if (castLoc != null)
             return castLoc;
-        Direction hqDir = sense.MY_HQ.directionTo(sense.ENEMY_HQ);
-        double rallyDist = Math.max(sense.DISTANCE_BETWEEN_HQS * 0.1, 4.0);
-        return sense.MY_HQ.add(hqDir, (int)rallyDist);
+        return rallyPoint;
     }
 
     // The idea is that we want to form multiple groups in order to create a
     // concave. so we rally both groups to the same point and yet have them push
     // away from each other. Should hopefully lead to 2-3 soldier splits.
+
+    // TODO : there seems to be a bug somewhere that's causing weird behaviour.
+        // try a match on the map rorscharch
     private void rally()
         throws GameActionException
     {
@@ -208,35 +213,55 @@ public class SoldierMacro
         double cost = rc.senseCaptureCost();
         if (cost >= power) return false;
 
-        MapLocation neutBases[] = sense.neutralEncampments();
-        double supplierValue = supplierValue(sense.est_rush_time);
-        double militaryValue = militaryValue(rc.getLocation());
+        rc.setIndicatorString(0, "haveShields=" + sense.haveShields() +
+            ", rushtime=" + sense.est_rush_time);
+        rc.setIndicatorString(1, "toRallyPt=" + Utils.distTwoPoints(rallyPoint, coord) +
+            ", rushtime/5=" + sense.est_rush_time / 5);
 
-        // if (min > supplierValue && min > militaryValue)
-        //     return false;
+        if (getShields())
+        {
+            nav.capture = RobotType.SHIELDS;
+            nav.captureStrength = Weights.SHIELDS_IMPORTANCE;
+            Communication.broadcast(SenseCache.NUM_SHIELDS, 20);
+        } else {
 
-        if (supplierValue > militaryValue) {
-            int currentSuppliers =
-                sense.alliedEncampments().length -
-                sense.militaryEncampments();
+            MapLocation neutBases[] = sense.neutralEncampments();
+            double supplierValue = supplierValue(sense.est_rush_time);
+            double militaryValue = militaryValue(rc.getLocation());
 
-            if (currentSuppliers % 4 == 3)
-                nav.capture = RobotType.GENERATOR;
-            else
-                nav.capture = RobotType.SUPPLIER;
+            if (supplierValue > militaryValue) {
+                nav.captureStrength = supplierValue;
+
+                int currentSuppliers =
+                    sense.alliedEncampments().length -
+                    sense.militaryEncampments();
+
+                if (currentSuppliers % 4 == 3)
+                    nav.capture = RobotType.GENERATOR;
+                else
+                    nav.capture = RobotType.SUPPLIER;
+            }
+
+            else {
+                nav.captureStrength = militaryValue;
+                double distHome = Utils.distTwoPoints(coord, sense.MY_HQ);
+                double distThem = sense.DISTANCE_BETWEEN_HQS - distHome;
+
+                if (distHome * Weights.MEDBAY > distThem * Weights.ARTILLERY)
+                    nav.capture = RobotType.MEDBAY;
+                else
+                    nav.capture = RobotType.ARTILLERY;
+            }
         }
-
-        else {
-            double distHome = Utils.distTwoPoints(coord, sense.MY_HQ);
-            double distThem = sense.DISTANCE_BETWEEN_HQS - distHome;
-
-            if (distHome * Weights.MEDBAY > distThem * Weights.ARTILLERY)
-                nav.capture = RobotType.MEDBAY;
-            else
-                nav.capture = RobotType.ARTILLERY;
-        }
-
         return true;
+    }
+
+    private boolean getShields() throws GameActionException {
+        return !sense.haveShields() && 
+            (sense.est_rush_time > Weights.MIN_SHIELD_MAPSIZE || 
+                rc.senseEncampmentSquares(rc.getLocation(), 63, null).length > 3)
+            && 
+            Utils.distTwoPoints(rallyPoint, rc.getLocation()) < sense.est_rush_time / 5;
     }
 
     private boolean encampmentHack(MapLocation camp)
@@ -251,9 +276,8 @@ public class SoldierMacro
     }
 
     // Estimated payoff (as # of soldiers) within a given number of turns
-    public double supplierValue(
-        MapLocation camp, MapLocation coord, double turns)
-    {
+    public double supplierValue(MapLocation camp, MapLocation coord, double turns)
+             throws GameActionException{
         int currentSuppliers = sense.alliedEncampments().length -
                 sense.militaryEncampments();
         int untilJump = sense.suppliersUntilJump[currentSuppliers - 1];
@@ -270,7 +294,7 @@ public class SoldierMacro
                 (turns - turnCost) / spawnRate;
     }
 
-    public double supplierValue(double turns)
+    public double supplierValue(double turns) throws GameActionException
     {
         int currentSuppliers = sense.alliedEncampments().length -
                 sense.militaryEncampments();
@@ -289,7 +313,7 @@ public class SoldierMacro
 
     // Estimated worth of a military encampment
     public double militaryValue(MapLocation camp)
-    {
+             throws GameActionException{
         double dropOff = Weights.MILITARY_DROP * sense.militaryEncampments();
         return sense.strategicRelevance(camp) * Weights.MIL_CAMP_VAL -
                 dropOff - sense.est_rush_time*Weights.MIL_MAPSIZE;

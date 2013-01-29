@@ -16,6 +16,7 @@ public class Navigation
     MapLocation defuseLoc = null;
 
     RobotType capture = null;
+    double captureStrength = 0.0;
 
     double layMine = 0.0;
 
@@ -91,11 +92,6 @@ public class Navigation
         if (standStill == Double.POSITIVE_INFINITY)
             return false;
 
-        if (capture != null) {
-            rc.captureEncampment(capture);
-            return true;
-        }
-
         double max = standStill;
         Direction dir = null;
         MapLocation myLoc = rc.getLocation();
@@ -110,6 +106,11 @@ public class Navigation
 
             max = directions[i];
             dir = dest;
+        }
+
+        if (capture != null && max < captureStrength) {
+            rc.captureEncampment(capture);
+            return true;
         }
 
         if (!noDefuse && autoDefuse && defuseLoc == null && dir != null)

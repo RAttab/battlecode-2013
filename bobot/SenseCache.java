@@ -17,6 +17,11 @@ import battlecode.common.*;
 public class SenseCache
 {
     public static final int SHIELDS_CHANNEL = 16661;
+    public static final int MIL_CHANNEL = 16761;
+    public static final int MIL_CAMP_NUM = 9871;
+
+    public static final int NUM_SHIELDS = 55987;
+    public static final int NUM_MIL = 48265;
 
     RobotController rc;
     double est_rush_time;
@@ -45,7 +50,12 @@ public class SenseCache
 
     public MapLocation rallyBroadcast() throws GameActionException
     {
-        int signal = Communication.readBroadcast(SHIELDS_CHANNEL);
+        int signal = Communication.readBroadcast(SHIELDS_CHANNEL, true);
+        if (signal != -1) {
+            int x = signal % 1000;
+            return new MapLocation(x, signal-x);
+        }
+        signal = Communication.readBroadcast(MIL_CHANNEL, true);
         if (signal != -1) {
             int x = signal % 1000;
             return new MapLocation(x, signal-x);
@@ -275,9 +285,16 @@ public class SenseCache
                 / factor;
     }
 
-    public int militaryEncampments() {
-        // TODO
-        return 0;
+    public int militaryEncampments() throws GameActionException {
+        int n = Communication.readBroadcast(NUM_MIL, true);
+        if (n == -1)
+            n = 0;
+        return n;
+    }
+
+    public boolean haveShields() throws GameActionException {
+        int n = Communication.readBroadcast(NUM_SHIELDS, true);
+        return n > 0;
     }
 
     public static final int[] roundsBySuppliers = {

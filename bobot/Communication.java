@@ -26,14 +26,16 @@ public class Communication
         }
     }
 
-    public static int readBroadcast(int channel)
+    public static int readBroadcast(int channel, boolean lastTurn)
         throws GameActionException
     {
         if (rc.getTeamPower() < 1) return -1;
 
+        int round = lastTurn ? Clock.getRoundNum() - 1 : Clock.getRoundNum();
+
         for (int i = OFF.length; --i >= 0;) {
             channel =
-                (OFF[i] * Clock.getRoundNum() + channel)
+                (OFF[i] * round + channel)
                 & GameConstants.BROADCAST_MAX_CHANNELS;
 
             int val = rc.readBroadcast(channel);

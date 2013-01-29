@@ -46,15 +46,41 @@ public class Bases
         }
     }
 
-    private static void shields(RobotController rc) throws GameActionException {
+    private static void shields(RobotController rc) 
+            throws GameActionException {
         int cast = rc.getLocation().x * 1000 + rc.getLocation().y;
         Communication.broadcast(SenseCache.SHIELDS_CHANNEL, cast);
+        Communication.broadcast(SenseCache.NUM_SHIELDS, 1);
+    }
+
+    private static void milBroadcast(RobotController rc) 
+            throws GameActionException {
+        int others = Communication.readBroadcast(SenseCache.MIL_CHANNEL, false);
+        if (others == -1 || 
+
+            Utils.distTwoPoints( others % 1000, 
+            others - others % 1000, 
+            rc.senseEnemyHQLocation().x,
+            rc.senseEnemyHQLocation().y ) 
+            >
+            Utils.distTwoPoints(rc.getLocation(), rc.senseEnemyHQLocation()))
+        {
+            int cast = rc.getLocation().x * 1000 + rc.getLocation().y;
+            Communication.broadcast(SenseCache.MIL_CHANNEL, cast);
+        }
+
+        int n = Communication.readBroadcast(SenseCache.NUM_MIL, false);
+        n++;
+        if (n == 0)
+            n = 1;
+        Communication.broadcast(SenseCache.NUM_MIL, n);
     }
 
     public static void run(RobotController rc) throws GameActionException
     {
         boolean isArty = rc.getType() == RobotType.ARTILLERY;
         boolean isShields = rc.getType() == RobotType.SHIELDS;
+        boolean isMedbay = rc.getType() == RobotType.MEDBAY;
 
         while (true) {
 
@@ -65,6 +91,8 @@ public class Bases
             if (isArty) artillery(rc);
 
             if (isShields) shields(rc);
+
+            if (isMedbay || isArty) milBroadcast(rc);
 
             rc.yield();
         }
