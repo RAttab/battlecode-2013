@@ -16,6 +16,8 @@ public class RobotPlayer
                 if (rc.getType() == RobotType.HQ) Headquarter.run(rc);
                 else
                     Bases.run(rc);
+
+                Communication.spam();
             }
             catch(Exception e) {
                 e.printStackTrace();
