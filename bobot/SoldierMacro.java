@@ -85,8 +85,6 @@ public class SoldierMacro
     // concave. so we rally both groups to the same point and yet have them push
     // away from each other. Should hopefully lead to 2-3 soldier splits.
 
-    // TODO : there seems to be a bug somewhere that's causing weird behaviour.
-        // try a match on the map rorscharch
     private void rally()
         throws GameActionException
     {

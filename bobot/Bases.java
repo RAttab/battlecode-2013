@@ -58,14 +58,14 @@ public class Bases
         int others = Communication.readBroadcast(SenseCache.MIL_CHANNEL, false);
         if (others == -1 || 
 
-            Utils.distTwoPoints( others % 1000, 
-            others - others % 1000, 
+            Utils.distTwoPoints( (others - others % 1000)/1000, 
+            others % 1000, 
             rc.senseEnemyHQLocation().x,
             rc.senseEnemyHQLocation().y ) 
-            >
-            Utils.distTwoPoints(rc.getLocation(), rc.senseEnemyHQLocation()))
+            <
+            Utils.distTwoPoints(rc.getLocation(), rc.senseHQLocation()))
         {
-            int cast = rc.getLocation().x * 1000 + rc.getLocation().y;
+            int cast = rc.getLocation().x + rc.getLocation().y * 1000;
             Communication.broadcast(SenseCache.MIL_CHANNEL, cast);
         }
 

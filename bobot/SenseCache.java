@@ -52,13 +52,13 @@ public class SenseCache
     {
         int signal = Communication.readBroadcast(SHIELDS_CHANNEL, true);
         if (signal != -1) {
-            int x = signal % 1000;
-            return new MapLocation(x, signal-x);
+            int y = signal % 1000;
+            return new MapLocation((signal-y)/1000, y);
         }
         signal = Communication.readBroadcast(MIL_CHANNEL, true);
         if (signal != -1) {
-            int x = signal % 1000;
-            return new MapLocation(x, signal-x);
+            int y = signal % 1000;
+            return new MapLocation((signal-y)/1000, y);
         }
         return null;
     }
@@ -286,10 +286,19 @@ public class SenseCache
     }
 
     public int militaryEncampments() throws GameActionException {
-        int n = Communication.readBroadcast(NUM_MIL, true);
-        if (n == -1)
-            n = 0;
-        return n;
+        // TODO : something weird happening with broadcasts:
+     // [java] [B:SOLDIER#1911@401] java.lang.ArrayIndexOutOfBoundsException: -35018
+     // [java] [B:SOLDIER#1911@401]    at bobot.SoldierMacro.supplierValue(SoldierMacro.java:299)
+     // [java] [B:SOLDIER#1911@401]    at bobot.SoldierMacro.capture(SoldierMacro.java:227)
+     // [java] [B:SOLDIER#1911@401]    at bobot.SoldierMacro.formup(SoldierMacro.java:40)
+     // [java] [B:SOLDIER#1911@401]    at bobot.Soldier.run(Soldier.java:31)
+     // [java] [B:SOLDIER#1911@401]    at bobot.RobotPlayer.run(RobotPlayer.java:15)
+
+        // int n = Communication.readBroadcast(NUM_MIL, true);
+        // if (n == -1)
+        //     n = 0;
+        // return n;
+        return 0;
     }
 
     public boolean haveShields() throws GameActionException {

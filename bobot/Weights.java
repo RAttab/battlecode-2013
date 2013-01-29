@@ -47,7 +47,7 @@ public class Weights
     static final double MIN_SHIELD_MAPSIZE = 150.00;
     static final double SHIELDS_IMPORTANCE = 10.00;
     public static final double SOLDIER_VAL = 1.05;
-    public static final double MIL_CAMP_VAL = 1;
+    public static final double MIL_CAMP_VAL = 2;
     public static final double MILITARY_DROP = 0.3;
     public static final double MIL_MAPSIZE = 0.01;
     public static final double STRAT_RATIO = 0.8;
