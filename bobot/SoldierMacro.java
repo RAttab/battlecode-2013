@@ -196,7 +196,7 @@ public class SoldierMacro
     }
 
     // TODO : add shields logic
-    public boolean capture() throws GameActionException
+    public boolean capture(double min) throws GameActionException
     {
         MapLocation coord = rc.getLocation();
         if (!rc.senseEncampmentSquare(coord)) return false;
@@ -209,6 +209,9 @@ public class SoldierMacro
         MapLocation neutBases[] = sense.neutralEncampments();
         double supplierValue = supplierValue(sense.est_rush_time);
         double militaryValue = militaryValue(rc.getLocation());
+
+        if (min > supplierValue && min > militaryValue)
+            return false;
 
         if (supplierValue > militaryValue) {
             int currentSuppliers =
@@ -267,6 +270,7 @@ public class SoldierMacro
 
     public double supplierValue(double turns)
     {
+        Bytecode.
         int currentSuppliers = sense.alliedEncampments().length -
                 sense.militaryEncampments();
         int untilJump = sense.suppliersUntilJump[currentSuppliers];
