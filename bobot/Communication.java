@@ -8,8 +8,8 @@ public class Communication
 
 
     static final int KEY = 0x0A5A5A5A;
-    static final int IND = 0xF0000000;
-    static final int MSK = 0x90000000;
+    static final int MSK = 0xF0000000;
+    static final int IND = 0x50000000;
 
     static final int[] OFF = { 0x2E3D, 0xD3E2, 0x8B5C };
 
@@ -22,6 +22,7 @@ public class Communication
             channel =
                 (OFF[i] * Clock.getRoundNum() + channel)
                 & GameConstants.BROADCAST_MAX_CHANNELS;
+
             rc.broadcast(channel, (data & ~MSK) | IND);
         }
     }
