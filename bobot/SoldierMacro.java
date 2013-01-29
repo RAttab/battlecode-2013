@@ -32,12 +32,12 @@ public class SoldierMacro
         throws GameActionException
     {
         detectNuke();
-        if (!capture()) {
-            if (readyToCharge()) charge();
-            else rally();
-            encamp();
-            defuse.macro();
-        }
+        if (capture()) return;
+        if (readyToCharge()) charge();
+        else rally();
+        encamp();
+        layMine();
+        defuse.macro();
     }
 
     private static boolean nukeDetected = false;
@@ -169,6 +169,48 @@ public class SoldierMacro
 
     }
 
+    public void layMine() throws GameActionException
+    {
+        MapLocation coord = rc.getLocation();
+
+
+        if (rc.senseMine(coord) != null ||
+                nukeDetected ||
+                Clock.getRoundNum() > 2000)
+        {
+            nav.layMine = Double.NEGATIVE_INFINITY;
+            return;
+        }
+
+        Robot[] enemies = rc.senseNearbyGameObjects(
+                Robot.class, 490, rc.getTeam().opponent());
+        if (enemies.length == 0) {
+            nav.layMine = Double.NEGATIVE_INFINITY;
+            return;
+        }
+
+        double mineStr = sense.defensiveRelevance(coord) * Weights.LAY_MINE;
+
+        if (rc.hasUpgrade(Upgrade.PICKAXE)) {
+            int orthogonalMines = 0;
+            if (rc.senseMine(coord.add(Direction.NORTH)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.SOUTH)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.EAST)) != null)
+                orthogonalMines++;
+            if (rc.senseMine(coord.add(Direction.WEST)) != null)
+                orthogonalMines++;
+            mineStr *= 5-orthogonalMines;
+        }
+        // TODO : make areas with encampments more enticing
+        // if (rc.senseEncampmentSquare(coord)){
+        //     mineStr += Weights.LAY_MINE;
+        // }
+        double minesNearby = rc.senseMineLocations(coord, 63, rc.getTeam()).length;
+        double minesNearbyFactor = Weights.NEARBY_MINES * (30-minesNearby);
+        nav.layMine =  mineStr + minesNearbyFactor;
+    }
 
     public void encamp() throws GameActionException {
         double cost = rc.senseCaptureCost();
@@ -186,7 +228,8 @@ public class SoldierMacro
     }
 
     // TODO : add shields logic
-    public boolean capture() throws GameActionException {
+    public boolean capture() throws GameActionException
+    {
         MapLocation coord = rc.getLocation();
         if (!rc.senseEncampmentSquare(coord)) return false;
         if (encampmentHack(coord)) return false;
@@ -200,20 +243,26 @@ public class SoldierMacro
         double militaryValue = militaryValue(rc.getLocation());
 
         if (supplierValue > militaryValue) {
-            int currentSuppliers = sense.alliedEncampments().length -
+            int currentSuppliers =
+                sense.alliedEncampments().length -
                 sense.militaryEncampments();
+
             if (currentSuppliers == 4 || currentSuppliers == 9)
-                rc.captureEncampment(RobotType.GENERATOR);
+                nav.capture = RobotType.GENERATOR;
             else
-                rc.captureEncampment(RobotType.SUPPLIER);
-        } else {
+                nav.capture = RobotType.SUPPLIER;
+        }
+
+        else {
             double distHome = Utils.distTwoPoints(coord, sense.MY_HQ);
             double distThem = sense.DISTANCE_BETWEEN_HQS - distHome;
+
             if (distHome * Weights.MEDBAY > distThem * Weights.ARTILLERY)
-                rc.captureEncampment(RobotType.MEDBAY);
+                nav.capture = RobotType.MEDBAY;
             else
-                rc.captureEncampment(RobotType.ARTILLERY);
+                nav.capture = RobotType.ARTILLERY;
         }
+
         return true;
     }
 

@@ -15,6 +15,10 @@ public class Navigation
     boolean noDefuse = false;
     MapLocation defuseLoc = null;
 
+    RobotType capture = null;
+
+    double layMine = 0.0;
+
     RobotController rc;
     SenseCache sense;
 
@@ -87,6 +91,11 @@ public class Navigation
         if (standStill == Double.POSITIVE_INFINITY)
             return false;
 
+        if (capture != null) {
+            rc.captureEncampment(capture);
+            return true;
+        }
+
         double max = standStill;
         Direction dir = null;
         MapLocation myLoc = rc.getLocation();
@@ -111,12 +120,9 @@ public class Navigation
             return true;
         }
 
-        if (rc.senseMine(myLoc) == null && rc.senseNearbyGameObjects(Robot.class, 490, 
-                rc.getTeam().opponent()).length == 0) {
-            if (Mines.getMineStr(rc, sense) > max){
-                rc.layMine();
-                return true;
-            }
+        if (layMine > max && rc.senseMine(myLoc) == null) {
+            rc.layMine();
+            return true;
         }
 
         if (dir == null) return false;
