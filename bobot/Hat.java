@@ -12,7 +12,7 @@ public class Hat
     private static double POWER_THRESHOLD = 500.0;
     private static int BYTECODE_THRESHOLD = 4500;
 
-    private static boolean hatless = true;
+    public static boolean hatless = true;
 
     public static void wearHat(RobotController rc)
         throws GameActionException

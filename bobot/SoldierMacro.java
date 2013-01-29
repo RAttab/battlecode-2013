@@ -41,10 +41,12 @@ public class SoldierMacro
     }
 
     private static boolean nukeDetected = false;
+
     private void detectNuke()
+        throws GameActionException
     {
         if (nukeDetected) return;
-        // \todo Look at comm to see if HQ detected a nuke.
+        nukeDetected = Communication.readBroadcast(0) > 0;
     }
 
     private static boolean charging = false;

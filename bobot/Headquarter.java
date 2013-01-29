@@ -71,6 +71,11 @@ public class Headquarter
         SenseCache sense = new SenseCache(rc);
 
         while (true) {
+            if (rc.senseEnemyNukeHalfDone()) {
+                System.err.println("NUKE DETECTED");
+                Communication.broadcast(0, 1);
+            }
+
             if (!rc.isActive()) { rc.yield(); continue; }
 
             Navigation nav = new Navigation(rc, sense);
