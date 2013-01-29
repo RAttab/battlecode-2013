@@ -46,9 +46,15 @@ public class Bases
         }
     }
 
+    private static void shields(RobotController rc) throws GameActionException {
+        int cast = rc.getLocation().x * 1000 + rc.getLocation().y;
+        Communication.broadcast(SenseCache.SHIELDS_CHANNEL, cast);
+    }
+
     public static void run(RobotController rc) throws GameActionException
     {
         boolean isArty = rc.getType() == RobotType.ARTILLERY;
+        boolean isShields = rc.getType() == RobotType.SHIELDS;
 
         while (true) {
 
@@ -57,6 +63,8 @@ public class Bases
             if (!rc.isActive()) { rc.yield(); continue; }
 
             if (isArty) artillery(rc);
+
+            if (isShields) shields(rc);
 
             rc.yield();
         }

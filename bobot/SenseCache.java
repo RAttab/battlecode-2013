@@ -16,6 +16,8 @@ import battlecode.common.*;
  */
 public class SenseCache
 {
+    public static final int SHIELDS_CHANNEL = 16661;
+
     RobotController rc;
     double est_rush_time;
     int rush_calcs;
@@ -30,6 +32,7 @@ public class SenseCache
     MapLocation ENEMY_HQ;
     double DISTANCE_BETWEEN_HQS;
 
+
     SenseCache(RobotController rc)
     {
         this.rc = rc;
@@ -38,6 +41,16 @@ public class SenseCache
         ENEMY_HQ = rc.senseEnemyHQLocation();
         SLOPE = (double)(MY_HQ.y - ENEMY_HQ.y) / (MY_HQ.x - ENEMY_HQ.x);
         DISTANCE_BETWEEN_HQS = Utils.distTwoPoints(MY_HQ, ENEMY_HQ);
+    }
+
+    public MapLocation rallyBroadcast() throws GameActionException
+    {
+        int signal = Communication.readBroadcast(SHIELDS_CHANNEL);
+        if (signal != -1) {
+            int x = signal % 1000;
+            return new MapLocation(x, signal-x);
+        }
+        return null;
     }
 
     public void updateRushTime()

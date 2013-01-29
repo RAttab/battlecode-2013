@@ -69,10 +69,12 @@ public class SoldierMacro
         return charging;
     }
 
-    private MapLocation rallyPoint()
+    private MapLocation rallyPoint() throws GameActionException
     {
+        MapLocation castLoc = sense.rallyBroadcast();
+        if (castLoc != null)
+            return castLoc;
         Direction hqDir = sense.MY_HQ.directionTo(sense.ENEMY_HQ);
-
         double rallyDist = Math.max(sense.DISTANCE_BETWEEN_HQS * 0.1, 4.0);
         return sense.MY_HQ.add(hqDir, (int)rallyDist);
     }
@@ -210,8 +212,8 @@ public class SoldierMacro
         double supplierValue = supplierValue(sense.est_rush_time);
         double militaryValue = militaryValue(rc.getLocation());
 
-        if (min > supplierValue && min > militaryValue)
-            return false;
+        // if (min > supplierValue && min > militaryValue)
+        //     return false;
 
         if (supplierValue > militaryValue) {
             int currentSuppliers =
