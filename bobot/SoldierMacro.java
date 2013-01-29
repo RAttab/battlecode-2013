@@ -35,8 +35,11 @@ public class SoldierMacro
         if (capture()) return;
         if (readyToCharge()) charge();
         else rally();
-        encamp();
-        layMine();
+
+        if (!nukeDetected) {
+            encamp();
+            layMine();
+        }
         defuse.macro();
     }
 
@@ -173,18 +176,14 @@ public class SoldierMacro
     {
         MapLocation coord = rc.getLocation();
 
-
-        if (rc.senseMine(coord) != null ||
-                nukeDetected ||
-                Clock.getRoundNum() > 2000)
-        {
+        if (rc.senseMine(coord) != null || Clock.getRoundNum() > 2000) {
             nav.layMine = Double.NEGATIVE_INFINITY;
             return;
         }
 
         Robot[] enemies = rc.senseNearbyGameObjects(
                 Robot.class, 490, rc.getTeam().opponent());
-        if (enemies.length == 0) {
+        if (enemies.length > 0) {
             nav.layMine = Double.NEGATIVE_INFINITY;
             return;
         }
