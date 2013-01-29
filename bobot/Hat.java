@@ -21,7 +21,7 @@ public class Hat
         if (Clock.getBytecodeNum() >= BYTECODE_THRESHOLD) return;
         if (rc.getTeamPower() < POWER_THRESHOLD) return;
 
-        System.err.println("I have a hat. This battle is now meaningless.");
+        System.out.println("I have a hat. This battle is now meaningless.");
         rc.wearHat();
         hatless = false;
     }
