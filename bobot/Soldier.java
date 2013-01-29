@@ -35,6 +35,9 @@ public class Soldier
             if (!hasMoved) Hat.wearHat(rc);
 
             bcCheck.debug_check("Soldier.end");
+
+            Communication.spam();
+            bcCheck.debug_check("Soldier.spam");
             rc.yield();
         }
     }

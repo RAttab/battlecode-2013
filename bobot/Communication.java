@@ -7,7 +7,6 @@ public class Communication
     static RobotController rc;
 
 
-    static final int KEY = 0x0A5A5A5A;
     static final int MSK = 0xF0000000;
     static final int IND = 0x50000000;
 
@@ -55,7 +54,7 @@ public class Communication
         int data = rc.readBroadcast(channel);
         if (data == 0 || (data & MSK) == IND) return;
 
-        rc.broadcast(channel, (data ^ KEY) | IND);
+        rc.broadcast(channel, 0);
         lastSeen[lastSeenIndex++ % lastSeen.length] = channel;
     }
 
@@ -87,7 +86,7 @@ public class Communication
             rc.getType() == RobotType.SOLDIER && Hat.hatless ? 4500 : 7000;
 
         while(Clock.getBytecodeNum() < bcThreshold) {
-            for (int i = 10; --i >= 0;) {
+            for (int i = 2; --i >= 0;) {
                 switch(spamPattern) {
 
                 // Linear scans.
@@ -100,11 +99,7 @@ public class Communication
                     trySpam(GameConstants.BROADCAST_MAX_CHANNELS/2 + spamIndex);
                     break;
 
-                // Random scan.
-                case 3: trySpam((int)System.nanoTime()); break;
-
-                 // Math.random() can be used as a clever to communicate.
-                case 4:
+                case 3:
                     trySpam((int)(GameConstants.BROADCAST_MAX_CHANNELS
                                     * Math.random()));
                     break;
@@ -119,7 +114,7 @@ public class Communication
     {
         rc = r;
 
-        spamPattern = rc.getRobot().getID() % 5;
+        spamPattern = rc.getRobot().getID() % 4;
         for (int i = lastSeen.length; --i >= 0;)
             lastSeen[i] = -1;
 
