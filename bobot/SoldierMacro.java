@@ -247,7 +247,7 @@ public class SoldierMacro
                 sense.alliedEncampments().length -
                 sense.militaryEncampments();
 
-            if (currentSuppliers == 4 || currentSuppliers == 9)
+            if (currentSuppliers % 4 == 3)
                 nav.capture = RobotType.GENERATOR;
             else
                 nav.capture = RobotType.SUPPLIER;
