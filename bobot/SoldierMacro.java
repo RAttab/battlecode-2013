@@ -196,7 +196,7 @@ public class SoldierMacro
     }
 
     // TODO : add shields logic
-    public boolean capture(double min) throws GameActionException
+    public boolean capture() throws GameActionException
     {
         MapLocation coord = rc.getLocation();
         if (!rc.senseEncampmentSquare(coord)) return false;
