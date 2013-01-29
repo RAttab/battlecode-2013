@@ -301,7 +301,6 @@ public class SoldierMacro
 
     public double supplierValue(double turns)
     {
-        Bytecode.
         int currentSuppliers = sense.alliedEncampments().length -
                 sense.militaryEncampments();
         int untilJump = sense.suppliersUntilJump[currentSuppliers];
