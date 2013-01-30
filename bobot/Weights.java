@@ -40,6 +40,9 @@ public class Weights
     static final double LAY_MINE = 0.5;
     static final double NEARBY_MINES = 0.05;
 
+    // Artillery
+    // 1.5 the amount of energon a soldier has
+    static final double ENEMY_HQ_TARGET_VALUE = 60;
 
     //capture stuff
     static final double ARTILLERY = 0.1;

@@ -15,8 +15,10 @@ public class Bases
                 Robot.class, RobotType.ARTILLERY.attackRadiusMaxSquared, 
                 rc.getTeam().opponent());
 
-        MapLocation target = null;
-        double targetScore = -1;
+        // Set an initial target at the enemy HQ
+        // The score is 1.5 the amount of a single enemy bot
+        MapLocation target = rc.senseEnemyHQLocation();
+        double targetScore = Weights.ENEMY_HQ_TARGET_VALUE;
 
         int steps = Math.max(1, enemies.length / MAX_ROBOTS);
 
