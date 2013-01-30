@@ -10,19 +10,23 @@ public class Communication
     static final int MSK = 0xF0000000;
     static final int IND = 0x50000000;
 
+    static final int TTL = 0x0FFF0000;
+
     static final int[] OFF = { 0x2E3D, 0xD3E2, 0x8B5C };
 
     public static void broadcast(int channel, int data)
         throws GameActionException
     {
+
         if (rc.getTeamPower() < 1) return;
 
+        int round = Clock.getRoundNum();
+
         for (int i = OFF.length; --i >= 0;) {
-            channel =
-                (OFF[i] * Clock.getRoundNum() + channel)
+            channel = (OFF[i] * round + channel)
                 & GameConstants.BROADCAST_MAX_CHANNELS;
 
-            rc.broadcast(channel, (data & ~MSK) | IND);
+            rc.broadcast(channel, data | round << 16 | IND);
         }
     }
 
@@ -40,7 +44,8 @@ public class Communication
 
             int val = rc.readBroadcast(channel);
             if ((val & MSK) != IND) continue;
-            return val & ~MSK;
+            if ((val & TTL) >> 16 != round) continue;
+            return val & ~(MSK | TTL);
         }
 
         return -1;
