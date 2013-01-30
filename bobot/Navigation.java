@@ -109,6 +109,7 @@ public class Navigation
         }
 
         if (capture != null && max < captureStrength) {
+            System.err.println("max=" + max + ", capStr=" + captureStrength);
             rc.captureEncampment(capture);
             return true;
         }

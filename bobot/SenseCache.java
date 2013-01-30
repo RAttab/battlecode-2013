@@ -280,8 +280,8 @@ public class SenseCache
     {
         double factor = DISTANCE_BETWEEN_HQS / Weights.DEF_RATIO;
         return
-            ( 0.8 * (factor - Utils.distTwoPoints(p, MY_HQ)) +
-            0.2 * (factor - Utils.distToLineBetween(p, MY_HQ, ENEMY_HQ)) )
+            ( 0.9 * (factor - Utils.distTwoPoints(p, MY_HQ)) +
+            0.1 * (factor - Utils.distToLineBetween(p, MY_HQ, ENEMY_HQ)) )
                 / factor;
     }
 

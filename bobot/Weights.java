@@ -23,7 +23,7 @@ public class Weights
 
     static final double MINE_GTFO = 3.0;
 
-    static final double MACRO_RALLY_GROUP_SIZE = 10.0;
+    static final double MACRO_RALLY_GROUP_SIZE = 8.0;
     static final double MACRO_RALLY_POINT = 3.0;
     static final double MACRO_RALLY_MY_GROUP = 1.0;
     static final double MACRO_RALLY_OTHER_GROUP = -1.0;
@@ -37,7 +37,7 @@ public class Weights
 
     static final double MACRO_GET_CAMPS = 25;
 
-    static final double LAY_MINE = 0.5;
+    static final double LAY_MINE = 0.4;
     static final double NEARBY_MINES = 0.05;
 
     // Artillery
@@ -48,10 +48,12 @@ public class Weights
     static final double ARTILLERY = 0.1;
     static final double MEDBAY = 0.9;
     static final double MIN_SHIELD_MAPSIZE = 150.00;
+    
     static final double SHIELDS_IMPORTANCE = 10.00;
+    static final double SUPPLIER_COEF = 0.6;
     public static final double SOLDIER_VAL = 1.05;
     public static final double MIL_CAMP_VAL = 2;
-    public static final double MILITARY_DROP = 0.3;
+    public static final double MILITARY_DROP = 0.4;
     public static final double MIL_MAPSIZE = 0.01;
     public static final double STRAT_RATIO = 0.8;
     public static final double DEF_RATIO = 1-STRAT_RATIO;

@@ -182,12 +182,15 @@ public class SoldierMacro
         // }
         double minesNearby = rc.senseMineLocations(coord, 63, rc.getTeam()).length;
         double minesNearbyFactor = Weights.NEARBY_MINES * (30-minesNearby);
+
         nav.layMine =  mineStr + minesNearbyFactor;
     }
 
     public void encamp() throws GameActionException {
         double cost = rc.senseCaptureCost();
         if (cost >= rc.getTeamPower()) return;
+        double nearRushTime = sense.est_rush_time - Clock.getRoundNum();
+        if (Math.abs(nearRushTime) < 90) return;
 
         MapLocation[] camps = sense.localEncampments(Team.NEUTRAL);
         int step = Utils.ceilDiv(camps.length, 5);
@@ -211,10 +214,16 @@ public class SoldierMacro
         double cost = rc.senseCaptureCost();
         if (cost >= power) return false;
 
+        MapLocation neutBases[] = sense.neutralEncampments();
+        double supplierValue = supplierValue(sense.est_rush_time);
+        // double militaryValue = militaryValue(rc.getLocation());
+
         rc.setIndicatorString(0, "haveShields=" + sense.haveShields() +
-            ", rushtime=" + sense.est_rush_time);
+            ", rushtime=" + sense.est_rush_time + ", rushTimeDiff = " 
+            + (sense.est_rush_time - Clock.getRoundNum()) );
         rc.setIndicatorString(1, "toRallyPt=" + Utils.distTwoPoints(rallyPoint, coord) +
-            ", rushtime/5=" + sense.est_rush_time / 5);
+            ", rushtime/5=" + sense.est_rush_time / 5 + ", supplierVal=" + 
+            supplierValue);// + ", milVal=" + militaryValue);
 
         if (getShields())
         {
@@ -223,33 +232,29 @@ public class SoldierMacro
             Communication.broadcast(SenseCache.NUM_SHIELDS, 20);
         } else {
 
-            MapLocation neutBases[] = sense.neutralEncampments();
-            double supplierValue = supplierValue(sense.est_rush_time);
-            double militaryValue = militaryValue(rc.getLocation());
+            // if (supplierValue > militaryValue) {
+            nav.captureStrength = supplierValue;
 
-            if (supplierValue > militaryValue) {
-                nav.captureStrength = supplierValue;
+            int currentSuppliers =
+                sense.alliedEncampments().length -
+                sense.militaryEncampments();
 
-                int currentSuppliers =
-                    sense.alliedEncampments().length -
-                    sense.militaryEncampments();
+            if (currentSuppliers % 4 == 3)
+                nav.capture = RobotType.GENERATOR;
+            else
+                nav.capture = RobotType.SUPPLIER;
+            // }
 
-                if (currentSuppliers % 4 == 3)
-                    nav.capture = RobotType.GENERATOR;
-                else
-                    nav.capture = RobotType.SUPPLIER;
-            }
+            // else {
+            //     nav.captureStrength = militaryValue;
+            //     double distHome = Utils.distTwoPoints(coord, sense.MY_HQ);
+            //     double distThem = sense.DISTANCE_BETWEEN_HQS - distHome;
 
-            else {
-                nav.captureStrength = militaryValue;
-                double distHome = Utils.distTwoPoints(coord, sense.MY_HQ);
-                double distThem = sense.DISTANCE_BETWEEN_HQS - distHome;
-
-                if (distHome * Weights.MEDBAY > distThem * Weights.ARTILLERY)
-                    nav.capture = RobotType.MEDBAY;
-                else
-                    nav.capture = RobotType.ARTILLERY;
-            }
+            //     if (distHome * Weights.MEDBAY > distThem * Weights.ARTILLERY)
+            //         nav.capture = RobotType.MEDBAY;
+            //     else
+            //         nav.capture = RobotType.ARTILLERY;
+            // }
         }
         return true;
     }
@@ -299,14 +304,20 @@ public class SoldierMacro
         int untilJump = sense.suppliersUntilJump[currentSuppliers];
         int spawnRate = sense.roundsBySuppliers[currentSuppliers];
 
+        double nearRushTime = sense.est_rush_time - Clock.getRoundNum();
+        // System.err.println(Math.abs(nearRushTime));
+        if (Math.abs(nearRushTime) < 90)
+            return Double.NEGATIVE_INFINITY;
+
         // Check if supplier benefit is out of reach
         if (untilJump > sense.neutralEncampments().length)
             return Double.NEGATIVE_INFINITY;
 
         double turnCost = (untilJump * spawnRate);
 
-        return (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) -
-                (turns - turnCost) / spawnRate;
+        return Weights.SUPPLIER_COEF *
+            ( (turns - turnCost * Weights.SOLDIER_VAL) / (spawnRate - 1) -
+                (turns - turnCost) / spawnRate );
     }
 
     // Estimated worth of a military encampment
