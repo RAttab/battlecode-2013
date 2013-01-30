@@ -155,6 +155,13 @@ public class SoldierMacro
             return;
         }
 
+        if (Utils.distTwoPoints(coord, rc.senseHQLocation()) > 
+                sense.DISTANCE_BETWEEN_HQS/5) {
+            nav.layMine = Double.NEGATIVE_INFINITY;
+            return;
+        }
+
+
         Robot[] enemies = rc.senseNearbyGameObjects(
                 Robot.class, 490, rc.getTeam().opponent());
         if (enemies.length > 0) {
@@ -190,7 +197,7 @@ public class SoldierMacro
         double cost = rc.senseCaptureCost();
         if (cost >= rc.getTeamPower()) return;
         double nearRushTime = sense.est_rush_time - Clock.getRoundNum();
-        if (Math.abs(nearRushTime) < 90) return;
+        if (Math.abs(nearRushTime) < 100) return;
 
         MapLocation[] camps = sense.localEncampments(Team.NEUTRAL);
         int step = Utils.ceilDiv(camps.length, 5);
@@ -264,13 +271,14 @@ public class SoldierMacro
             (sense.est_rush_time > Weights.MIN_SHIELD_MAPSIZE || 
                 rc.senseEncampmentSquares(rc.getLocation(), 63, null).length > 3)
             && 
-            Utils.distTwoPoints(rallyPoint, rc.getLocation()) < sense.est_rush_time / 5;
+            Utils.distTwoPoints(rallyPoint, rc.getLocation()) < 8;
     }
 
     private boolean encampmentHack(MapLocation camp)
         throws GameActionException
     {
-        if (rc.senseEncampmentSquares(camp, 4, null).length > 4) {
+        if (rc.senseEncampmentSquares(camp, 4, null).length > 4
+            || rc.getLocation().isAdjacentTo(rc.senseHQLocation())) {
             if ((camp.x + camp.y) % 2 == 0)
                 return true;
         }

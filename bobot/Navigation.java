@@ -96,6 +96,14 @@ public class Navigation
         Direction dir = null;
         MapLocation myLoc = rc.getLocation();
 
+        if (myLoc.isAdjacentTo(rc.senseHQLocation())) {
+            MapLocation ugh = Utils.devsLoveTrollMaps(rc);
+            if (ugh != null) {
+                rc.defuseMine(ugh);
+                return true;
+            }
+        }
+
         for (int i = 0; i < 8; ++i) {
             if (max >= directions[i]) continue;
 
