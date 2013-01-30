@@ -50,7 +50,7 @@ public class Bases
 
     private static void shields(RobotController rc) 
             throws GameActionException {
-        int cast = rc.getLocation().x * 1000 + rc.getLocation().y;
+        int cast = rc.getLocation().x * 100 + rc.getLocation().y;
         Communication.broadcast(SenseCache.SHIELDS_CHANNEL, cast);
         Communication.broadcast(SenseCache.NUM_SHIELDS, 1);
     }
@@ -60,14 +60,14 @@ public class Bases
         int others = Communication.readBroadcast(SenseCache.MIL_CHANNEL, false);
         if (others == -1 || 
 
-            Utils.distTwoPoints( (others - others % 1000)/1000, 
-            others % 1000, 
+            Utils.distTwoPoints( (others - others % 100)/100, 
+            others % 100, 
             rc.senseEnemyHQLocation().x,
             rc.senseEnemyHQLocation().y ) 
             <
             Utils.distTwoPoints(rc.getLocation(), rc.senseHQLocation()))
         {
-            int cast = rc.getLocation().x + rc.getLocation().y * 1000;
+            int cast = rc.getLocation().x + rc.getLocation().y * 100;
             Communication.broadcast(SenseCache.MIL_CHANNEL, cast);
         }
 

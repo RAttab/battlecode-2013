@@ -52,13 +52,13 @@ public class SenseCache
     {
         int signal = Communication.readBroadcast(SHIELDS_CHANNEL, true);
         if (signal != -1) {
-            int y = signal % 1000;
-            return new MapLocation((signal-y)/1000, y);
+            int y = signal % 100;
+            return new MapLocation((signal-y)/100, y);
         }
         signal = Communication.readBroadcast(MIL_CHANNEL, true);
         if (signal != -1) {
-            int y = signal % 1000;
-            return new MapLocation((signal-y)/1000, y);
+            int y = signal % 100;
+            return new MapLocation((signal-y)/100, y);
         }
         return null;
     }
