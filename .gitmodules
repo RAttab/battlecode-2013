@@ -1,0 +1,6 @@
+[submodule "battlecode-client"]
+	path = battlecode-client
+	url = git@github.com:battlecode/battlecode-client.git
+[submodule "battlecode-server"]
+	path = battlecode-server
+	url = git@github.com:battlecode/battlecode-server.git
