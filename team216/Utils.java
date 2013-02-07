@@ -1,4 +1,4 @@
-package bobot;
+package team216;
 
 import battlecode.common.*;
 
@@ -33,5 +33,17 @@ public class Utils
     public static double distTwoPoints(
     double p_x, double p_y, double q_x, double q_y){
     	return Math.sqrt((p_x - q_x)*(p_x-q_x) + (p_y-q_y)*(p_y-q_y));
+    }
+    public static MapLocation devsLoveTrollMaps(RobotController rc)
+            throws GameActionException 
+    {
+        MapLocation[] mines = rc.senseNonAlliedMineLocations(rc.senseHQLocation(), 1);
+        if (mines.length > 0){
+            for (int i=mines.length; --i >= 0;) {
+                if (mines[i].isAdjacentTo(rc.getLocation()))
+                    return mines[i];
+            }
+        } 
+        return null;
     }
 }

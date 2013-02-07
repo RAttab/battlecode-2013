@@ -1,4 +1,4 @@
-package bobot;
+package team216;
 
 public class Weights
 {
@@ -48,15 +48,15 @@ public class Weights
     static final double ARTILLERY = 0.1;
     static final double MEDBAY = 0.9;
     static final double MIN_SHIELD_MAPSIZE = 150.00;
-    
+
     static final double SHIELDS_IMPORTANCE = 10.00;
     static final double SUPPLIER_COEF = 0.6;
     public static final double SOLDIER_VAL = 1.05;
     public static final double MIL_CAMP_VAL = 2;
     public static final double MILITARY_DROP = 0.4;
     public static final double MIL_MAPSIZE = 0.01;
-    public static final double STRAT_RATIO = 0.8;
-    public static final double DEF_RATIO = 1-STRAT_RATIO;
+    public static final double STRAT_RATIO = 3.;
+    public static final double DEF_RATIO = 5.;
 
     //HQ Weights
     // static final double 
